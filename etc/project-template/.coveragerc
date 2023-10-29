@@ -1,0 +1,18 @@
+[run]
+relative_files = true
+include = tests/**/*.py
+sigterm = true
+
+[report]
+include = tests/**/*.py
+
+[html]
+directory = coverage/html
+show_contexts = true
+
+[json]
+output = coverage/coverage.json
+pretty_print = true
+
+[xml]
+output = coverage/coverage.xml
