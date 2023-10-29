@@ -9,6 +9,10 @@ class Command:
     self.opts = {}
     self.rtn = None
 
+  def run(self, argv):
+    self.parse_argv(self, argv)
+    self.exec()
+
   def parse_argv(self, argv):
     self.argv = argv.copy()
     while argv:
@@ -36,9 +40,6 @@ class Command:
     self.name = name
     return self
 
-  def run(self):
-    return self.rtn
-
   def opt(self, key, *default):
     if key in self.opts:
       return self.opts[key]
@@ -46,6 +47,12 @@ class Command:
       return default[0]
     return self.opts_default()[key]
 
+
+  # OVERRIDE:
+  def exec(self):
+    return self.rtn
+
+  # OVERRIDE:
   def opts_default(self):
     return {
     }

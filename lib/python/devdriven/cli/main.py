@@ -5,7 +5,7 @@ import re
 import sys
 from datetime import datetime
 import urllib3
-from .command import Command
+# from .command import Command
 
 # from icecream import ic, install
 #install()
@@ -27,8 +27,8 @@ class Main:
     log.basicConfig(level=log.INFO)
     # self.prog_name = argv.pop(0)
     self.argv = argv.copy()
-    self.commands = self.parse_commands(argv.copy())
-    self.results = self.run_commands(self.commands)
+    self.parse_argv(argv.copy())
+    self.results = self.exec()
     self.output = self.prepare_output(self.results)
     self.emit_output(self.output)
     if self.errors and not self.exit_code:
@@ -36,6 +36,13 @@ class Main:
     if not self.exit_code:
       self.exit_code = 0
     return self
+
+  def parse_argv(self, argv):
+    self.commands = self.parse_commands(argv)
+    return self
+
+  def exec(self):
+    return self.exec_commands(self.commands)
 
   def parse_commands(self, argv):
     commands = []
@@ -53,16 +60,16 @@ class Main:
       commands.append(self.make_command(command_argv))
     return commands
 
-  def run_commands(self, commands):
-    results = [self.run_command(command) for command in commands]
+  def exec_commands(self, commands):
+    results = [self.exec_command(command) for command in commands]
     errors = [(command, self.error_string(error)) for command, ok, error in results if not ok]
     self.errors.extend(errors)
     result = [(command, rtn) for command, ok, rtn in results if ok]
     return result
 
-  def run_command(self, command):
+  def exec_command(self, command):
     try:
-      return (command, True, command.run())
+      return (command, True, command.exec())
     except Exception as exc:
       log.error(exc)
       return (command, False, exc)
@@ -84,6 +91,7 @@ class Main:
   # OVERRIDE:
   def make_command(self, argv):
     raise Exception("make_command(self, argv): not implemented")
+    # return Command().parse_argv(argv).run()
 
   # OVERRIDE:
   def arg_is_command_separator(self, arg):
