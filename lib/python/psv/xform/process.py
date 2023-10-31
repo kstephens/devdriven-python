@@ -93,8 +93,8 @@ class AddSequence(Base):
     out = inp.copy()
     out[col] = range(start, start + len(out) * step, step)
     return out
-register(AddSequence, 'add-sequence', [''],
-         synposis="Add a column with a sequence of numbers.",
+register(AddSequence, 'add-sequence', ['seq'],
+         synopsis="Add a column with a sequence of numbers.",
          args={'NEW-COLUMN': "defaults to __i__"},
          opts={'start': 'start at: defaults to 1.',
                'step':  'step by: defaults to 1.'})

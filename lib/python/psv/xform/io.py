@@ -22,7 +22,8 @@ class IoIn(Base):
     return Path(self.args[0])
 register(IoIn, 'in', ['i'],
          synopsis="Read input.",
-         args={"-": "denotes stdin"})
+         args={"FILE ...": "input files.",
+               "-": "denotes stdin"})
 
 class IoOut(Base):
   def xform(self, inp):
@@ -36,7 +37,8 @@ class IoOut(Base):
     return None
 register(IoOut, 'out', ['o'],
          synopsis="Write output.",
-         args={"-": "denotes stdout"})
+         args={"FILE ...": "output files.",
+               "-": "denotes stdout"})
 
 class NullXform(Base):
   def xform(self, inp):

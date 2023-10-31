@@ -35,4 +35,3 @@ class Help(base.Base):
     return MarkdownOut().xform(df)
 base.register(Help, 'help', [],
          synopsis="THis help document.")
-
