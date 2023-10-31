@@ -20,7 +20,9 @@ class IoIn(Base):
     if not self.args:
       self.args.append('-')
     return Path(self.args[0])
-register(IoIn, 'in')
+register(IoIn, 'in', ['i'],
+         synopsis="Read input.",
+         args={"-": "denotes stdin"})
 
 class IoOut(Base):
   def xform(self, inp):
@@ -32,12 +34,15 @@ class IoOut(Base):
     for arg in self.args:
       write_file(arg, inp)
     return None
-register(IoOut, 'out')
+register(IoOut, 'out', ['o'],
+         synopsis="Write output.",
+         args={"-": "denotes stdout"})
 
 class NullXform(Base):
   def xform(self, inp):
     return inp
-register(NullXform, 'null')
+register(NullXform, 'null', [],
+         synopsis="Does nothing")
 
 def read_file(filename, encoding='utf-8'):
   if isinstance(filename, Path):

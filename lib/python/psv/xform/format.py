@@ -32,6 +32,9 @@ class FormatOut(Base):
       out = StringIO()
       self.format_out(inp, out)
       return out.getvalue()
+#    kwargs = {
+#      header=True, index=False, date_format='iso'
+#    }
   def format_out(self, inp, io):
     raise Exception("not implemented")
 
@@ -40,31 +43,40 @@ class FormatOut(Base):
 class TsvIn(FormatIn):
   def format_in(self, io):
     return pd.read_table(io, sep='\t', header=0)
-register(TsvIn, '-tsv')
+register(TsvIn, '-tsv', [],
+         synopsis="Parse TSV rows.")
 
 class TsvOut(FormatOut):
   def format_out(self, inp, io):
     inp.to_csv(io, sep='\t', header=True, index=False, date_format='iso')
-register(TsvOut, 'tsv-')
+register(TsvOut, 'tsv-', [],
+         synopsis="Generate TSV rows.")
 
 class CsvIn(FormatIn):
   def format_in(self, io):
     return pd.read_table(io, sep=',', header=0)
-register(CsvIn, '-csv')
+register(CsvIn, '-csv', [],
+         synopsis="Parse CSV rows.")
 
 class CsvOut(FormatOut):
   def format_out(self, inp, io):
     inp.to_csv(io, header=True, index=False, date_format='iso')
-register(CsvOut, 'csv-')
+register(CsvOut, 'csv-', [],
+        synopsis="Generate CSV rows.")
+
 
 class MarkdownOut(FormatOut):
   def format_out(self, inp, io):
     inp.to_markdown(io, index=False)
     # to_markdown doesn't terminate last line:
     io.write('\n')
-register(MarkdownOut, 'md-', 'markdown', 'md')
+register(MarkdownOut, 'md', ['md-', 'markdown'],
+         synopsis="Generate a Markdown table.")
+
 
 class JsonOut(FormatOut):
   def format_out(self, inp, io):
     return inp.to_json(io, orient='records', date_format='iso', index=False, indent=2)
-register(JsonOut, 'json-', 'json', 'js-')
+register(JsonOut, 'json-', ['json', 'js-'],
+        synopsis="Generate JSON array of objects.")
+

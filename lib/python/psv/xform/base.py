@@ -16,15 +16,28 @@ class Base(devdriven.cli.Command):
     argv = argv[1:]
     return main_make_xform(self.main, name, argv)
 
-CONSTRUCTOR_FOR_NAME = {}
-def register(constructor, *names):
-  for name in names:
-    if name in CONSTRUCTOR_FOR_NAME:
-      raise Exception(f"register: {name!r} is already assigned to {CONSTRUCTOR_FOR_NAME[name]!r}")
-    CONSTRUCTOR_FOR_NAME[name] = constructor
+DESCRIPTORS = []
+def descriptors():
+  return DESCRIPTORS
+DESCRIPTOR_BY_NAME = {}
+def register(constructor, name, aliases, **kwargs):
+  desc = {
+    'synopsis': '',
+    'args': {},
+    'opts': {},
+    } | kwargs | {
+      "constructor": constructor,
+      "name": name,
+      "aliases": aliases,
+    }
+  DESCRIPTORS.append(desc)
+  for name in [name, *aliases]:
+    if name in DESCRIPTOR_BY_NAME:
+      raise Exception(f"register: {name!r} is already assigned to {DESCRIPTOR_BY_NAME[name]!r}")
+    DESCRIPTOR_BY_NAME[name] = desc
 
 def main_make_xform(main, name, argv):
-  xform = CONSTRUCTOR_FOR_NAME[name]()
+  xform = DESCRIPTOR_BY_NAME[name]['constructor']()
   xform.set_main(main)
   xform.set_name(name)
   xform.parse_argv(argv)

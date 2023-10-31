@@ -12,7 +12,11 @@ import pandas as pd
 class Cut(Base):
   def xform(self, inp):
     return inp[self.args]
-register(Cut, 'cut')
+register(Cut, 'cut', ['x'],
+         synopsis="Cut specified columns.",
+         args={
+           'COL ...': 'List of columms to select',
+         })
 
 class Sort(Base):
   def xform(self, inp):
@@ -27,7 +31,12 @@ class Sort(Base):
       cols.append(col)
       ascending.append(order != '-')
     return inp.sort_values(by=cols, ascending=ascending)
-register(Sort, 'sort')
+register(Sort, 'sort', [],
+         synposis="Sort rows by columns.",
+         args={'COL': "Sort by COL ascending",
+               "COL:-": "Sort by COL descending",
+               "COL:+": "Sort by COL ascending",
+         })
 
 class Grep(Base):
   # Alternate: scan multiple times.
@@ -52,20 +61,27 @@ class Grep(Base):
     if has_filter:
       return inp[filter]
     return inp
-register(Grep, 'grep')
+register(Grep, 'grep', ['g'],
+         synopsis='Search for rows where each column matches a regex.',
+         args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 
 def chunks(xs, n):
   n = max(1, n)
   return (xs[i:i+n] for i in range(0, len(xs), n))
 
-class AddIndex(Base):
+class AddSequence(Base):
   def xform(self, inp):
-    # index_name = ((self.args and self.args[0]) or '__index__')
-    out = inp.reset_index()
-    # out['__index__'] = out.index
-    # out = out.rename(columns={'index': index_name})
+    start = int(self.opt('start', 1))
+    step  = int(self.opt('step', 1))
+    col   = (self.args and self.args[0]) or '__i__'
+    out = inp.copy()
+    out[col] = range(start, start + len(out) * step, step)
     return out
-register(AddIndex, 'add-index')
+register(AddSequence, 'add-sequence', [''],
+         synposis="Add a column with a sequence of numbers.",
+         args={'NEW-COLUMN': "defaults to __i__"},
+         opts={'start': 'start at: defaults to 1.',
+               'step':  'step by: defaults to 1.'})
 
 #############
 # metadata
@@ -77,7 +93,8 @@ class Columns(Base):
     out['index'] = out.index
     out = out.rename(columns={'features':'name'})
     return out
-register(Columns, 'cols', 'columns')
+register(Columns, 'columns', ['cols'],
+         synopsis="returns a table of column names and attributes.")
 
 def get_dataframe_info(df):
   df_types = pd.DataFrame(df.dtypes)
@@ -91,13 +108,11 @@ def get_dataframe_info(df):
   # df_null_count = df_null_count.sort_values(by=["null_counts"], ascending=False)
   return df_null_count
 
-class Describe(Base):
+class Stats(Base):
   def xform(self, inp):
     out = inp.describe()
     out['stat'] = out.index
-    # out.reset_index(inplace=True)
-    # out = out.rename(columns={'index':'stat'})
-    out.reset_index(inplace=True, drop=True)
     return out
-register(Describe, 'describe')
+register(Stats, 'stats', ['describe'],
+         synopsis="basic stats of numeric columns")
 

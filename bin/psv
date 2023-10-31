@@ -4,47 +4,5 @@ prog_base="$(readlink -f "$(dirname "$0")/..")"
 # PATH="$prog_base/bin:$PATH"
 [[ -f "$prog_base/venv/bin/activate" ]] && . "$prog_base/venv/bin/activate"
 export PYTHONPATH="$prog_base/lib/python:$PYTHONPATH"
-
-if [[ "$1" == 'help' ]]
-then
-  cat <<EOF
-# Description
-
-???
-
-See: \`bin/$prog_name help\`
-
-# Directories
-
-* ?
-
-# Usage
-
-~~~
-bin/$prog_name [COMMAND] ...
-~~~
-
-# Commands
-
-|                     |                                             |
-| ------------------- | ------------------------------------------- |
-| \`COMMAND-1-???\`   | ???
-| \`COMMAND-2-???\`   | ???
-
-# Examples
-
-~~~
-export FOO=foobar
-bin/$prog_name COMMAND-1
-~~~
-
-# Env Vars
-
-* \`ENVVAR-1\` - ???
-
-EOF
-  # Render: bin/$progname help | markdown_py -x tables -x toc -x fenced_code
-  exit 0
-fi
 exec python3.10 "$0-main.py" "$@"
 

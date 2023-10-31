@@ -47,3 +47,4 @@ class Main(devdriven.cli.Main):
     def exec(self):
       inp = None # ???
       return self.pipeline.xform(inp)
+
