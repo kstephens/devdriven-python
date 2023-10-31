@@ -3,7 +3,7 @@ import json
 import sys
 import devdriven.cli
 from devdriven.to_dict import to_dict
-from .xform import pipeline
+from .xform import pipeline, io
 
 class Main(devdriven.cli.Main):
   def __init__(self):
@@ -36,7 +36,13 @@ class Main(devdriven.cli.Main):
       return self
 
     def parse_pipeline(self, argv):
-      return pipeline.Pipeline().set_main(self.main).set_name('main').parse_argv(argv)
+      pipe = pipeline.Pipeline().set_main(self.main).set_name('main').parse_argv(argv)
+      if pipe.xforms:
+        if not isinstance(pipe.xforms[0], io.In):
+          pipe.xforms.insert(0, io.In())
+        if not isinstance(pipe.xforms[-1], io.Out):
+          pipe.xforms.append(io.Out())
+      return pipe
 
     def exec(self):
       inp = None # ???

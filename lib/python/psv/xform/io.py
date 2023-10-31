@@ -20,7 +20,6 @@ class In(Base):
     if not self.args:
       self.args.append('-')
     return Path(self.args[0])
-    return Paths(self.args)
 register(In, 'in')
 
 class Out(Base):

@@ -13,6 +13,8 @@ class FormatIn(Base):
   def xform(self, inp):
     if isinstance(inp, Path):
       io = str(inp)
+      if io == '-':
+        io = sys.stdin
     else:
       io = StringIO(str(inp))
     return self.format_in(io)
