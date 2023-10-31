@@ -137,6 +137,10 @@ def frequency(seq: Iterable[Any]) -> Dict[Any, int]:
         counts[elem] += 1
     return dict(counts.items())
 
+def chunks(xs, n):
+  n = max(1, n)
+  return (xs[i:i+n] for i in range(0, len(xs), n))
+
 def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
     seen = set()
     result = []

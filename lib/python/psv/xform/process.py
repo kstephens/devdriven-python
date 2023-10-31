@@ -3,6 +3,7 @@ import json
 import re
 import subprocess
 import sys
+from devdriven.util import chunks
 from io import StringIO
 from collections import OrderedDict, Counter
 from pathlib import Path
@@ -85,10 +86,6 @@ register(Grep, 'grep', ['g'],
          synopsis='Search for rows where each column matches a regex.',
          args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 
-def chunks(xs, n):
-  n = max(1, n)
-  return (xs[i:i+n] for i in range(0, len(xs), n))
-
 class AddSequence(Base):
   def xform(self, inp):
     start = int(self.opt('start', 1))
@@ -106,6 +103,14 @@ register(AddSequence, 'add-sequence', ['seq'],
 #############
 # metadata
 
+class RenameColumns(Base):
+  def xform(self, inp):
+    out = inp.rename(columns=dict(chunks(self.args, 2)))
+    return out
+register(RenameColumns, 'rename-columns', ['rename'],
+         synopsis="Rename columns.",
+         args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
+
 class Columns(Base):
   def xform(self, inp):
     out = get_dataframe_info(inp)
@@ -114,7 +119,7 @@ class Columns(Base):
     out = out.rename(columns={'features':'name'})
     return out
 register(Columns, 'columns', ['cols'],
-         synopsis="returns a table of column names and attributes.")
+         synopsis="Table of column names and attributes.")
 
 def get_dataframe_info(df):
   df_types = pd.DataFrame(df.dtypes)
