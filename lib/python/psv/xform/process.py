@@ -14,6 +14,12 @@ class Cut(Base):
     return inp[self.args]
 register(Cut, 'cut')
 
+class Sort(Base):
+  def xform(self, inp):
+    cols = self.args if self.args else list(inp.columns)
+    return inp.sort_values(by=cols)
+register(Sort, 'sort')
+
 class Grep(Base):
   def xform(self, inp):
     filter = has_filter = None
