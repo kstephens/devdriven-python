@@ -40,12 +40,6 @@ register(IoOut, 'out', ['o'],
          args={"FILE ...": "output files.",
                "-": "denotes stdout"})
 
-class NullXform(Base):
-  def xform(self, inp):
-    return inp
-register(NullXform, 'null', [],
-         synopsis="Does nothing")
-
 def read_file(filename, encoding='utf-8'):
   if isinstance(filename, Path):
     filename = str(filename)

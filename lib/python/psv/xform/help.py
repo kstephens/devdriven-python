@@ -4,19 +4,25 @@ import pandas as pd
 
 class Help(base.Base):
   def xform(self, inp):
-    df = pd.DataFrame(columns=['command', 'aliases', 'synopsis', 'argument', 'description'])
+    df = pd.DataFrame(columns=['command', 'synposis', 'argument', 'description'])
     for desc in base.descriptors():
       row = [
         desc['name'],
-        ', '.join(desc['aliases']),
         desc['synopsis'],
         '',
         '',
       ]
       df.loc[len(df.index)] = row
+      if desc['aliases']:
+        row = [
+          '',
+          'Aliases: ' + ', '.join(desc['aliases']),
+          '',
+          '',
+        ]
+        df.loc[len(df.index)] = row
       for arg, doc in desc['args'].items():
         row =  [
-          '',
           '',
           '',
           arg,
@@ -27,11 +33,10 @@ class Help(base.Base):
         row =  [
           '',
           '',
-          '',
           "--" + opt,
           doc,
         ]
         df.loc[len(df.index)] = row
     return MarkdownOut().xform(df)
 base.register(Help, 'help', [],
-         synopsis="THis help document.")
+         synopsis="This help document.")

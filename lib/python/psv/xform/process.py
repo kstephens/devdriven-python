@@ -139,5 +139,10 @@ class Stats(Base):
     out['stat'] = out.index
     return out
 register(Stats, 'stats', ['describe'],
-         synopsis="basic stats of numeric columns")
+         synopsis="Basic stats of numeric columns.")
 
+class NullXform(Base):
+  def xform(self, inp):
+    return inp
+register(NullXform, 'null', [],
+         synopsis="Does nothing.")
