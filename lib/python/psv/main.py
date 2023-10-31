@@ -38,10 +38,10 @@ class Main(devdriven.cli.Main):
     def parse_pipeline(self, argv):
       pipe = pipeline.Pipeline().set_main(self.main).set_name('main').parse_argv(argv)
       if pipe.xforms:
-        if not isinstance(pipe.xforms[0], io.In):
-          pipe.xforms.insert(0, io.In())
-        if not isinstance(pipe.xforms[-1], io.Out):
-          pipe.xforms.append(io.Out())
+        if not isinstance(pipe.xforms[0], io.IoIn):
+          pipe.xforms.insert(0, io.IoIn())
+        if not isinstance(pipe.xforms[-1], io.IoOut):
+          pipe.xforms.append(io.IoOut())
       return pipe
 
     def exec(self):

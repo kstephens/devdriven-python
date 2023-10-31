@@ -15,14 +15,14 @@ class Paths():
       self.str = ''.join(map(read_file, self.paths))
     return self.str
 
-class In(Base):
+class IoIn(Base):
   def xform(self, inp):
     if not self.args:
       self.args.append('-')
     return Path(self.args[0])
-register(In, 'in')
+register(IoIn, 'in')
 
-class Out(Base):
+class IoOut(Base):
   def xform(self, inp):
     inp = str(inp)
     if not self.args:
@@ -30,7 +30,7 @@ class Out(Base):
     for arg in self.args:
       write_file(arg, inp)
     return None
-register(Out, 'out')
+register(IoOut, 'out')
 
 class NullXform(Base):
   def xform(self, inp):
