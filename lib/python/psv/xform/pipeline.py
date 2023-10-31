@@ -15,7 +15,6 @@ class Pipeline(base.Base):
       else:
         xform_argv.append(arg)
     self.parse_xform(xform_argv)
-    ic(self.xforms)
     return self
 
   def parse_xform(self, argv):

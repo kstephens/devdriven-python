@@ -1,5 +1,3 @@
-print(__file__); print(__name__)
-
 from .base import Base, register
 from pathlib import Path
 import sys
@@ -7,23 +5,26 @@ import sys
 class Paths():
   def __init__(self, paths):
     self.paths = list(map(Path, paths))
+    self.str = None
   def __repr__(self):
     return f'Paths({self.paths!r})'
   def to_dict(self):
     return ['Paths:', list(map(str, self.paths))]
   def __str__(self):
-    return ''.join(map(read_file, self.paths))
+    if not self.str:
+      self.str = ''.join(map(read_file, self.paths))
+    return self.str
 
 class In(Base):
   def xform(self, inp):
     if not self.args:
       self.args.append('-')
+    return Path(self.args[0])
     return Paths(self.args)
 register(In, 'in')
 
 class Out(Base):
   def xform(self, inp):
-    ic(inp)
     inp = str(inp)
     if not self.args:
       self.args.append('-')
@@ -37,14 +38,17 @@ class NullXform(Base):
     return inp
 register(NullXform, 'null')
 
-def read_file(filename):
+def read_file(filename, encoding='utf-8'):
+  if isinstance(filename, Path):
+    filename = str(filename)
   if filename == '-':
-    return sys.stdin.read()
-  else:
-    with open(filename, "r", encoding='utf-8') as file:
-      return file.read()
+    return sys.stdin.read().decode(encoding)
+  with open(filename, "r", encoding=encoding) as file:
+    return file.read()
 
 def write_file(filename, data):
+  if isinstance(filename, Path):
+    filename = str(filename)
   if filename == '-':
     sys.stdout.write(data)
   else:

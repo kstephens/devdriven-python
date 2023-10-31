@@ -69,7 +69,7 @@ class Main:
 
   def exec_commands(self, commands):
     results = [self.exec_command(command) for command in commands]
-    errors = [(command, self.error_string(error)) for command, ok, error in results if not ok]
+    errors = [(command, self.error_repr(error)) for command, ok, error in results if not ok]
     self.errors.extend(errors)
     result = [(command, rtn) for command, ok, rtn in results if ok]
     return result
@@ -82,7 +82,7 @@ class Main:
       return (command, False, exc)
 
   def prepare_output(self, results):
-    errors = [[command.name, self.error_string(error)] for (command, error) in self.errors]
+    errors = [[command.name, self.error_repr(error)] for (command, error) in self.errors]
     result = [[command.name, result] for (command, result) in results]
     return {"errors": errors, "result": result}
 
@@ -94,10 +94,8 @@ class Main:
   def output_file(self):
     return sys.stdout
 
-  def error_string(self, err):
-    if hasattr(err, 'message'):
-      return err.message
-    return str(err)
+  def error_repr(self, err):
+    return to_dict(err)
 
   # OVERRIDE:
   def make_command(self, argv):

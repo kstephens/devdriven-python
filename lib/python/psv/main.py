@@ -1,5 +1,8 @@
-print(__file__); print(__name__)
+import logging
+import json
+import sys
 import devdriven.cli
+from devdriven.to_dict import to_dict
 from .xform import pipeline
 
 class Main(devdriven.cli.Main):
@@ -12,6 +15,14 @@ class Main(devdriven.cli.Main):
 
   def arg_is_command_separator(self, arg):
     return (False, arg)
+
+  def emit_output(self, output):
+    output = to_dict(output)
+    logging.debug(json.dumps(output, indent=2))
+    return output
+
+  def output_file(self):
+    return sys.stderr
 
   class MainCommand(devdriven.cli.Command):
     def __init__(self, *args):
