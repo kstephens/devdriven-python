@@ -4,6 +4,7 @@ import json
 import re
 import sys
 from datetime import datetime
+from devdriven.to_dict import to_dict
 import urllib3
 # from .command import Command
 
@@ -86,8 +87,12 @@ class Main:
     return {"errors": errors, "result": result}
 
   def emit_output(self, output):
-    json.dump(output, fp=sys.stdout)
+    output = to_dict(output)
+    json.dump(output, fp=self.output_file())
     return output
+
+  def output_file(self):
+    return sys.stdout
 
   def error_string(self, err):
     if hasattr(err, 'message'):

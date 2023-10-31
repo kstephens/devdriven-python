@@ -7,6 +7,7 @@ class Command:
     self.name = None
     self.args = []
     self.opts = {}
+    self.opts_defaults = {}
     self.rtn = None
 
   def run(self, argv):
@@ -49,14 +50,13 @@ class Command:
       return self.opts[key]
     if default:
       return default[0]
-    return self.opts_default()[key]
+    return self.opt_default(key)
 
+  # OVERRIDE:
+  def opt_default(self, key):
+    return self.opts_defaults.get(key, None)
 
   # OVERRIDE:
   def exec(self):
     return self.rtn
 
-  # OVERRIDE:
-  def opts_default(self):
-    return {
-    }

@@ -17,6 +17,7 @@ class Main(devdriven.cli.Main):
     def __init__(self, *args):
       super().__init__(*args)
       self.prog_name = 'tsv'
+      self.name = 'main'
       self.pipeline = None
 
     def parse_argv(self, argv):
@@ -24,9 +25,8 @@ class Main(devdriven.cli.Main):
       return self
 
     def parse_pipeline(self, argv):
-      return pipeline.Pipeline().set_main(self.main).parse_argv(argv)
+      return pipeline.Pipeline().set_main(self.main).set_name('main').parse_argv(argv)
 
     def exec(self):
       inp = None # ???
       return self.pipeline.xform(inp)
-

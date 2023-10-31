@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 prog_name="$(basename "$0")"
 prog_base="$(readlink -f "$(dirname "$0")/..")"
 # PATH="$prog_base/bin:$PATH"

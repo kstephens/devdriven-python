@@ -11,6 +11,7 @@ class Pipeline(base.Base):
     for arg in argv:
       if arg == '//':
         self.parse_xform(xform_argv)
+        xform_argv = []
       else:
         xform_argv.append(arg)
     self.parse_xform(xform_argv)
@@ -20,9 +21,7 @@ class Pipeline(base.Base):
   def parse_xform(self, argv):
     if argv:
       xform = self.make_xform(argv)
-      xform.parse_argv(argv.copy())
       self.xforms.append(xform)
-      argv.clear()
       return xform
 
   def xform(self, inp):
@@ -31,4 +30,3 @@ class Pipeline(base.Base):
       xform_input = xform_output
       xform_output = xform.xform(xform_input)
     return xform_output
-
