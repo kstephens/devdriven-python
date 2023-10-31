@@ -3,7 +3,7 @@ from devdriven.cli import Main, Command
 class MainTest(Main):
   def make_command(self, argv):
     name = argv.pop(0)
-    return ExampleTest(self).parse_argv(argv).set_name(name)
+    return ExampleTest().parse_argv(argv).set_name(name)
 
   def emit_output(self, output):
     self.output = output
