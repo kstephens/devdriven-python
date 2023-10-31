@@ -75,11 +75,17 @@ class Main:
     return result
 
   def exec_command(self, command):
-    try:
+    if self.capture_exceptions():
+      try:
+        return (command, True, command.exec())
+      except Exception as exc:
+        log.error(exc)
+        return (command, False, exc)
+    else:
       return (command, True, command.exec())
-    except Exception as exc:
-      log.error(exc)
-      return (command, False, exc)
+
+  def capture_exceptions(self):
+    return False
 
   def prepare_output(self, results):
     errors = [[command.name, self.error_repr(error)] for (command, error) in self.errors]
