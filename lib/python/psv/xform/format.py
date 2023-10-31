@@ -44,7 +44,7 @@ register(TsvIn, '-tsv')
 
 class TsvOut(FormatOut):
   def format_out(self, inp, io):
-    return inp.to_csv(io, sep='\t', header=True, index=False)
+    inp.to_csv(io, sep='\t', header=True, index=False, date_format='iso')
 register(TsvOut, 'tsv-')
 
 class CsvIn(FormatIn):
@@ -54,7 +54,7 @@ register(CsvIn, '-csv')
 
 class CsvOut(FormatOut):
   def format_out(self, inp, io):
-    return inp.to_csv(io, header=True, index=False)
+    inp.to_csv(io, header=True, index=False, date_format='iso')
 register(CsvOut, 'csv-')
 
 class MarkdownOut(FormatOut):
