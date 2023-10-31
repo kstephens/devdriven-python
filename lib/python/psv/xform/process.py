@@ -11,8 +11,11 @@ import pandas as pd
 
 class Cut(Base):
   def xform(self, inp):
+    return inp[self.select_columns(inp, self.args)]
+
+  def select_columns(self, inp, args):
     selected = []
-    for col in self.args:
+    for col in args:
       action = '+'
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
         col = mtch.group(1)
@@ -25,7 +28,8 @@ class Cut(Base):
         selected = [x for x in selected if x not in cols]
       else:
         selected = selected + [x for x in cols if x not in selected]
-    return inp[selected]
+    return selected
+
 register(Cut, 'cut', ['x'],
          synopsis="Cut specified columns.",
          args={
