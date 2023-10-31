@@ -59,7 +59,9 @@ register(CsvOut, 'csv-')
 
 class MarkdownOut(FormatOut):
   def format_out(self, inp, io):
-    return inp.to_markdown(io, index=False)
+    inp.to_markdown(io, index=False)
+    # to_markdown doesn't terminate last line:
+    io.write('\n')
 register(MarkdownOut, 'md-', 'markdown', 'md')
 
 class JsonOut(FormatOut):
