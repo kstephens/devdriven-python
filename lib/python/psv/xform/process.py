@@ -11,11 +11,27 @@ import pandas as pd
 
 class Cut(Base):
   def xform(self, inp):
-    return inp[self.args]
+    selected = []
+    for col in self.args:
+      action = '+'
+      if mtch := re.match(r'^([^:]+):([-+]?)$', col):
+        col = mtch.group(1)
+        action = mtch.group(2)
+      if col == '*':
+        cols = list(inp.columns)
+      else:
+        cols = [col]
+      if action == '-':
+        selected = [x for x in selected if x not in cols]
+      else:
+        selected = selected + [x for x in cols if x not in selected]
+    return inp[selected]
 register(Cut, 'cut', ['x'],
          synopsis="Cut specified columns.",
          args={
            'COL ...': 'List of columms to select',
+           '*': 'Add all columns.',
+           'COL:-': "Remove column.",
          })
 
 class Sort(Base):
