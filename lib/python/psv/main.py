@@ -10,6 +10,14 @@ class Main(devdriven.cli.Main):
     super().__init__()
     self.prog_name = 'tsv'
 
+  def main(self, argv):
+    sys.exit(self.run(sys.argv).exit_code)
+
+  def parse_argv(self, argv):
+    if not argv:
+      argv = ['help']
+    return super().parse_argv(argv)
+
   def make_command(self, argv):
     return Main.MainCommand().parse_argv(argv)
 
@@ -48,3 +56,5 @@ class Main(devdriven.cli.Main):
       inp = None # ???
       return self.pipeline.xform(inp)
 
+if __name__ == '__main__':
+  sys.exit(Main().run(sys.argv).exit_code)

@@ -4,5 +4,5 @@ prog_base="$(readlink -f "$(dirname "$0")/..")"
 # PATH="$prog_base/bin:$PATH"
 [[ -f "$prog_base/venv/bin/activate" ]] && . "$prog_base/venv/bin/activate"
 export PYTHONPATH="$prog_base/lib/python:$PYTHONPATH"
-exec python3.10 "$0-main.py" "$@"
+exec python3.10 -m psv.main "$@"
 
