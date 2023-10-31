@@ -16,8 +16,17 @@ register(Cut, 'cut')
 
 class Sort(Base):
   def xform(self, inp):
-    cols = self.args if self.args else list(inp.columns)
-    return inp.sort_values(by=cols)
+    specified_cols = self.args if self.args else list(inp.columns)
+    cols = []
+    ascending = []
+    for col in specified_cols:
+      order = '+'
+      if mtch := re.match(r'^([^:]+):([-+]?)$', col):
+        col = mtch.group(1)
+        order = mtch.group(2)
+      cols.append(col)
+      ascending.append(order != '-')
+    return inp.sort_values(by=cols, ascending=ascending)
 register(Sort, 'sort')
 
 class Grep(Base):
