@@ -1,8 +1,8 @@
 import re
 
 class Command:
-  def __init__(self, main):
-    self.main = main
+  def __init__(self):
+    self.main = None
     self.argv = []
     self.name = None
     self.args = []
@@ -38,6 +38,10 @@ class Command:
 
   def set_name(self, name):
     self.name = name
+    return self
+
+  def set_main(self, main):
+    self.main = main
     return self
 
   def opt(self, key, *default):

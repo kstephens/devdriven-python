@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+set -x
 prog_name="$(basename "$0")"
 prog_base="$(readlink -f "$(dirname "$0")/..")"
-PATH="$prog_base/bin:$PATH"
+# PATH="$prog_base/bin:$PATH"
 [[ -f "$prog_base/venv/bin/activate" ]] && . "$prog_base/venv/bin/activate"
 export PYTHONPATH="$prog_base/lib/python:$PYTHONPATH"
+
 if [[ "$1" == 'help' ]]
 then
   cat <<EOF
@@ -45,4 +47,5 @@ EOF
   # Render: bin/$progname help | markdown_py -x tables -x toc -x fenced_code
   exit 0
 fi
-exec "$0.py" "$@"
+exec python3.10 "$0-main.py" "$@"
+

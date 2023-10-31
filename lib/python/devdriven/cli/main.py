@@ -7,7 +7,7 @@ from datetime import datetime
 import urllib3
 # from .command import Command
 
-# from icecream import ic, install
+#from icecream import ic, install
 #install()
 #ic.configureOutput(includeContext=True)
 
@@ -27,7 +27,7 @@ class Main:
     log.basicConfig(level=log.INFO)
     # self.prog_name = argv.pop(0)
     self.argv = argv.copy()
-    self.parse_argv(argv.copy())
+    self.parse_argv(argv[1:])
     self.results = self.exec()
     self.output = self.prepare_output(self.results)
     self.emit_output(self.output)
@@ -52,13 +52,19 @@ class Main:
       (separated, last_arg) = self.arg_is_command_separator(arg)
       if separated and last_arg:
         command_argv.append(last_arg)
-        commands.append(self.make_command(command_argv))
+        self.build_command(commands, command_argv)
         command_argv = []
       else:
         command_argv.append(arg)
-    if command_argv:
-      commands.append(self.make_command(command_argv))
+    self.build_command(commands, command_argv)
     return commands
+
+  def build_command(self, commands, argv):
+    if argv:
+      command = self.make_command(argv)
+      command.main = self
+      commands.append(self.make_command(argv))
+      return command
 
   def exec_commands(self, commands):
     results = [self.exec_command(command) for command in commands]
