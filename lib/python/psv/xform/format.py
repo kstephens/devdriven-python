@@ -20,19 +20,20 @@ class FormatIn(Base):
     return self.format_in(io)
   def format_in(self, io):
     raise Exception("not implemented")
-    return None
 
 class FormatOut(Base):
   def xform(self, inp):
     if self.args:
-      self.format_out(inp, self.args[0])
+      file = self.args[0]
+      if file == '-':
+        file = sys.stdout
+      self.format_out(inp, file)
     else:
       out = StringIO()
       self.format_out(inp, out)
       return out.getvalue()
   def format_out(self, inp, io):
     raise Exception("not implemented")
-    return None
 
 ############################
 

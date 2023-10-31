@@ -24,6 +24,8 @@ register(IoIn, 'in')
 
 class IoOut(Base):
   def xform(self, inp):
+    if inp is None:
+      return None
     inp = str(inp)
     if not self.args:
       self.args.append('-')
