@@ -1,4 +1,5 @@
 import subprocess
+import time
 from devdriven import util
 
 def test_maybe_decode_bytes():
@@ -71,9 +72,12 @@ def test_file_nlines():
   assert util.file_nlines('Does-Not-Exist') is None
 
 def test_elapsed_ms():
-  result, dt_ms = util.elapsed_ms(lambda x, y: 1 + x + y, 2, y=3)
+  result, dt_ms = util.elapsed_ms(take_some_time, 2, y=3)
   assert result == 6
-  assert dt_ms > 0
+  assert dt_ms >= 50
+def take_some_time(x, y):
+  time.sleep(0.050)
+  return 1 + x + y
 
 def test_diff_files():
   assert util.file_nlines('tests/data/expected.txt') == 11
