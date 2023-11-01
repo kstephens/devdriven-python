@@ -17,7 +17,7 @@ class ExampleTest(Command):
     return rtn
 
 def test_results():
-  argv = 'cmd1 -flag --a=1 --b 2 arg1 arg2 -- --foo=bar, cmd2 a b, cmd3 RAISE error'.split(' ')
+  argv = 'test.exe cmd1 -flag --a=1 --b 2 arg1 arg2 -- --foo=bar, cmd2 a b, cmd3 RAISE error'.split(' ')
   main = MainTest().run(argv)
   # print(repr(main.output))
   expected = {

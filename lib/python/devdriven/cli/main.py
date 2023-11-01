@@ -111,6 +111,6 @@ class Main:
 
   # OVERRIDE:
   def arg_is_command_separator(self, arg):
-    if mtch := re.match(r'^(.*),$', arg):
+    if mtch := re.match(r'^(.+),$', arg):
       return (True, mtch.group(1))
     return (False, arg)
