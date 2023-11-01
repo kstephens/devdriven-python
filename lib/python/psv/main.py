@@ -55,6 +55,7 @@ class Main(devdriven.cli.Main):
       return pipe
 
     def exec(self):
+      self.env['history'] = []
       self.env.update({'now': self.main.now})
       inp = None  # ???
       return self.pipeline.xform(inp, self.env)

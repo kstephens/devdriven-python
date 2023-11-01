@@ -24,8 +24,13 @@ class Pipeline(command.Command):
       return xform
 
   def xform(self, inp, env):
+    history = env['history']
     xform_output = xform_input = inp
     for xform in self.xforms:
+      current = [[ xform.name, *xform.argv ],
+                 None]
+      history.append(current)
       xform_input = xform_output
       xform_output = xform.xform(xform_input, env)
+      current[1] = xform_output
     return xform_output
