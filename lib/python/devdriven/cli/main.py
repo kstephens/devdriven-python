@@ -18,6 +18,7 @@ class Main:
     self.http = urllib3.PoolManager()
     self.now = datetime.now()
     self.prog_name = None
+    self.argv0 = None
     self.argv = []
     self.commands = []
     self.results = []
@@ -29,6 +30,7 @@ class Main:
     log.basicConfig(level=log.INFO)
     # self.prog_name = argv.pop(0)
     self.argv = argv.copy()
+    self.argv0 = argv[0]
     self.parse_argv(argv[1:])
     self.results = self.exec()
     self.output = self.prepare_output(self.results)
