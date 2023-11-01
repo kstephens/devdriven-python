@@ -11,7 +11,7 @@ class Command:
     self.rtn = None
 
   def run(self, argv):
-    self.parse_argv(self, argv)
+    self.parse_argv(argv)
     self.exec()
 
   def parse_argv(self, argv):
