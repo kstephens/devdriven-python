@@ -63,5 +63,5 @@ class Main(devdriven.cli.Main):
 
 if __name__ == '__main__':
   instance = Main()
-  instance.prog_path = os.environ['prog_path']
+  instance.prog_path = os.environ['PSV_PROG_PATH']
   sys.exit(instance.run(sys.argv).exit_code)
