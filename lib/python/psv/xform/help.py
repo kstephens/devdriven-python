@@ -3,7 +3,7 @@ from .format import MarkdownOut
 import pandas as pd
 
 class Help(base.Base):
-  def xform(self, inp):
+  def xform(self, _inp):
     df = pd.DataFrame(columns=['command', 'synposis', 'argument', 'description'])
     for desc in base.descriptors():
       row = [
