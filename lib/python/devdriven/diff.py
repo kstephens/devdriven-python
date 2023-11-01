@@ -1,17 +1,5 @@
-import os
-import subprocess
-import logging
-import inspect
-import time
-from .util import file_nlines, exec_command
-from contextlib import contextmanager
-from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
-from collections import defaultdict
-
-Predicate = Callable[[Any], Any]
-Func1 = Callable[[Any], Any]
-FuncAny = Callable[..., Any]
-SubprocessResult = Any  # subprocess.CompletedProcess
+from typing import Any, Dict, Optional
+from devdriven.util import file_nlines, exec_command
 
 def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
   expected = file_nlines(expected_file, None)
