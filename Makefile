@@ -43,10 +43,12 @@ venv-upgrade-tools:
 	pip install --upgrade pip ;\
 	pip install --upgrade setuptools ;\
 	pip install --upgrade distlib ;\
+	$(MAKE) venv-install-requirements
+
+venv-install-requirements: requirements.txt dev-requirements.txt
 	. venv/bin/activate ;\
 	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
-venv-install-requirements: requirements.txt dev-requirements.txt
-	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
+
 venv-force:
 	rm -rf venv/
 	$(MAKE) venv
