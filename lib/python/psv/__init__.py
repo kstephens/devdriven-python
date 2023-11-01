@@ -3,3 +3,4 @@
 from icecream import ic, install
 install()
 ic.configureOutput(includeContext=True)
+from . import command, pipeline, io, format, process, metadata, repl, example, help

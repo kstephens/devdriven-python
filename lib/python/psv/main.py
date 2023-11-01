@@ -4,7 +4,7 @@ import sys
 import os
 import devdriven.cli
 from devdriven.to_dict import to_dict
-from . import command, pipeline, io, format, process, metadata, repl, example, help
+from . import pipeline, io
 
 class Main(devdriven.cli.Main):
   def __init__(self):
