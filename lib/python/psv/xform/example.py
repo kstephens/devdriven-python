@@ -7,7 +7,7 @@ from devdriven.util import cwd
 import shlex
 
 class Example(base.Base):
-  def xform(self, _inp):
+  def xform(self, _inp, _env):
     comments = []
     lines = self.examples()
     while lines:

@@ -9,7 +9,7 @@ class Base(devdriven.cli.Command):
   def __call__(self, *args):
     return self.xform(*args)
 
-  def xform(self, inp):
+  def xform(self, inp, _env):
     return inp
 
   def make_xform(self, argv):

@@ -3,7 +3,7 @@ from .format import MarkdownOut
 import pandas as pd
 
 class Help(base.Base):
-  def xform(self, _inp):
+  def xform(self, _inp, env):
     df = pd.DataFrame(columns=['command', 'synposis', 'argument', 'description'])
     for desc in base.descriptors():
       row = [
@@ -37,6 +37,6 @@ class Help(base.Base):
           doc,
         ]
         df.loc[len(df.index)] = row
-    return MarkdownOut().xform(df)
+    return MarkdownOut().xform(df, env)
 base.register(Help, 'help', [],
          synopsis="This help document.")

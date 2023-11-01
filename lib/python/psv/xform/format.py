@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 class FormatIn(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     if isinstance(inp, Path):
       io = str(inp)
       if io == '-':
@@ -20,7 +20,7 @@ class FormatIn(Base):
     not_implemented()
 
 class FormatOut(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     if self.args:
       file = self.args[0]
       if file == '-':

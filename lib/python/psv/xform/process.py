@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 class Range(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     start = int(self.arg_or_opt(0, 'start', 0))
     end  =  int(self.arg_or_opt(1, 'end', len(inp)))
     step  = int(self.arg_or_opt(2, 'step', 1))
@@ -33,13 +33,13 @@ register(Range, 'range', [],
                'step':  'step by: defaults to 1.'})
 
 class Reverse(Base):
-  def xform(self, inp):
-    return self.make_xform(['range', '--step', '-1']).xform(inp)
+  def xform(self, inp, env):
+    return self.make_xform(['range', '--step', '-1']).xform(inp, env)
 register(Reverse, 'reverse', ['tac'],
          synopsis='Reverse rows.  Same as "range --step -1"')
 
 class Cut(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     return inp[self.select_columns(inp, self.args)]
 
   def select_columns(self, inp, args):
@@ -68,7 +68,7 @@ register(Cut, 'cut', ['x'],
          })
 
 class Sort(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     specified_cols = self.args if self.args else list(inp.columns)
     cols = []
     ascending = []
@@ -88,7 +88,7 @@ register(Sort, 'sort', [],
          })
 
 class Grep(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     filter = has_filter = None
     # https://stackoverflow.com/a/31076657/1141958
     for col, pat in chunks(self.args, 2):
@@ -106,7 +106,7 @@ register(Grep, 'grep', ['g'],
          args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 
 class Stats(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     out = inp.describe()
     out['stat'] = out.index
     return out
@@ -114,7 +114,7 @@ register(Stats, 'stats', ['describe'],
          synopsis="Basic stats of numeric columns.")
 
 class NullXform(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     return inp
 register(NullXform, 'null', [],
          synopsis="Does nothing.")

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 class AddSequence(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     col   = str(self.arg_or_opt(0, 'column', '__i__'))
     start = int(self.arg_or_opt(1, 'start', 1))
     step  = int(self.arg_or_opt(2, 'step', 1))
@@ -23,7 +23,7 @@ register(AddSequence, 'add-sequence', ['seq'],
                'step':  'step by: defaults to 1.'})
 
 class RenameColumns(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     out = inp.rename(columns=dict(chunks(self.args, 2)))
     return out
 register(RenameColumns, 'rename-columns', ['rename'],
@@ -31,7 +31,7 @@ register(RenameColumns, 'rename-columns', ['rename'],
          args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
 
 class Columns(Base):
-  def xform(self, inp):
+  def xform(self, inp, _env):
     out = get_dataframe_info(inp)
     out.reset_index(inplace=True)
     out['index'] = out.index

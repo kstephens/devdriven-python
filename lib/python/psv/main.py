@@ -51,8 +51,9 @@ class Main(devdriven.cli.Main):
       return pipe
 
     def exec(self):
+      self.env = {'now': self.main.now}
       inp = None  # ???
-      return self.pipeline.xform(inp)
+      return self.pipeline.xform(inp, self.env)
 
 
 if __name__ == '__main__':

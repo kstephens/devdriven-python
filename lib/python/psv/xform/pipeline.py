@@ -23,9 +23,9 @@ class Pipeline(base.Base):
       self.xforms.append(xform)
       return xform
 
-  def xform(self, inp):
+  def xform(self, inp, env):
     xform_output = xform_input = inp
     for xform in self.xforms:
       xform_input = xform_output
-      xform_output = xform.xform(xform_input)
+      xform_output = xform.xform(xform_input, env)
     return xform_output

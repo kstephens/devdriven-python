@@ -16,22 +16,25 @@ class Paths():
     return self.str
 
 class IoIn(Base):
-  def xform(self, inp):
+  def xform(self, _inp, env):
     if not self.args:
       self.args.append('-')
-    return Path(self.args[0])
+    path = Path(self.args[0])
+    env['input.paths'] = [ str(path) ]
+    return path
 register(IoIn, 'in', ['i'],
          synopsis="Read input.",
          args={"FILE ...": "input files.",
                "-": "denotes stdin"})
 
 class IoOut(Base):
-  def xform(self, inp):
+  def xform(self, inp, env):
     if inp is None:
       return None
     inp = str(inp)
     if not self.args:
       self.args.append('-')
+    env['output.paths'] = list(map(str, self.args))
     for arg in self.args:
       write_file(arg, inp)
     return None
