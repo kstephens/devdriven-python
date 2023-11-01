@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+export prog_path="$(readlink -f "$0")"
 prog_name="$(basename "$0")"
-prog_base="$(readlink -f "$(dirname "$0")/..")"
+prog_base="$(readlink -f "$(dirname "$prog_path")/..")"
 # PATH="$prog_base/bin:$PATH"
 [[ -f "$prog_base/venv/bin/activate" ]] && . "$prog_base/venv/bin/activate"
 export PYTHONPATH="$prog_base/lib/python:$PYTHONPATH"
 exec python3.10 -m psv.main "$@"
-

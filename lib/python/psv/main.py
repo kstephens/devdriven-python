@@ -1,6 +1,7 @@
 import logging
 import json
 import sys
+import os
 import devdriven.cli
 from devdriven.to_dict import to_dict
 from .xform import pipeline, io
@@ -55,4 +56,6 @@ class Main(devdriven.cli.Main):
 
 
 if __name__ == '__main__':
-  sys.exit(Main().run(sys.argv).exit_code)
+  instance = Main()
+  instance.prog_path = os.environ['prog_path']
+  sys.exit(instance.run(sys.argv).exit_code)

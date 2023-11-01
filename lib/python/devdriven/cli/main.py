@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 from devdriven.util import not_implemented
 from devdriven.to_dict import to_dict
+from pathlib import Path
 import urllib3
 # from .command import Command
 
@@ -19,6 +20,9 @@ class Main:
     self.now = datetime.now()
     self.prog_name = None
     self.argv0 = None
+    self.prog_path = None
+    self.bin_dir = None
+    self.root_dir = None
     self.argv = []
     self.commands = []
     self.results = []
@@ -28,9 +32,7 @@ class Main:
 
   def run(self, argv):
     log.basicConfig(level=log.INFO)
-    # self.prog_name = argv.pop(0)
-    self.argv = argv.copy()
-    self.argv0 = argv[0]
+    self.set_argv(argv)
     self.parse_argv(argv[1:])
     self.results = self.exec()
     self.output = self.prepare_output(self.results)
@@ -39,6 +41,17 @@ class Main:
       self.exit_code = 1
     if not self.exit_code:
       self.exit_code = 0
+    return self
+
+  def set_argv(self, argv):
+    self.argv = argv.copy()
+    self.argv0 = argv[0]
+    if not self.prog_path:
+      self.prog_path = str(Path(self.argv0).absolute())
+    if not self.bin_dir:
+      self.bin_dir = str(Path(self.prog_path).parent)
+    if not self.root_dir:
+      self.root_dir = str(Path(self.bin_dir) / '..')
     return self
 
   def parse_argv(self, argv):
