@@ -60,10 +60,10 @@ def test_walk_subprocess():
 def test_walk_subprocess_error():
   fut = devdriven.to_dict.to_dict
   with pytest.raises(subprocess.CalledProcessError) as exc_info:
-    subprocess.run(['/bin/false'], check=True)
+    subprocess.run(['false'], check=True)
   assert fut(exc_info.value) == {
     'class': 'CalledProcessError',
-    'message': "Command '['/bin/false']' returned non-zero exit status 1.",
+    'message': "Command '['false']' returned non-zero exit status 1.",
     'returncode': 1,
     'stdout': None,
     'stderr': None,
