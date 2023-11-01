@@ -1,1 +1,1 @@
-from . import base, pipeline, io, format, process, help
+from . import base, pipeline, io, format, process, metadata, help
