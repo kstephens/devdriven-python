@@ -10,6 +10,34 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import pandas as pd
 
+class Range(Base):
+  def xform(self, inp):
+    start = int(self.arg_or_opt(0, 'start', 0))
+    end  =  int(self.arg_or_opt(1, 'end', len(inp)))
+    step  = int(self.arg_or_opt(2, 'step', 1))
+    reverse = False
+    if end < start:
+      start, end = end, start
+    if step < 0:
+      step = - step
+      reverse = True
+    index = range(start, end, step)
+    out = inp.iloc[index]
+    if reverse:
+      out = out.iloc[::-1]
+    return out
+register(Range, 'range', [],
+         synopsis="Select a sequence of rows.",
+         args={'start': "defaults to __i__"},
+         opts={'start': 'start at: defaults to 1.',
+               'step':  'step by: defaults to 1.'})
+
+class Reverse(Base):
+  def xform(self, inp):
+    return self.make_xform(['range', '--step', '-1']).xform(inp)
+register(Reverse, 'reverse', ['tac'],
+         synopsis='Reverse rows.  Same as "range --step -1"')
+
 class Cut(Base):
   def xform(self, inp):
     return inp[self.select_columns(inp, self.args)]

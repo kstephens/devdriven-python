@@ -12,6 +12,12 @@ Func1 = Callable[[Any], Any]
 FuncAny = Callable[..., Any]
 SubprocessResult = Any  # subprocess.CompletedProcess
 
+def get_safe(items, key, default=None):
+  try:
+    return items[key]
+  except (KeyError, IndexError):
+    return default
+
 def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optional[str]:
   if obj is None:
     return None

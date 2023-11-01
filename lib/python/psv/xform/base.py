@@ -1,4 +1,5 @@
 import devdriven.cli
+from devdriven.util import get_safe
 
 class Base(devdriven.cli.Command):
 #  def parse_argv(self, argv):
@@ -15,6 +16,9 @@ class Base(devdriven.cli.Command):
     name = argv[0]
     argv = argv[1:]
     return main_make_xform(self.main, name, argv)
+
+  def arg_or_opt(self, i, k, default):
+    return get_safe(self.args, i, get_safe(self.opts, k, default))
 
 DESCRIPTORS = []
 def descriptors():

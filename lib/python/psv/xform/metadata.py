@@ -1,6 +1,6 @@
 from .base import Base, register
 import re
-from devdriven.util import chunks
+from devdriven.util import chunks, get_safe
 from io import StringIO
 from collections import OrderedDict, Counter
 from pathlib import Path
@@ -9,15 +9,16 @@ import pandas as pd
 
 class AddSequence(Base):
   def xform(self, inp):
-    start = int(self.opt('start', 1))
-    step  = int(self.opt('step', 1))
-    col   = (self.args and self.args[0]) or '__i__'
+    col   = str(self.arg_or_opt(0, 'column', '__i__'))
+    start = int(self.arg_or_opt(1, 'start', 1))
+    step  = int(self.arg_or_opt(2, 'step', 1))
+    seq = range(start, start + len(inp) * step, step)
     out = inp.copy()
-    out[col] = range(start, start + len(out) * step, step)
+    out[col] = seq
     return out
 register(AddSequence, 'add-sequence', ['seq'],
          synopsis="Add a column with a sequence of numbers.",
-         args={'NEW-COLUMN': "defaults to __i__"},
+         args={'column': "defaults to __i__"},
          opts={'start': 'start at: defaults to 1.',
                'step':  'step by: defaults to 1.'})
 
