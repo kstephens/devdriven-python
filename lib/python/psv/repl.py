@@ -3,13 +3,12 @@ import readline
 import rlcompleter
 from io import StringIO
 from collections import OrderedDict, Counter
-from pathlib import Path
 from datetime import datetime, timedelta
 import pandas as pd
 # from devdriven.util import chunks, get_safe
-from .base import Base, register
+from .command import Command, register
 
-class Repl(Base):
+class Repl(Command):
   def xform(self, inp, env):
     readline_completer_save = readline.get_completer()
     try:

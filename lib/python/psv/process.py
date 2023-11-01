@@ -1,4 +1,4 @@
-from .base import Base, register
+from .command import Command, register
 import json
 import re
 import subprocess
@@ -10,7 +10,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import pandas as pd
 
-class Range(Base):
+class Range(Command):
   def xform(self, inp, _env):
     start = int(self.arg_or_opt(0, 'start', 0))
     end  =  int(self.arg_or_opt(1, 'end', len(inp)))
@@ -32,13 +32,13 @@ register(Range, 'range', [],
          opts={'start': 'start at: defaults to 1.',
                'step':  'step by: defaults to 1.'})
 
-class Reverse(Base):
+class Reverse(Command):
   def xform(self, inp, env):
     return self.make_xform(['range', '--step', '-1']).xform(inp, env)
 register(Reverse, 'reverse', ['tac'],
          synopsis='Reverse rows.  Same as "range --step -1"')
 
-class Cut(Base):
+class Cut(Command):
   def xform(self, inp, _env):
     return inp[self.select_columns(inp, self.args)]
 
@@ -67,7 +67,7 @@ register(Cut, 'cut', ['x'],
            'COL:-': "Remove column.",
          })
 
-class Sort(Base):
+class Sort(Command):
   def xform(self, inp, _env):
     specified_cols = self.args if self.args else list(inp.columns)
     cols = []
@@ -87,7 +87,7 @@ register(Sort, 'sort', [],
                "COL:+": "Sort by COL ascending",
          })
 
-class Grep(Base):
+class Grep(Command):
   def xform(self, inp, _env):
     filter = has_filter = None
     # https://stackoverflow.com/a/31076657/1141958
@@ -105,7 +105,7 @@ register(Grep, 'grep', ['g'],
          synopsis='Search for rows where each column matches a regex.',
          args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 
-class Stats(Base):
+class Stats(Command):
   def xform(self, inp, _env):
     out = inp.describe()
     out['stat'] = out.index
@@ -113,7 +113,7 @@ class Stats(Base):
 register(Stats, 'stats', ['describe'],
          synopsis="Basic stats of numeric columns.")
 
-class NullXform(Base):
+class NullXform(Command):
   def xform(self, inp, _env):
     return inp
 register(NullXform, 'null', [],

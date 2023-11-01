@@ -1,7 +1,7 @@
 import devdriven.cli
 from devdriven.util import get_safe
 
-class Base(devdriven.cli.Command):
+class Command(devdriven.cli.Command):
 #  def parse_argv(self, argv):
 #    super().parse_argv(argv)
 #    return self

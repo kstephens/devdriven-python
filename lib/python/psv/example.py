@@ -1,4 +1,4 @@
-from . import base
+from . import command
 import re
 import os
 import sys
@@ -6,7 +6,7 @@ import subprocess
 from devdriven.util import cwd
 import shlex
 
-class Example(base.Base):
+class Example(command.Command):
   def xform(self, _inp, _env):
     comments = []
     lines = self.examples()
@@ -91,5 +91,5 @@ $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
 
 '''.splitlines()
 
-base.register(Example, 'example', [],
+command.register(Example, 'example', [],
               synopsis="Show examples.")

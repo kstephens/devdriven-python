@@ -4,12 +4,13 @@ import sys
 import os
 import devdriven.cli
 from devdriven.to_dict import to_dict
-from .xform import pipeline, io
+from . import command, pipeline, io, format, process, metadata, repl, example, help
 
 class Main(devdriven.cli.Main):
   def __init__(self):
     super().__init__()
     self.prog_name = 'tsv'
+    self.env = {}
 
   def parse_argv(self, argv):
     if not argv:
@@ -17,7 +18,9 @@ class Main(devdriven.cli.Main):
     return super().parse_argv(argv)
 
   def make_command(self, argv):
-    return Main.MainCommand().set_main(self).parse_argv(argv)
+    cmd = Main.MainCommand().set_main(self).parse_argv(argv)
+    cmd.env = self.env
+    return cmd
 
   def arg_is_command_separator(self, arg):
     return (False, arg)
@@ -36,6 +39,7 @@ class Main(devdriven.cli.Main):
       self.prog_name = 'tsv'
       self.name = 'main'
       self.pipeline = None
+      self.env = None
 
     def parse_argv(self, argv):
       self.pipeline = self.parse_pipeline(argv)
@@ -51,7 +55,7 @@ class Main(devdriven.cli.Main):
       return pipe
 
     def exec(self):
-      self.env = {'now': self.main.now}
+      self.env.update({'now': self.main.now})
       inp = None  # ???
       return self.pipeline.xform(inp, self.env)
 

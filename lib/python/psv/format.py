@@ -1,4 +1,4 @@
-from .base import Base, register
+from .command import Command, register
 import sys
 from devdriven.util import not_implemented
 from io import StringIO
@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import pandas as pd
 
-class FormatIn(Base):
+class FormatIn(Command):
   def xform(self, inp, _env):
     if isinstance(inp, Path):
       io = str(inp)
@@ -19,7 +19,7 @@ class FormatIn(Base):
   def format_in(self, io):
     not_implemented()
 
-class FormatOut(Base):
+class FormatOut(Command):
   def xform(self, inp, _env):
     if self.args:
       file = self.args[0]

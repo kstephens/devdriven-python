@@ -1,6 +1,6 @@
-from . import base
+from . import command
 
-class Pipeline(base.Base):
+class Pipeline(command.Command):
   def __init___(self, *args):
     super().__init__(*args)
     self.xforms = []

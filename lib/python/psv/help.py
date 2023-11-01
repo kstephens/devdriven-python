@@ -1,11 +1,11 @@
-from . import base
+from . import command
 from .format import MarkdownOut
 import pandas as pd
 
-class Help(base.Base):
+class Help(command.Command):
   def xform(self, _inp, env):
     df = pd.DataFrame(columns=['command', 'synposis', 'argument', 'description'])
-    for desc in base.descriptors():
+    for desc in command.descriptors():
       row = [
         desc['name'],
         desc['synopsis'],
@@ -38,5 +38,5 @@ class Help(base.Base):
         ]
         df.loc[len(df.index)] = row
     return MarkdownOut().xform(df, env)
-base.register(Help, 'help', [],
+command.register(Help, 'help', [],
          synopsis="This help document.")

@@ -1,5 +1,4 @@
-from .base import Base, register
-import re
+from .command import Command, register
 from devdriven.util import chunks, get_safe
 from io import StringIO
 from collections import OrderedDict, Counter
@@ -7,7 +6,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import pandas as pd
 
-class AddSequence(Base):
+class AddSequence(Command):
   def xform(self, inp, _env):
     col   = str(self.arg_or_opt(0, 'column', '__i__'))
     start = int(self.arg_or_opt(1, 'start', 1))
@@ -22,7 +21,7 @@ register(AddSequence, 'add-sequence', ['seq'],
          opts={'start': 'start at: defaults to 1.',
                'step':  'step by: defaults to 1.'})
 
-class RenameColumns(Base):
+class RenameColumns(Command):
   def xform(self, inp, _env):
     out = inp.rename(columns=dict(chunks(self.args, 2)))
     return out
@@ -30,7 +29,7 @@ register(RenameColumns, 'rename-columns', ['rename'],
          synopsis="Rename columns.",
          args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
 
-class Columns(Base):
+class Columns(Command):
   def xform(self, inp, _env):
     out = get_dataframe_info(inp)
     out.reset_index(inplace=True)

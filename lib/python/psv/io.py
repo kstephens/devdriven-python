@@ -1,4 +1,4 @@
-from .base import Base, register
+from .command import Command, register
 from pathlib import Path
 import sys
 
@@ -15,7 +15,7 @@ class Paths():
       self.str = ''.join(map(read_file, self.paths))
     return self.str
 
-class IoIn(Base):
+class IoIn(Command):
   def xform(self, _inp, env):
     if not self.args:
       self.args.append('-')
@@ -27,7 +27,7 @@ register(IoIn, 'in', ['i'],
          args={"FILE ...": "input files.",
                "-": "denotes stdin"})
 
-class IoOut(Base):
+class IoOut(Command):
   def xform(self, inp, env):
     if inp is None:
       return None
