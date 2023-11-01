@@ -83,11 +83,11 @@ git rev-parse --verify commit_1
 git rev-parse --verify commit_2
 git rev-parse --verify commit_3
 git rev-parse --verify commit_4
-  '''
-  return [run(cmd) for cmd in commands.splitlines()]
+    '''
+    return [run(cmd) for cmd in commands.splitlines()]
 
 def teardown_module():
   print("teardown_module")
 
 def run(cmd):
-  system('exec >/dev/null; exec 2>&1; set -x; ' + cmd)
+  system(f'exec 2>&1; set -e; cd "{TMP_DIR}"; set -x; ' + cmd)
