@@ -10,9 +10,6 @@ class Main(devdriven.cli.Main):
     super().__init__()
     self.prog_name = 'tsv'
 
-  def main(self, argv):
-    sys.exit(self.run(sys.argv).exit_code)
-
   def parse_argv(self, argv):
     if not argv:
       argv = ['help']

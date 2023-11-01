@@ -1,8 +1,6 @@
 from .base import Base, register
-import json
-import re
-import subprocess
 import sys
+from devdriven.util import not_implemented
 from io import StringIO
 from collections import OrderedDict, Counter
 from pathlib import Path
@@ -19,7 +17,7 @@ class FormatIn(Base):
       io = StringIO(str(inp))
     return self.format_in(io)
   def format_in(self, io):
-    raise Exception("not implemented")
+    not_implemented()
 
 class FormatOut(Base):
   def xform(self, inp):
@@ -36,7 +34,7 @@ class FormatOut(Base):
 #      header=True, index=False, date_format='iso'
 #    }
   def format_out(self, inp, io):
-    raise Exception("not implemented")
+    not_implemented()
 
 ############################
 

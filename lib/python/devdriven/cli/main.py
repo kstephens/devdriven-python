@@ -4,6 +4,7 @@ import json
 import re
 import sys
 from datetime import datetime
+from devdriven.util import not_implemented
 from devdriven.to_dict import to_dict
 import urllib3
 # from .command import Command
@@ -105,7 +106,7 @@ class Main:
 
   # OVERRIDE:
   def make_command(self, argv):
-    raise Exception("make_command(self, argv): not implemented")
+    not_implemented()
     # return Command().parse_argv(argv).run()
 
   # OVERRIDE:
