@@ -72,7 +72,6 @@ class Grep(Base):
     filter = has_filter = None
     # https://stackoverflow.com/a/31076657/1141958
     for col, pat in chunks(self.args, 2):
-      # ic(col); ic(pat)
       match = inp[col].str.match(re.compile(pat))
       if has_filter:
         filter = filter & match

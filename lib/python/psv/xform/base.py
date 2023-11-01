@@ -19,7 +19,11 @@ class Base(devdriven.cli.Command):
 DESCRIPTORS = []
 def descriptors():
   return DESCRIPTORS
+
 DESCRIPTOR_BY_NAME = {}
+def descriptor(name, default=None):
+  return DESCRIPTOR_BY_NAME.get(name, default)
+
 def register(constructor, name, aliases, **kwargs):
   desc = {
     'synopsis': '',
@@ -30,13 +34,16 @@ def register(constructor, name, aliases, **kwargs):
       "name": name,
       "aliases": aliases,
     }
-  DESCRIPTORS.append(desc)
   for name in [name, *aliases]:
-    if name in DESCRIPTOR_BY_NAME:
-      raise Exception(f"register: {name!r} is already assigned to {DESCRIPTOR_BY_NAME[name]!r}")
+    if assigned := descriptor(name):
+      raise Exception(f"register: {name!r} is already assigned to {assigned!r}")
     DESCRIPTOR_BY_NAME[name] = desc
+  DESCRIPTORS.append(desc)
 
 def main_make_xform(main, name, argv):
+  assert(main)
+  if name not in DESCRIPTOR_BY_NAME:
+    raise Exception(f'unknown command: {name!r} : see help')
   xform = DESCRIPTOR_BY_NAME[name]['constructor']()
   xform.set_main(main)
   xform.set_name(name)

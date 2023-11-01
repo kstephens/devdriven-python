@@ -17,7 +17,7 @@ class Main(devdriven.cli.Main):
     return super().parse_argv(argv)
 
   def make_command(self, argv):
-    return Main.MainCommand().parse_argv(argv)
+    return Main.MainCommand().set_main(self).parse_argv(argv)
 
   def arg_is_command_separator(self, arg):
     return (False, arg)
