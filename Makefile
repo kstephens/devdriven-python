@@ -11,8 +11,8 @@ VENV_OPTS=--clear
 # OSX HAS WRECKED brew python3.*:
 #VENV_OPTS+=--copies
 
-BIN_FILES=$(shell grep -Erl '^\#!.+ python' bin)
-LIB_FILES=$(wildcard lib/**/*.py)
+BIN_FILES=$(shell grep -Erl '^\#!.+python' bin)
+LIB_FILES=$(wildcard lib/python/**/*.py)
 TEST_FILES=$(wildcard tests/**/*.py)
 LINT_FILES=$(BIN_FILES) $(LIB_FILES) $(TEST_FILES)
 MYPY_FILES=$(shell grep -Elr '^ *from typing import ' $(LINT_FILES))
@@ -97,4 +97,4 @@ env:
 	. venv/bin/activate; env | sort
 
 vars:
-	@$(foreach v,BIN_FILES LIB_FILES TEST_FILES MYPY_FILES,echo '$(v)=$($(v))'; )
+	@$(foreach v,BIN_FILES LIB_FILES TEST_FILES LINT_FILES MYPY_FILES,echo '$(v)=$($(v))'; )

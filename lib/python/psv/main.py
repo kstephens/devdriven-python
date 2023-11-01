@@ -53,8 +53,9 @@ class Main(devdriven.cli.Main):
       return pipe
 
     def exec(self):
-      inp = None # ???
+      inp = None  # ???
       return self.pipeline.xform(inp)
+
 
 if __name__ == '__main__':
   sys.exit(Main().run(sys.argv).exit_code)
