@@ -66,3 +66,21 @@ class GitLog:
     logging.debug('lines %d', len(lines))
     return sorted([GitCommit(self.directory, line) for line in lines],
                   key=lambda g: g.timestamp)
+
+class GitRevParse:
+  def __init__(self, directory='.'):
+    self.directory = os.path.normpath(directory)
+
+  def rev_parse(self, ref, *opts):
+    result = util.exec_command(
+      [
+        'git', '-C', self.directory,
+        'rev-parse', '--verify',
+        ref,
+        *opts,
+      ],
+      check=True, capture_output=True)
+    return sorted(result.stdout.decode('utf-8').splitlines())
+
+def rev_parse(dir, ref, *opts):
+    return GitRevParse(dir).rev_parse(ref, *opts)
