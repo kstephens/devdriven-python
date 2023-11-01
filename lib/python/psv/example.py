@@ -22,7 +22,7 @@ class Example(command.Command):
         print('')
 
   def run_example(self, example):
-    with cwd(f'{self.main.root_dir}/tmp'):
+    with cwd(f'{self.main.root_dir}/example'):
       if re.match(r'\|<|>', example):
         self.run_command(example)
       elif re.match(r'^psv ', example):
@@ -50,6 +50,9 @@ class Example(command.Command):
     return '''
 # csv: Convert tsv to csv:
 $ psv in a.tsv // -tsv // csv-
+
+# csv: Convert tsv to csv and save to a file:
+$ psv in a.tsv // -tsv // csv- // out a.csv
 
 # md: Convert tsv on stdin to Markdown:
 $ cat a.tsv | psv -tsv // md
