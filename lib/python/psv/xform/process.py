@@ -88,14 +88,6 @@ register(Sort, 'sort', [],
          })
 
 class Grep(Base):
-  # Alternate: scan multiple times.
-  def xform_(self, inp):
-    out = inp
-    # https://stackoverflow.com/a/31076657/1141958
-    for col, pat in chunks(self.args, 2):
-      out = out[out[col].str.match(re.compile(pat))]
-    return out
-
   def xform(self, inp):
     filter = has_filter = None
     # https://stackoverflow.com/a/31076657/1141958
