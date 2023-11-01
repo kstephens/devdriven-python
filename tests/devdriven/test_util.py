@@ -66,7 +66,7 @@ def test_file_md5():
   assert util.file_md5('Does-Not-Exist') is None
 
 def test_file_nlines():
-  assert util.file_nlines('tests/data/expected.txt', default=2) == 11
+  assert util.file_nlines('tests/devdriven/data/expected.txt', default=2) == 11
   assert util.file_nlines('/dev/null', default=3) == 0
   assert util.file_nlines('Does-Not-Exist', default=5) == 5
   assert util.file_nlines('Does-Not-Exist') is None
@@ -80,10 +80,10 @@ def take_some_time(x, y):
   return 1 + x + y
 
 def test_diff_files():
-  assert util.file_nlines('tests/data/expected.txt') == 11
-  assert util.file_nlines('tests/data/actual.txt') == 10
+  assert util.file_nlines('tests/devdriven/data/expected.txt') == 11
+  assert util.file_nlines('tests/devdriven/data/actual.txt') == 10
 
-  result = util.diff_files('tests/data/expected.txt', 'tests/data/actual.txt')
+  result = util.diff_files('tests/devdriven/data/expected.txt', 'tests/devdriven/data/actual.txt')
   expected = {
     "correct": False,
     "expected": 11,
@@ -97,7 +97,7 @@ def test_diff_files():
   }
   assert result == expected
 
-  result = util.diff_files('tests/data/expected.txt', 'tests/data/expected.txt')
+  result = util.diff_files('tests/devdriven/data/expected.txt', 'tests/devdriven/data/expected.txt')
   expected = {
     "correct": True,
     "expected": 11,
@@ -111,7 +111,7 @@ def test_diff_files():
   }
   assert result == expected
 
-  result = util.diff_files('tests/data/expected.txt', 'Does-Not-Exist.txt')
+  result = util.diff_files('tests/devdriven/data/expected.txt', 'Does-Not-Exist.txt')
   expected = {
     "correct": False,
     "expected": 11,
