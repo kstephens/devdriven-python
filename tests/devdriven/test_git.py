@@ -3,10 +3,6 @@ from os import system
 from devdriven.util import cwd
 from devdriven.git import GitLog, GitDiff, rev_parse
 
-from icecream import ic, install
-install()
-ic.configureOutput(includeContext=True)
-
 TMP_DIR = "tmp/test/test_git"
 
 def test_commits_between():
