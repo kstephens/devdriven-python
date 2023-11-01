@@ -3,6 +3,7 @@ import subprocess
 import logging
 import inspect
 import time
+from contextlib import contextmanager
 from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
 from collections import defaultdict
 
@@ -154,6 +155,15 @@ def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
 
 def not_implemented() -> None:
   raise NotImplementedError(inspect.stack()[1][3])
+
+@contextmanager
+def cwd(path):
+  oldpwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(oldpwd)
 
 def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
   expected = file_nlines(expected_file, None)
