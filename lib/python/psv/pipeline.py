@@ -22,6 +22,7 @@ class Pipeline(command.Command):
       xform = self.make_xform(argv)
       self.xforms.append(xform)
       return xform
+    return None
 
   def xform(self, inp, env):
     history = env['history']

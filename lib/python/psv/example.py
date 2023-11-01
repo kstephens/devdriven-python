@@ -1,10 +1,9 @@
-from . import command
 import re
 import os
-import sys
 import subprocess
-from devdriven.util import cwd
 import shlex
+from devdriven.util import cwd
+from . import command
 
 class Example(command.Command):
   def xform(self, _inp, _env):
@@ -29,22 +28,21 @@ class Example(command.Command):
         self.run_main(example)
 
   def run_main(self, example):
-        cmd_argv = shlex.split(example)
-        instance = self.main.__class__()
-        instance.prog_path = self.main.prog_path
-        instance.run(cmd_argv)
+    cmd_argv = shlex.split(example)
+    instance = self.main.__class__()
+    instance.prog_path = self.main.prog_path
+    instance.run(cmd_argv)
 
-  def run_command(self, command):
-      env = os.environ
-      env = env | {
-        "PSV_RUNNING": '1',
-        'PATH': f'{self.main.bin_dir}:{env["PATH"]}'
-      }
-      print('$ '+ command)
-      result = subprocess.run(command,
-                              shell=True,
-                              # capture_output=True,
-                              env=env)
+  def run_command(self, cmd):
+    env = os.environ
+    env = env | {
+      "PSV_RUNNING": '1',
+      'PATH': f'{self.main.bin_dir}:{env["PATH"]}'
+    }
+    print('$ '+ cmd)
+    subprocess.run(cmd,
+                   shell=True,
+                   env=env)
 
   def examples(self):
     return '''

@@ -1,14 +1,6 @@
-from .command import Command, register
-import json
 import re
-import subprocess
-import sys
 from devdriven.util import chunks
-from io import StringIO
-from collections import OrderedDict, Counter
-from pathlib import Path
-from datetime import datetime, timedelta
-import pandas as pd
+from .command import Command, register
 
 class Range(Command):
   def xform(self, inp, _env):
@@ -89,17 +81,17 @@ register(Sort, 'sort', [],
 
 class Grep(Command):
   def xform(self, inp, _env):
-    filter = has_filter = None
+    filter_expr = has_filter = None
     # https://stackoverflow.com/a/31076657/1141958
     for col, pat in chunks(self.args, 2):
       match = inp[col].str.match(re.compile(pat))
       if has_filter:
-        filter = filter & match
+        filter_expr = filter_expr & match
       else:
-        filter = match
+        filter_expr = match
       has_filter = True
     if has_filter:
-      return inp[filter]
+      return inp[filter_expr]
     return inp
 register(Grep, 'grep', ['g'],
          synopsis='Search for rows where each column matches a regex.',

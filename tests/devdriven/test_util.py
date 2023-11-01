@@ -72,12 +72,12 @@ def test_file_nlines():
   assert util.file_nlines('Does-Not-Exist') is None
 
 def test_elapsed_ms():
-  result, dt_ms = util.elapsed_ms(take_some_time, 2, y=3)
+  result, dt_ms = util.elapsed_ms(take_some_time, 2, arg2=3)
   assert result == 6
   assert dt_ms >= 50
-def take_some_time(x, y):
+def take_some_time(arg1, arg2):
   time.sleep(0.050)
-  return 1 + x + y
+  return 1 + arg1 + arg2
 
 def test_diff_files():
   assert util.file_nlines('tests/devdriven/data/expected.txt') == 11

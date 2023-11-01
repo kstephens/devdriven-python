@@ -1,10 +1,6 @@
-from .command import Command, register
-from devdriven.util import chunks, get_safe
-from io import StringIO
-from collections import OrderedDict, Counter
-from pathlib import Path
-from datetime import datetime, timedelta
+from devdriven.util import chunks
 import pandas as pd
+from .command import Command, register
 
 class AddSequence(Command):
   def xform(self, inp, _env):
@@ -39,9 +35,9 @@ class Columns(Command):
 register(Columns, 'columns', ['cols'],
          synopsis="Table of column names and attributes.")
 
-def get_dataframe_info(df):
-  df_types = pd.DataFrame(df.dtypes)
-  df_nulls = df.count()
+def get_dataframe_info(dframe):
+  df_types = pd.DataFrame(dframe.dtypes)
+  df_nulls = dframe.count()
   df_null_count = pd.concat([df_types, df_nulls], axis=1)
   df_null_count = df_null_count.reset_index()
   # Reassign column names

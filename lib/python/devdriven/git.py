@@ -82,5 +82,5 @@ class GitRevParse:
       check=True, capture_output=True)
     return sorted(result.stdout.decode('utf-8').splitlines())
 
-def rev_parse(dir, ref, *opts):
-    return GitRevParse(dir).rev_parse(ref, *opts)
+def rev_parse(directory, ref, *opts):
+  return GitRevParse(directory).rev_parse(ref, *opts)

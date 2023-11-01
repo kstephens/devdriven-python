@@ -1,6 +1,6 @@
-from .command import Command, register
 from pathlib import Path
 import sys
+from .command import Command, register
 
 class Paths():
   def __init__(self, paths):
@@ -59,4 +59,3 @@ def write_file(filename, data):
   else:
     with open(filename, "w", encoding='utf-8') as file:
       file.write(data)
-

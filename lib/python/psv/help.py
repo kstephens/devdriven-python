@@ -1,10 +1,10 @@
-from . import command
-from .format import MarkdownOut
 import pandas as pd
+from .format import MarkdownOut
+from . import command
 
 class Help(command.Command):
   def xform(self, _inp, env):
-    df = pd.DataFrame(columns=['command', 'synposis', 'argument', 'description'])
+    tab = pd.DataFrame(columns=['command', 'synposis', 'argument', 'description'])
     for desc in command.descriptors():
       row = [
         desc['name'],
@@ -12,7 +12,7 @@ class Help(command.Command):
         '',
         '',
       ]
-      df.loc[len(df.index)] = row
+      tab.loc[len(tab.index)] = row
       if desc['aliases']:
         row = [
           '',
@@ -20,7 +20,7 @@ class Help(command.Command):
           '',
           '',
         ]
-        df.loc[len(df.index)] = row
+        tab.loc[len(tab.index)] = row
       for arg, doc in desc['args'].items():
         row =  [
           '',
@@ -28,7 +28,7 @@ class Help(command.Command):
           arg,
           doc,
         ]
-        df.loc[len(df.index)] = row
+        tab.loc[len(tab.index)] = row
       for opt, doc in desc['opts'].items():
         row =  [
           '',
@@ -36,7 +36,7 @@ class Help(command.Command):
           "--" + opt,
           doc,
         ]
-        df.loc[len(df.index)] = row
-    return MarkdownOut().xform(df, env)
+        tab.loc[len(tab.index)] = row
+    return MarkdownOut().xform(tab, env)
 command.register(Help, 'help', [],
          synopsis="This help document.")

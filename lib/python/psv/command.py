@@ -38,14 +38,14 @@ def register(constructor, name, aliases, **kwargs):
       "name": name,
       "aliases": aliases,
     }
-  for name in [name, *aliases]:
-    if assigned := descriptor(name):
-      raise Exception(f"register: {name!r} is already assigned to {assigned!r}")
-    DESCRIPTOR_BY_NAME[name] = desc
+  for arg in [name, *aliases]:
+    if assigned := descriptor(arg):
+      raise Exception(f"register: {arg!r} is already assigned to {assigned!r}")
+    DESCRIPTOR_BY_NAME[arg] = desc
   DESCRIPTORS.append(desc)
 
 def main_make_xform(main, name, argv):
-  assert(main)
+  assert main
   if name not in DESCRIPTOR_BY_NAME:
     raise Exception(f'unknown command: {name!r} : see help')
   xform = DESCRIPTOR_BY_NAME[name]['constructor']()

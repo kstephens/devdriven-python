@@ -3,7 +3,7 @@ from os import system
 from devdriven.util import cwd
 from devdriven.git import GitLog, GitDiff, rev_parse
 
-TMP_DIR = "tmp/test/test_git"
+TMP_DIR = "/tmp/devdriven-python/test/test_git"
 
 def test_commits_between():
   base_dir = TMP_DIR
@@ -24,7 +24,7 @@ def test_commits_between():
   ref_1 = rev_parse(TMP_DIR, 'commit_1')[0]
   ref_2 = rev_parse(TMP_DIR, 'commit_2')[0]
   ref_3 = rev_parse(TMP_DIR, 'commit_3')[0]
-  ref_4 = rev_parse(TMP_DIR, 'commit_4')[0]
+  _ref_4 = rev_parse(TMP_DIR, 'commit_4')[0]
   expected_refs = {
     ref_1,
     ref_2,
@@ -83,11 +83,11 @@ git rev-parse --verify commit_1
 git rev-parse --verify commit_2
 git rev-parse --verify commit_3
 git rev-parse --verify commit_4
-    '''
-    [run(cmd) for cmd in commands.splitlines()]
+  '''
+  return [run(cmd) for cmd in commands.splitlines()]
 
 def teardown_module():
-    print("teardown_module")
+  print("teardown_module")
 
 def run(cmd):
   system('exec >/dev/null; exec 2>&1; set -x; ' + cmd)
