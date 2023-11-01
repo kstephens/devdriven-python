@@ -66,8 +66,10 @@ class Main:
   def build_command(self, commands, argv):
     if argv:
       command = self.make_command(argv)
+      if not command:
+        return
       command.main = self
-      commands.append(self.make_command(argv))
+      commands.append(command)
       return command
 
   def exec_commands(self, commands):
@@ -78,7 +80,7 @@ class Main:
     return result
 
   def exec_command(self, command):
-    if self.capture_exceptions():
+    if self.capture_exceptions(command):
       try:
         return (command, True, command.exec())
       except Exception as exc:
@@ -87,7 +89,7 @@ class Main:
     else:
       return (command, True, command.exec())
 
-  def capture_exceptions(self):
+  def capture_exceptions(self, _command):
     return False
 
   def prepare_output(self, results):
@@ -107,9 +109,9 @@ class Main:
     return to_dict(err)
 
   # OVERRIDE:
-  def make_command(self, argv):
+  def make_command(self, _argv):
     not_implemented()
-    # return Command().parse_argv(argv).run()
+    return False
 
   # OVERRIDE:
   def arg_is_command_separator(self, arg):

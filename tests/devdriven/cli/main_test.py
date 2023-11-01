@@ -5,12 +5,15 @@ class MainTest(Main):
     name = argv.pop(0)
     return ExampleTest().parse_argv(argv).set_name(name)
 
+  def capture_exceptions(self, _command):
+    return True
+
   def emit_output(self, output):
     self.output = output
     self.exit_code = 0
 
 class ExampleTest(Command):
-  def run(self):
+  def exec(self):
     rtn = ['OK', self.args, self.opts]
     if self.args and self.args[0] == 'RAISE':
       raise Exception("ERROR")
@@ -22,7 +25,7 @@ def test_results():
   # print(repr(main.output))
   expected = {
     'errors': [
-      ['cmd3', 'ERROR']
+      ['cmd3', {'class': 'Exception', 'message': 'ERROR'}]
     ],
     'result': [
       ['cmd1',
