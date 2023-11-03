@@ -18,6 +18,12 @@ def get_safe(items, key, default=None):
   except (KeyError, IndexError):
     return default
 
+def shorten_string(a_str, max_len, placeholder='...'):
+  if len(a_str) > max_len:
+    end = max(0, max_len - len(placeholder) + 1)
+    return a_str[:end] + placeholder
+  return a_str
+
 def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optional[str]:
   if obj is None:
     return None
