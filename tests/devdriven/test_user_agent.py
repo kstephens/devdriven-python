@@ -1,4 +1,5 @@
 from pprint import pprint
+from io import StringIO
 import os
 import contextlib
 import yurl
@@ -61,12 +62,22 @@ def test_file_get_403():
   assert response.headers['Content-Type'] == 'text/plain'
   assert 'ETag' not in response.headers
 
+def test_file_get_stdin():
+  test_stdin = StringIO("STDIN\n")
+  response = file_fut('get', '-', headers={'X-STDIN': test_stdin})
+  assert response.status == 200
+  assert response._body == b'STDIN\n'
+  assert 'Content-Type' not in response.headers
+  assert 'ETag' not in response.headers
+
 def test_file_put_stdout():
-  response = file_fut('put', '-', body=b'STDOUT\n')
+  test_stdout = StringIO()
+  response = file_fut('put', '-', headers={'X-STDOUT': test_stdout}, body=b'STDOUT\n')
   assert response.status == 201
   assert response._body == b'201 Created'
   assert response.headers['Content-Type'] == 'text/plain'
   assert 'ETag' not in response.headers
+  assert test_stdout.getvalue() == 'STDOUT\n'
 
 
 def test_http_get_200():
@@ -79,17 +90,18 @@ def test_http_get_200():
 def file_fut(method, url, headers=None, body=None):
   fun = UserAgent.FileResponse().request
   response = assert_response(fun, method, yurl.URL(url), headers, body)
-  pprint(response)
-  if url != '-':
+  # pprint(response)
+  if url == '-':
+    return response
+  else:
     assert int(response.headers['Content-Length']) == len(response._body)
   return http_fut(method, url, headers, body)
 
 def http_fut(method, url, headers=None, body=None):
-  fun = UserAgent().request
-  return assert_response(fun, method, url, headers, body)
+  return assert_response(UserAgent().request, method, url, headers, body)
 
 def assert_response(fun, method, url, headers, body):
-  pprint((method, url, headers, body))
+  # pprint((method, url, headers, body))
   response = fun(method, url, headers, body)
   if not 200 <= response.status <= 299:
     assert 'ETag' not in response.headers

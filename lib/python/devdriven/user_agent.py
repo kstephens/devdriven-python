@@ -26,16 +26,12 @@ class UserAgent():
       url = self.base_url + url
     scheme = self.url_flavor(url)
     headers = (self.headers or {}) | (headers or {})
-    return getattr(self, f'request_{scheme}')(method, url, headers, body)
+    return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body)
 
-  def request_tuple(self, method, url, headers=None, body=None):
-    response = self.request(method, url, headers=headers, body=body)
-    return (response.status, response.headers, response._body)
-
-  def request_http(self, method, url, headers, body):
+  def _request_scheme_http(self, method, url, headers, body):
     return self.http.request(method, str(url), headers=headers, body=body)
 
-  def request_file(self, method, url, headers, body):
+  def _request_scheme_file(self, method, url, headers, body):
     return UserAgent.FileResponse().request(method, url, headers, body)
 
   def url_flavor(self, url):
@@ -51,44 +47,42 @@ class UserAgent():
     def __init__(self):
       self.method = self.url = self.file_path = self.is_stdio = None
       self.status = self.headers = self._body = None
+      self.stdin = self.stdout = None
       self.encoding = 'utf-8'
 
-    def request_tuple(self, method, url, headers=None, body=None):
-      self.request(method, url, headers, body)
-      return (self.status, self.headers, self._body)
-
-    def request(self, method, url, headers=None, body=None):
+    def request(self, method, url, headers, body):
       self.method = method.upper()
       self.url = url
       self.file_path = url.path
-      self.stdin = sys.stdin
-      self.stdout = sys.stdout
       self.is_stdio = self.file_path == '-'
       # TODO: Use urllib3 Header data type.
       self.headers = (headers or {})
-      getattr(self, f"method_{method.lower()}")(body)
+      self.stdin = self.headers.pop("X-STDIN", sys.stdin)
+      self.stdout = self.headers.pop("X-STDOUT", sys.stdout)
+      getattr(self, f"_request_method_{method.lower()}")(body)
       return self
 
-    def method_get(self, _body):
+    def _request_method_get(self, _body):
       self.open_with_error_handling("rb", self.read_file)
       return self
 
-    def method_put(self, body):
+    def _request_method_put(self, body):
       self.open_with_error_handling("wb", self.write_file, body)
       return self
 
     def read_file(self, file):
       if self.is_stdio:
         body = self.stdin.read().encode(self.encoding)
+        headers = {}
       else:
         body = file.read()
-      # ???: Can return multiple shapes?
-      # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
-      (type, _encoding) = mimetypes.guess_type(self.file_path)
-      header = {
-        'Content-Type': type,
-      }
-      return self.complete(200, header, body)
+        # ???: Can return multiple shapes?
+        # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
+        (type, _encoding) = mimetypes.guess_type(self.file_path)
+        headers = {
+          'Content-Type': type,
+        }
+      return self.complete(200, headers, body)
 
     def write_file(self, file, body):
       if self.is_stdio:
