@@ -6,6 +6,7 @@ from datetime import datetime
 from email.utils import formatdate
 from http.client import responses
 import urllib3
+from urllib3 import HTTPHeaderDict
 import yurl
 
 class UserAgent():
@@ -28,8 +29,8 @@ class UserAgent():
     return getattr(self, f'request_{scheme}')(method, url, headers, body)
 
   def request_tuple(self, method, url, headers=None, body=None):
-    result = self.request(method, url, headers=headers, body=body)
-    return (result.status, result.headers, result._body)
+    response = self.request(method, url, headers=headers, body=body)
+    return (response.status, response.headers, response._body)
 
   def request_http(self, method, url, headers, body):
     return self.http.request(method, str(url), headers=headers, body=body)
@@ -151,7 +152,7 @@ class UserAgent():
         'Content-Length': str(len(body)),
         'X-XSS-Protection': '0',
       }
-      return (status, self.headers | basic_headers | headers, body)
+      return (status, HTTPHeaderDict(self.headers | basic_headers | headers), body)
 
 
 # https://stackoverflow.com/questions/225086/rfc-1123-date-representation-in-python
