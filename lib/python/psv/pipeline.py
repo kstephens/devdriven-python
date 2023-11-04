@@ -1,3 +1,7 @@
+import shlex
+import pandas as pd
+from devdriven.util import shorten_string
+from .content import Content
 from . import command
 
 class Pipeline(command.Command):
@@ -28,10 +32,23 @@ class Pipeline(command.Command):
     history = env['history']
     xform_output = xform_input = inp
     for xform in self.xforms:
-      current = [[ xform.name, *xform.argv ],
-                 None]
+      current = [ describe_datum(xform), None, None ]
       history.append(current)
       xform_input = xform_output
       xform_output = xform.xform(xform_input, env)
-      current[1] = xform_output
+      current[1] = describe_datum(xform_output)
+      current[2] = env['content_type']
     return xform_output
+
+def describe_datum(datum):
+  type_name = datum.__class__.__name__
+  if isinstance(datum, command.Command):
+    type_name = "Command"
+    datum = shlex.join([datum.name] + datum.argv)
+  elif isinstance(datum, pd.DataFrame):
+    datum = datum.shape
+  elif isinstance(datum, Content):
+    datum = datum.uri
+  elif isinstance(datum, bytes) or isinstance(datum, list) or isinstance(datum, dict):
+    datum = f'[{len(datum)}]'
+  return f"<< {type_name}: {shorten_string(str(datum), 40)} >>"
