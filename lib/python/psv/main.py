@@ -11,6 +11,7 @@ class Main(devdriven.cli.Main):
     super().__init__()
     self.prog_name = 'tsv'
     self.env = {}
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
   def parse_argv(self, argv):
     if not argv:
