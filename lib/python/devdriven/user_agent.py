@@ -26,6 +26,9 @@ class UserAgent():
       url = self.base_url + url
     scheme = self.url_flavor(url)
     headers = (self.headers or {}) | (headers or {})
+    for k,v in list(headers.items()):
+      if v is None:
+        del headers[k]
     return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body)
 
   def _request_scheme_http(self, method, url, headers, body):
