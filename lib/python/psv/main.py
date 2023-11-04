@@ -33,6 +33,10 @@ class Main(devdriven.cli.Main):
   def output_file(self):
     return sys.stderr
 
+  def parse_pipeline(self, name, argv):
+    pipe = pipeline.Pipeline().set_main(self).set_name(name).parse_argv(argv)
+    return pipe
+
   class MainCommand(devdriven.cli.Command):
     def __init__(self, *args):
       super().__init__(*args)
@@ -42,19 +46,17 @@ class Main(devdriven.cli.Main):
       self.env = None
 
     def parse_argv(self, argv):
-      self.pipeline = self.parse_pipeline(argv)
-      return self
-
-    def parse_pipeline(self, argv):
-      pipe = pipeline.Pipeline().set_main(self.main).set_name('main').parse_argv(argv)
+      pipe = self.main.parse_pipeline('main', argv)
       if pipe.xforms:
         if not isinstance(pipe.xforms[0], io.IoIn):
           pipe.xforms.insert(0, io.IoIn())
         if not isinstance(pipe.xforms[-1], io.IoOut):
           pipe.xforms.append(io.IoOut())
-      return pipe
+      self.pipeline = pipe
+      return self
 
     def exec(self):
+      self.env['content_type'] = None
       self.env['history'] = []
       self.env.update({'now': self.main.now})
       inp = None  # ???

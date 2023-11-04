@@ -1,28 +1,16 @@
 from pathlib import Path
 import sys
+from .content import Content
 from .command import Command, register
-
-class Paths():
-  def __init__(self, paths):
-    self.paths = list(map(Path, paths))
-    self.str = None
-  def __repr__(self):
-    return f'Paths({self.paths!r})'
-  def to_dict(self):
-    return ['Paths:', list(map(str, self.paths))]
-  def __str__(self):
-    if not self.str:
-      self.str = ''.join(map(read_file, self.paths))
-    return self.str
 
 class IoIn(Command):
   def xform(self, _inp, env):
     if not self.args:
       self.args.append('-')
-    path = Path(self.args[0])
-    env['input.paths'] = [ str(path) ]
-    return path
-register(IoIn, 'in', ['i'],
+    content = Content(self.args[0])
+    env['input.paths'] = [ self.args[0] ]
+    return content
+register(IoIn, 'in', ['i', '-i'],
          synopsis="Read input.",
          args={"FILE ...": "input files.",
                "-": "denotes stdin"})
@@ -38,7 +26,7 @@ class IoOut(Command):
     for arg in self.args:
       write_file(arg, inp)
     return None
-register(IoOut, 'out', ['o'],
+register(IoOut, 'out', ['o', 'o-'],
          synopsis="Write output.",
          args={"FILE ...": "output files.",
                "-": "denotes stdout"})
