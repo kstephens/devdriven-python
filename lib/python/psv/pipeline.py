@@ -12,8 +12,17 @@ class Pipeline(command.Command):
   def parse_argv(self, argv):
     self.xforms = []
     xform_argv = []
+    depth = 0
     for arg in argv:
-      if arg == '//':
+      if arg == '{{':
+        depth += 1
+        xform_argv.append(arg)
+      elif arg == '}}':
+        depth -= 1
+        xform_argv.append(arg)
+      elif depth > 0:
+        xform_argv.append(arg)
+      elif arg == '//':
         self.parse_xform(xform_argv)
         xform_argv = []
       else:
