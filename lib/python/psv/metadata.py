@@ -1,8 +1,13 @@
 from devdriven.util import chunks
 from devdriven.to_dict import to_dict
 import pandas as pd
-from .command import Command, register
+from .command import Command, command
 
+@command('add-sequence', ['seq'],
+         synopsis="Add a column with a sequence of numbers.",
+         args={'column': "defaults to __i__"},
+         opts={'start': 'start at: defaults to 1.',
+               'step':  'step by: defaults to 1.'})
 class AddSequence(Command):
   def xform(self, inp, _env):
     col   = str(self.arg_or_opt(0, 'column', '__i__'))
@@ -12,19 +17,23 @@ class AddSequence(Command):
     out = inp.copy()
     out[col] = seq
     return out
-register(AddSequence, 'add-sequence', ['seq'],
-         synopsis="Add a column with a sequence of numbers.",
-         args={'column': "defaults to __i__"},
-         opts={'start': 'start at: defaults to 1.',
-               'step':  'step by: defaults to 1.'})
 
+@command('add-columns', ['add'],
+         synopsis="Add columns.",
+         args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
+class AddColumns(Command):
+  def xform(self, inp, _env):
+    return inp.rename(columns=dict(chunks(self.args, 2)))
+
+@command('rename-columns', ['rename'],
+         synopsis="Rename columns.",
+         args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
 class RenameColumns(Command):
   def xform(self, inp, _env):
     return inp.rename(columns=dict(chunks(self.args, 2)))
-register(RenameColumns, 'rename-columns', ['rename'],
-         synopsis="Rename columns.",
-         args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
 
+@command('show-columns', ['columns', 'cols'],
+         synopsis="Table of column names and attributes.")
 class ShowColumns(Command):
   def xform(self, inp, _env):
     out = get_dataframe_info(inp)
@@ -32,8 +41,6 @@ class ShowColumns(Command):
     out['index'] = out.index
     out = out.rename(columns={'features':'name'})
     return out
-register(ShowColumns, 'show-columns', ['columns', 'cols'],
-         synopsis="Table of column names and attributes.")
 
 def get_dataframe_info(dframe):
   df_types = pd.DataFrame(dframe.dtypes)
@@ -47,10 +54,10 @@ def get_dataframe_info(dframe):
   # df_null_count = df_null_count.sort_values(by=["null_counts"], ascending=False)
   return df_null_count
 
+@command('env-', [],
+         synopsis="Show env.")
 class EnvOut(Command):
   def xform(self, _inp, env):
     env['Content-Type'] = 'application/x-psv-env'
     return to_dict(env)
-register(EnvOut, 'env-', [],
-         synopsis="Show env.")
 

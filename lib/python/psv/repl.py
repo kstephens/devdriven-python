@@ -1,7 +1,10 @@
 from pprint import pprint
 from devdriven.repl import start_repl
-from .command import Command, register
+from .command import Command, command
 
+@command('repl', [''],
+         synopsis="Start an interactive REPL.",
+         args={})
 class Repl(Command):
   def xform(self, inp, env):
     print('========================================')
@@ -16,6 +19,3 @@ class Repl(Command):
     vars.update(locals())
     start_repl(vars)
     return out
-register(Repl, 'repl', [''],
-         synopsis="Start an interactive REPL.",
-         args={})

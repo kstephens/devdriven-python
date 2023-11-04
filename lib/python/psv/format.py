@@ -3,7 +3,7 @@ from io import StringIO
 import json
 from devdriven.util import not_implemented
 import pandas as pd
-from .command import Command, register
+from .command import Command, command
 import mimetypes
 
 class FormatIn(Command):
@@ -30,34 +30,37 @@ class FormatOut(Command):
 
 ############################
 
+@command('-tsv', [],
+         synopsis="Parse TSV rows.",
+         preferred_suffix='.tsv')
 class TsvIn(FormatIn):
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep='\t', header=0)
-register(TsvIn, '-tsv', [],
-         synopsis="Parse TSV rows.",
-         preferred_suffix='.tsv')
 
+@command('tsv-', [],
+         synopsis="Generate TSV rows.",
+         preferred_suffix='.tsv')
 class TsvOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, sep='\t', header=True, index=False, date_format='iso')
-register(TsvOut, 'tsv-', [],
-         synopsis="Generate TSV rows.",
-         preferred_suffix='.tsv')
 
+@command('-csv', [],
+         synopsis="Parse CSV rows.",
+         preferred_suffix='.csv')
 class CsvIn(FormatIn):
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep=',', header=0)
-register(CsvIn, '-csv', [],
-         synopsis="Parse CSV rows.",
-         preferred_suffix='.csv')
 
+@command('csv-', [],
+        synopsis="Generate CSV rows.",
+        preferred_suffix='.csv')
 class CsvOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, header=True, index=False, date_format='iso')
-register(CsvOut, 'csv-', [],
-        synopsis="Generate CSV rows.",
-        preferred_suffix='.csv')
 
+@command('md', ['md-', 'markdown'],
+         synopsis="Generate a Markdown table.",
+         preferred_suffix='.md')
 class MarkdownOut(FormatOut):
   def content_type(self):
     return 'text/markdown'
@@ -65,24 +68,23 @@ class MarkdownOut(FormatOut):
     inp.to_markdown(writeable, index=False)
     # to_markdown doesn't terminate last line:
     writeable.write('\n')
-register(MarkdownOut, 'md', ['md-', 'markdown'],
-         synopsis="Generate a Markdown table.",
-         preferred_suffix='.md')
 
+@command('-json', [],
+         synopsis="Parse JSON.",
+         preferred_suffix='.json')
 class JsonIn(FormatIn):
   def format_in(self, readable, _env):
     orient = self.opt('orient', 'records')
     return pd.read_json(readable, orient=orient)
-register(JsonIn, '-json', [],
-         synopsis="Parse JSON.",
-         preferred_suffix='.json')
 
+@command('json-', ['json', 'js-'],
+        synopsis="Generate JSON array of objects.",
+        preferred_suffix='.tsv')
 class JsonOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
-      return inp.to_json(writeable, orient='records', date_format='iso', index=False, indent=2)
+      inp.to_json(writeable, orient='records', date_format='iso', index=False, indent=2)
     else:
-      return json.dump(inp, writeable, indent=2)
-register(JsonOut, 'json-', ['json', 'js-'],
-        synopsis="Generate JSON array of objects.",
-        preferred_suffix='.tsv')
+      json.dump(inp, writeable, indent=2)
+    # to_json doesn't terminate last line:
+    writeable.write('\n')

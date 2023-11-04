@@ -1,12 +1,16 @@
 from pathlib import Path
 import sys
 from .content import Content
-from .command import Command, register
+from .command import Command, command
 
 class IoBase(Command):
   def user_agent_headers(self, env):
     return {'Content-Type': env['Content-Type']}
 
+@command('in', ['i', '-i'],
+         synopsis="Read input.",
+         args={"FILE ...": "input files.",
+               "-": "denotes stdin"})
 class IoIn(IoBase):
   def xform(self, _inp, env):
     if not self.args:
@@ -14,11 +18,11 @@ class IoIn(IoBase):
     content = Content(uri=self.args[0])
     env['input.paths'] = [self.args[0]]
     return content
-register(IoIn, 'in', ['i', '-i'],
-         synopsis="Read input.",
-         args={"FILE ...": "input files.",
-               "-": "denotes stdin"})
 
+@command('out', ['o', 'o-'],
+         synopsis="Write output.",
+         args={"FILE ...": "output files.",
+               "-": "denotes stdout"})
 class IoOut(IoBase):
   def xform(self, inp, env):
     if inp is None:
@@ -31,8 +35,4 @@ class IoOut(IoBase):
     body = inp.encode('utf-8')
     for uri in self.args:
       Content(uri=uri).put_content(body, headers=headers)
-    return None
-register(IoOut, 'out', ['o', 'o-'],
-         synopsis="Write output.",
-         args={"FILE ...": "output files.",
-               "-": "denotes stdout"})
+    return inp

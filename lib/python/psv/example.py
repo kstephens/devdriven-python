@@ -3,9 +3,11 @@ import os
 import subprocess
 import shlex
 from devdriven.util import cwd
-from . import command
+from .command import Command, command
 
-class Example(command.Command):
+@command('example', [],
+          synopsis="Show examples.")
+class Example(Command):
   def xform(self, _inp, _env):
     comments = []
     lines = self.examples()
@@ -109,6 +111,3 @@ $ psv in a.tsv // -tsv // stats // md
 $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
 
 '''.splitlines()
-
-command.register(Example, 'example', [],
-              synopsis="Show examples.")

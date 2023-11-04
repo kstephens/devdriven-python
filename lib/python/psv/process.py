@@ -1,7 +1,12 @@
 import re
 from devdriven.util import chunks
-from .command import Command, register
+from .command import Command, command
 
+@command('range', [],
+         synopsis="Select a sequence of rows.",
+         args={'start': "defaults to __i__"},
+         opts={'start': 'start at: defaults to 1.',
+               'step':  'step by: defaults to 1.'})
 class Range(Command):
   def xform(self, inp, _env):
     start = int(self.arg_or_opt(0, 'start', 0))
@@ -18,18 +23,20 @@ class Range(Command):
     if reverse:
       out = out.iloc[::-1]
     return out
-register(Range, 'range', [],
-         synopsis="Select a sequence of rows.",
-         args={'start': "defaults to __i__"},
-         opts={'start': 'start at: defaults to 1.',
-               'step':  'step by: defaults to 1.'})
 
+@command('reverse', ['tac'],
+         synopsis='Reverse rows.  Same as "range --step -1"')
 class Reverse(Command):
   def xform(self, inp, env):
     return self.make_xform(['range', '--step', '-1']).xform(inp, env)
-register(Reverse, 'reverse', ['tac'],
-         synopsis='Reverse rows.  Same as "range --step -1"')
 
+@command('cut', ['x'],
+         synopsis="Cut specified columns.",
+         args={
+           'COL ...': 'List of columms to select',
+           '*': 'Add all columns.',
+           'COL:-': "Remove column.",
+         })
 class Cut(Command):
   def xform(self, inp, _env):
     return inp[self.select_columns(inp, self.args)]
@@ -51,14 +58,12 @@ class Cut(Command):
         selected = selected + [x for x in cols if x not in selected]
     return selected
 
-register(Cut, 'cut', ['x'],
-         synopsis="Cut specified columns.",
-         args={
-           'COL ...': 'List of columms to select',
-           '*': 'Add all columns.',
-           'COL:-': "Remove column.",
+@command('sort', [],
+         synposis="Sort rows by columns.",
+         args={'COL': "Sort by COL ascending",
+               "COL:-": "Sort by COL descending",
+               "COL:+": "Sort by COL ascending",
          })
-
 class Sort(Command):
   def xform(self, inp, _env):
     specified_cols = self.args if self.args else list(inp.columns)
@@ -72,13 +77,10 @@ class Sort(Command):
       cols.append(col)
       ascending.append(order != '-')
     return inp.sort_values(by=cols, ascending=ascending)
-register(Sort, 'sort', [],
-         synposis="Sort rows by columns.",
-         args={'COL': "Sort by COL ascending",
-               "COL:-": "Sort by COL descending",
-               "COL:+": "Sort by COL ascending",
-         })
 
+@command('grep', ['g'],
+         synopsis='Search for rows where each column matches a regex.',
+         args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 class Grep(Command):
   def xform(self, inp, _env):
     filter_expr = has_filter = None
@@ -93,20 +95,17 @@ class Grep(Command):
     if has_filter:
       return inp[filter_expr]
     return inp
-register(Grep, 'grep', ['g'],
-         synopsis='Search for rows where each column matches a regex.',
-         args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 
+@command('stats', ['describe'],
+         synopsis="Basic stats of numeric columns.")
 class Stats(Command):
   def xform(self, inp, _env):
     out = inp.describe()
     out['stat'] = out.index
     return out
-register(Stats, 'stats', ['describe'],
-         synopsis="Basic stats of numeric columns.")
 
+@command('null', [],
+         synopsis="Does nothing.")
 class NullXform(Command):
   def xform(self, inp, _env):
     return inp
-register(NullXform, 'null', [],
-         synopsis="Does nothing.")
