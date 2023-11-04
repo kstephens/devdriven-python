@@ -72,17 +72,13 @@ class UserAgent():
 
     def read_file(self, file):
       if self.is_stdio:
-        body = self.stdin.read().encode(self.encoding)
-        headers = {}
+        return self.complete(200, {}, self.stdin.read().encode(self.encoding))
       else:
         body = file.read()
         # ???: Can return multiple shapes?
         # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
-        (type, _encoding) = mimetypes.guess_type(self.file_path)
-        headers = {
-          'Content-Type': type,
-        }
-      return self.complete(200, headers, body)
+        (content_type, _encoding) = mimetypes.guess_type(self.file_path)
+        return self.complete(200, {'Content-Type': content_type}, body)
 
     def write_file(self, file, body):
       if self.is_stdio:
@@ -119,13 +115,10 @@ class UserAgent():
       self.status, self.headers, self._body = result
 
     def status_body(self, status, headers):
-      return self.body_text_plain(
-          status,
-          headers,
-          f'{status} {responses.get(status, "Unknown")}',
-        )
+      return self.text_body(status, headers,
+                            f'{status} {responses.get(status, "Unknown")}')
 
-    def body_text_plain(self, status, headers, body):
+    def text_body(self, status, headers, body):
       return self.complete(status,
                             headers | {'Content-Type': 'text/plain'},
                             body.encode('utf-8'))
