@@ -20,11 +20,15 @@ class Command(devdriven.cli.Command):
   def arg_or_opt(self, i, k, default):
     return get_safe(self.args, i, get_safe(self.opts, k, default))
 
+  def command_descriptor(self):
+    return DESCRIPTOR_BY_CONSTRUCTOR[self.__class__]
+
 DESCRIPTORS = []
 def descriptors():
   return DESCRIPTORS
 
 DESCRIPTOR_BY_NAME = {}
+DESCRIPTOR_BY_CONSTRUCTOR = {}
 def descriptor(name, default=None):
   return DESCRIPTOR_BY_NAME.get(name, default)
 
@@ -42,6 +46,7 @@ def register(constructor, name, aliases, **kwargs):
     if assigned := descriptor(arg):
       raise Exception(f"register: {arg!r} is already assigned to {assigned!r}")
     DESCRIPTOR_BY_NAME[arg] = desc
+  DESCRIPTOR_BY_CONSTRUCTOR[constructor] = desc
   DESCRIPTORS.append(desc)
 
 def main_make_xform(main, name, argv):
