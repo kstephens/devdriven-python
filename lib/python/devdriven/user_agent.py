@@ -55,10 +55,10 @@ class UserAgent():
       self.url = url
       self.file_path = url.path
       self.is_stdio = self.file_path == '-'
-      # TODO: Use urllib3 Header data type.
-      self.headers = (headers or {})
-      self.stdin = self.headers.pop("X-STDIN", sys.stdin)
-      self.stdout = self.headers.pop("X-STDOUT", sys.stdout)
+      headers = (headers or {}).copy()
+      self.stdin = headers.pop("X-STDIN", sys.stdin)
+      self.stdout = headers.pop("X-STDOUT", sys.stdout)
+      self.headers = HTTPHeaderDict(headers)
       getattr(self, f"_request_method_{method.lower()}")(body)
       return self
 
