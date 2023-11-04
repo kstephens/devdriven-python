@@ -1,4 +1,5 @@
 from devdriven.util import chunks
+from devdriven.to_dict import to_dict
 import pandas as pd
 from .command import Command, register
 
@@ -19,20 +20,19 @@ register(AddSequence, 'add-sequence', ['seq'],
 
 class RenameColumns(Command):
   def xform(self, inp, _env):
-    out = inp.rename(columns=dict(chunks(self.args, 2)))
-    return out
+    return inp.rename(columns=dict(chunks(self.args, 2)))
 register(RenameColumns, 'rename-columns', ['rename'],
          synopsis="Rename columns.",
          args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
 
-class Columns(Command):
+class ShowColumns(Command):
   def xform(self, inp, _env):
     out = get_dataframe_info(inp)
     out.reset_index(inplace=True)
     out['index'] = out.index
     out = out.rename(columns={'features':'name'})
     return out
-register(Columns, 'columns', ['cols'],
+register(ShowColumns, 'show-columns', ['columns', 'cols'],
          synopsis="Table of column names and attributes.")
 
 def get_dataframe_info(dframe):
@@ -46,4 +46,11 @@ def get_dataframe_info(dframe):
   # Add this to sort
   # df_null_count = df_null_count.sort_values(by=["null_counts"], ascending=False)
   return df_null_count
+
+class EnvOut(Command):
+  def xform(self, _inp, env):
+    env['content_type'] = 'application/x-data'
+    return to_dict(env)
+register(EnvOut, 'env-', [],
+         synopsis="Show env.")
 

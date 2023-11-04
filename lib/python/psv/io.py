@@ -8,7 +8,7 @@ class IoIn(Command):
     if not self.args:
       self.args.append('-')
     content = Content(self.args[0])
-    env['input.paths'] = [ self.args[0] ]
+    env['input.paths'] = [self.args[0]]
     return content
 register(IoIn, 'in', ['i', '-i'],
          synopsis="Read input.",
@@ -24,14 +24,14 @@ class IoOut(Command):
       self.args.append('-')
     env['output.paths'] = list(map(str, self.args))
     for arg in self.args:
-      write_file(arg, inp)
+      write_data(arg, inp)
     return None
 register(IoOut, 'out', ['o', 'o-'],
          synopsis="Write output.",
          args={"FILE ...": "output files.",
                "-": "denotes stdout"})
 
-def read_file(filename, encoding='utf-8'):
+def read_data(content, encoding='utf-8'):
   if isinstance(filename, Path):
     filename = str(filename)
   if filename == '-':
@@ -39,7 +39,7 @@ def read_file(filename, encoding='utf-8'):
   with open(filename, "r", encoding=encoding) as file:
     return file.read()
 
-def write_file(filename, data):
+def write_data(filename, data):
   if isinstance(filename, Path):
     filename = str(filename)
   if filename == '-':

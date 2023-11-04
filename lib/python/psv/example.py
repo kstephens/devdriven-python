@@ -84,11 +84,17 @@ $ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
 # create a column i with a seqence
 $ psv in a.tsv // -tsv // sort a:- c // cut 'd' '*' c:- // seq i 10 5 // md
 
-# rename: rename column 'b' to 'B'
+# rename: rename column 'b' to 'B':
 $ psv in a.tsv // -tsv // rename b B // md
+
+# stats: basic stats:
+$ psv in a.tsv // -tsv // stats // md
 
 # null: does nothing:
 $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
+
+# HTTP support:
+$ bin/psv -i https://tinyurl.com/4sscj338 // -tsv // md
 
 '''.splitlines()
 

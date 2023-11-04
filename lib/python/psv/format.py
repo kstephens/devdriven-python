@@ -1,7 +1,6 @@
 import sys
 from io import StringIO
 import json
-from pathlib import Path
 from devdriven.util import not_implemented
 import pandas as pd
 from .command import Command, register
@@ -17,12 +16,9 @@ class FormatIn(Format):
       readable = self.args[0]
       if readable == '-':
         readable = sys.stdin
-    elif isinstance(inp, Path):
-      readable = str(inp)
-      if readable == '-':
-        readable = sys.stdin
     else:
       readable = StringIO(str(inp))
+    ic(readable)
     env['content_type'] = 'application/x-pandas-dataframe'
     return self.format_in(readable, env)
   def format_in(self, _io, _env):
