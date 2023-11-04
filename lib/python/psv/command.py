@@ -37,6 +37,9 @@ def register(constructor, name, aliases, **kwargs):
     'synopsis': '',
     'args': {},
     'opts': {},
+    'content_type': None,
+    'content_encoding': None,
+    'preferred_suffix': None,
     } | kwargs | {
       "constructor": constructor,
       "name": name,

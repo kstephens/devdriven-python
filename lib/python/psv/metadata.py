@@ -49,7 +49,7 @@ def get_dataframe_info(dframe):
 
 class EnvOut(Command):
   def xform(self, _inp, env):
-    env['content_type'] = 'application/x-data'
+    env['Content-Type'] = 'application/x-psv-env'
     return to_dict(env)
 register(EnvOut, 'env-', [],
          synopsis="Show env.")

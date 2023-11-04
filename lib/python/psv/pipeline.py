@@ -41,12 +41,13 @@ class Pipeline(command.Command):
     history = env['history']
     xform_output = xform_input = inp
     for xform in self.xforms:
-      current = [ describe_datum(xform), None, None ]
+      current = [ describe_datum(xform), None, None, None ]
       history.append(current)
       xform_input = xform_output
       xform_output = xform.xform(xform_input, env)
       current[1] = describe_datum(xform_output)
-      current[2] = env['content_type']
+      current[2] = env['Content-Type']
+      current[3] = env['Content-Encoding']
     return xform_output
 
 def describe_datum(datum):

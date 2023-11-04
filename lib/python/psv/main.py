@@ -56,8 +56,11 @@ class Main(devdriven.cli.Main):
       return self
 
     def exec(self):
-      self.env['content_type'] = None
-      self.env['history'] = []
+      self.env.update({
+        'Content-Type': None,
+        'Content-Encoding': None,
+        'history': [],
+      })
       self.env.update({'now': self.main.now})
       inp = None  # ???
       return self.pipeline.xform(inp, self.env)
