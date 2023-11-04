@@ -40,7 +40,7 @@ class Main(devdriven.cli.Main):
   class MainCommand(devdriven.cli.Command):
     def __init__(self, *args):
       super().__init__(*args)
-      self.prog_name = 'tsv'
+      self.prog_name = 'psv'
       self.name = 'main'
       self.pipeline = None
       self.env = None
