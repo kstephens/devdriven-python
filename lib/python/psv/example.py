@@ -43,13 +43,24 @@ class Example(command.Command):
       "PSV_RUNNING": '1',
       'PATH': f'{self.main.bin_dir}:{env["PATH"]}'
     }
-    print('$ '+ cmd)
     subprocess.run(cmd,
                    shell=True,
                    env=env)
 
   def examples(self):
     return '''
+# in: read from STDIN:
+$ cat a.tsv | psv in -
+$ cat a.tsv | psv in
+
+# in: HTTP support:
+$ psv in https://tinyurl.com/4sscj338
+
+# -tsv: Convert content to tsv:
+$ psv in a.tsv // -tsv // md
+$ psv in https://tinyurl.com/4sscj338 // -tsv // md
+$ cat a.tsv | psv -tsv // md
+
 # csv: Convert tsv to csv:
 $ psv in a.tsv // -tsv // csv-
 
@@ -96,9 +107,6 @@ $ psv in a.tsv // -tsv // stats // md
 
 # null: does nothing:
 $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
-
-# HTTP support:
-$ bin/psv -i https://tinyurl.com/4sscj338 // -tsv // md
 
 '''.splitlines()
 
