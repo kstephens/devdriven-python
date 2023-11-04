@@ -11,7 +11,9 @@ class Example(command.Command):
     lines = self.examples()
     while lines:
       line = lines.pop(0).strip()
-      if re.match(r'^#', line):
+      if not line:
+        None
+      elif re.match(r'^#', line):
         comments.append(line)
       elif mtch := re.match(r'^\$ +(.*)$', line):
         print('\n'.join(comments))
@@ -22,10 +24,12 @@ class Example(command.Command):
 
   def run_example(self, example):
     with cwd(f'{self.main.root_dir}/example'):
-      if re.match(r'\|<|>', example):
+      if re.match(r'.+[|<>].+', example):
         self.run_command(example)
       elif re.match(r'^psv ', example):
         self.run_main(example)
+      else:
+        raise Exception(f"invalid example: {example!r}")
 
   def run_main(self, example):
     cmd_argv = shlex.split(example)
