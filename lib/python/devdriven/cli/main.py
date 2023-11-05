@@ -8,14 +8,11 @@ from devdriven.util import not_implemented
 from devdriven.to_dict import to_dict
 from pathlib import Path
 import urllib3
-# from .command import Command
-
-#from icecream import ic, install
-#install()
-#ic.configureOutput(includeContext=True)
 
 class Main:
   def __init__(self):
+    self.stdin = sys.stdin
+    self.stdout = sys.stdout
     self.http = urllib3.PoolManager()
     self.now = datetime.now()
     self.prog_name = None

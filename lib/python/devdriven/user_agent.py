@@ -10,10 +10,13 @@ from urllib3 import HTTPHeaderDict
 import yurl
 
 class UserAgent():
-  def __init__(self, headers=None, base_url=None, http=None):
+  default_stdin = sys.stdin
+  default_stdout = sys.stdout
+
+  def __init__(self, headers=None, base_url=None, http_pool_manager=None):
     self.headers = (headers or {})
     self.base_url = (base_url and yurl.URL(base_url))
-    self.http = (http or urllib3.PoolManager())
+    self.http_pool_manager = (http_pool_manager or urllib3.PoolManager())
 
   def __call__(self, *args, **kwargs):
     self.request(*args, **kwargs)
@@ -32,7 +35,7 @@ class UserAgent():
     return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body)
 
   def _request_scheme_http(self, method, url, headers, body):
-    return self.http.request(method, str(url), headers=headers, body=body)
+    return self.http_pool_manager.request(method, str(url), headers=headers, body=body)
 
   def _request_scheme_file(self, method, url, headers, body):
     return UserAgent.FileResponse().request(method, url, headers, body)
@@ -59,8 +62,8 @@ class UserAgent():
       self.file_path = url.path
       self.is_stdio = self.file_path == '-'
       headers = (headers or {}).copy()
-      self.stdin = headers.pop("X-STDIN", sys.stdin)
-      self.stdout = headers.pop("X-STDOUT", sys.stdout)
+      self.stdin = headers.pop("X-STDIN", UserAgent.default_stdin)
+      self.stdout = headers.pop("X-STDOUT", UserAgent.default_stdout)
       self.headers = HTTPHeaderDict(headers)
       getattr(self, f"_request_method_{method.lower()}")(body)
       return self
