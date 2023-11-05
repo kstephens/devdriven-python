@@ -15,11 +15,9 @@ class Main:
     self.stdout = sys.stdout
     self.http = urllib3.PoolManager()
     self.now = datetime.now()
-    self.prog_name = None
-    self.argv0 = None
-    self.prog_path = None
-    self.bin_dir = None
+    self.prog_name = self.prog_path = self.bin_dir = None
     self.root_dir = None
+    self.argv0 = None
     self.argv = []
     self.commands = []
     self.results = []
