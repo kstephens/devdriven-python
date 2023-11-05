@@ -9,7 +9,9 @@ from . import pipeline, io
 class Main(devdriven.cli.Main):
   def __init__(self):
     super().__init__()
-    self.prog_name = 'tsv'
+    self.stdin = sys.stdin
+    self.stdout = sys.stdout
+    self.prog_name = 'psv'
     self.env = {}
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 

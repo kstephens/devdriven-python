@@ -1,10 +1,11 @@
 [run]
 relative_files = true
-include = tests/**/*.py
+include = lib/python/**/*.py
 sigterm = true
 
 [report]
-include = tests/**/*.py
+include = lib/python/**/*.py
+include_namespace_packages = True
 
 [html]
 directory = coverage/html

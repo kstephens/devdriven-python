@@ -53,7 +53,7 @@ class Pipeline(command.Command):
 def describe_datum(datum):
   type_name = datum.__class__.__name__
   if isinstance(datum, command.Command):
-    type_name = "Command"
+    type_name = datum.__class__.__name__
     datum = shlex.join([datum.name] + datum.argv)
   elif isinstance(datum, pd.DataFrame):
     datum = datum.shape

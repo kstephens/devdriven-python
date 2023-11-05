@@ -72,16 +72,19 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
 # md: Convert tsv on stdin to Markdown:
 $ cat a.tsv | psv -tsv // md
 
-# add-seqence (seq): add a column with a sequence:
+# json: Convert csv to json:
+$ psv in a.csv // -csv // json-
+
+# add-sequence (seq): add a column with a sequence:
 $ psv in a.tsv // -tsv // seq // md
 
-# add-seqence (seq): start at 0:
+# add-sequence (seq): start at 0:
 $ psv in a.tsv // -tsv // seq --start 0 // md
 
-# add-seqence (seq): step by 2:
+# add-sequence (seq): step by 2:
 $ psv in a.tsv // -tsv // seq --step 2 // md
 
-# add-seqence (seq): start at 5, step by -2:
+# add-sequence (seq): start at 5, step by -2:
 $ psv in a.tsv // -tsv // seq --start 5 --step -2 // md
 
 # range: select a range of rows:
@@ -93,21 +96,30 @@ psv in a.tsv // -tsv // seq --start 0 // range --step 2 // md
 # reverse (tac):
 $ psv in a.tsv // -tsv // seq // tac // md
 
-# grep:
+# grep: match
+$ psv in a.tsv // -tsv // grep d '.*x.*' // md
+
+# grep: match d and b:
 $ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
 
 # sort by a decreasing, c increasing,
 # remove c, put d before other columns,
 # create a column i with a seqence
-$ psv in a.tsv // -tsv // sort a:- c // cut 'd' '*' c:- // seq i 10 5 // md
+$ psv in a.tsv // -tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
 
 # rename: rename column 'b' to 'B':
 $ psv in a.tsv // -tsv // rename b B // md
+
+# show-columns: show column metadata:
+$ psv in a.tsv // -tsv // show-columns // md
 
 # stats: basic stats:
 $ psv in a.tsv // -tsv // stats // md
 
 # null: does nothing:
 $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
+
+# env: display proccessing info:
+$ psv in a.tsv // -tsv // show-columns // md // env-
 
 '''.splitlines()
