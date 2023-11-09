@@ -20,7 +20,7 @@ class ExampleTest(Command):
     return rtn
 
 def test_results():
-  argv = 'test.exe cmd1 -flag --a=1 --b 2 arg1 arg2 -- --foo=bar, cmd2 a b, cmd3 RAISE error'.split(' ')
+  argv = 'test.exe cmd1 -flags --a=1 --b 2 3 -5 arg1 arg2 -- --foo=bar, cmd2 a b, cmd3 RAISE error'.split(' ')
   main = MainTest().run(argv)
   # print(repr(main.output))
   expected = {
@@ -30,8 +30,13 @@ def test_results():
     'result': [
       ['cmd1',
         ['OK',
-          ['arg1', 'arg2', '--foo=bar'],
-          {'flag': True, 'a': '1', 'b': '2'}]],
+          ['2', '3', '-5', 'arg1', 'arg2', '--foo=bar'],
+          {'f': True,
+           'l': True,
+           'a': True,
+           'g': True,
+           's': True,
+           'a': '1', 'b': True}]],
       ['cmd2', ['OK', ['a', 'b'], {}]]
     ]
   }

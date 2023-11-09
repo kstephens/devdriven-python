@@ -1,9 +1,14 @@
 from pathlib import Path
 from os import system
 from devdriven.util import cwd
-from devdriven.git import GitLog, GitDiff, rev_parse
+from devdriven.git import GitLog, GitDiff, rev_parse, git_repo_url
 
 TMP_DIR = "/tmp/devdriven-python/test/test_git"
+
+def test_git_repo_url():
+  url = 'https://github.com/ORG/REPO/PATH'
+  assert git_repo_url(url) == url
+  assert git_repo_url('git@github.com:ORG/REPO.git') == 'https://github.com/ORG/REPO'
 
 def test_commits_between():
   base_dir = TMP_DIR

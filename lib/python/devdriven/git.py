@@ -1,6 +1,13 @@
 import os
+import re
 import logging
 from devdriven import util
+
+GIT_REPO_SSH_RX=re.compile(r'^(?P<user>[^@]+)@(?P<host>[^:]+):(?P<org>[^/]+)/(?P<repo>.+?)\.git$')
+def git_repo_url(location):
+  if m := re.match(GIT_REPO_SSH_RX, location):
+    return f'https://{m.group("host")}/{m.group("org")}/{m.group("repo")}'
+  return location
 
 class GitDiff:
   def __init__(self, directory='.'):

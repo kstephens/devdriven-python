@@ -18,7 +18,8 @@ def test_walk():
     {'a': b'xyz', 'b': 123, 'c': b'wsad'}) == \
     {'a': '<BYTES[3]:xyz>', 'b': 123, 'c': '<BYTES[4]:wsad>'}
   assert fut(re.compile(r'^rx', re.IGNORECASE)) == "re.compile('^rx', re.IGNORECASE)"
-  assert fut(datetime.fromordinal(1234567)) == "3381-02-16T00:00:00.000000"
+  assert fut(datetime.fromordinal(1234567)) == "3381-02-16 00:00:00.000000+0000"
+  assert fut(datetime.fromtimestamp(1699571701.203033)) == "2023-11-09 17:15:01.203033+0000"
   assert fut(Exception("E")) == {'class': 'Exception', 'message': 'E'}
   other = devdriven.to_dict.ToDict()
   assert fut(other) == other

@@ -35,7 +35,7 @@ def test_json_formatter():
     ''.join([
       '"message":"MESSAGE -> arg1 4",',
       '"DATA_KEY":{"rx":"re.compile(\'foo/bar.*\')",',
-      '"now":"1969-12-31T18:04:06.912000"}'
+      '"now":"1969-12-31 18:04:06.912000+0000"}'
     ]))
   assert_message(
     [message_data],
@@ -48,7 +48,7 @@ def test_json_formatter():
     ''.join([
       '"message":"arg1 | 2 | 4",',
       '"DATA_KEY":{"a":1,"b":"str","rx":"re.compile(\'foo/bar.*\')",',
-      '"now":"1969-12-31T18:04:06.912000"}'
+      '"now":"1969-12-31 18:04:06.912000+0000"}'
     ])
   )
 

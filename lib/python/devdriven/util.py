@@ -3,6 +3,9 @@ import subprocess
 import logging
 import inspect
 import time
+import re
+import sys
+from datetime import datetime, timezone
 from contextlib import contextmanager
 from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
 from collections import defaultdict
@@ -33,10 +36,12 @@ def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optiona
     return None
 
 # See: https://en.wikipedia.org/wiki/ISO_8601
-DATETIME_ISO8601_FMT = '%Y-%m-%dT%H:%M:%S.%f%z'
+DATETIME_ISO8601_FMT = '%Y-%m-%d %H:%M:%S.%f%z'
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
-def datetime_iso8601(time: Any) -> Union[str, Any]:
-  return (time and time.replace(tzinfo=timezone.utc).strftime(DATETIME_ISO8601_FMT))
+def datetime_iso8601(time: Any, tz=None) -> Union[str, Any]:
+  if not tz:
+    tz = timezone.utc
+  return (time and time.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT))
 
 def convert_windows_timestamp_to_iso8601(ts_str):
   ts = int(ts_str) / 1000
@@ -154,8 +159,32 @@ def first(iterable: Iterable[Any], condition: Predicate = lambda x: True, defaul
 def flat_map(iterable: Iterable[Any], func: FuncAny, *args: Any, **kwargs: Any) -> Iterable[Any]:
   return [elem for sublist in iterable for elem in func(sublist, *args, **kwargs)]
 
-def split_flat(items, sep=','):
+def split_flat(items, sep):
   return flat_map(items, lambda x: x.split(sep))
+
+def parse_range(x, n):
+  if m := re.match(r'^(-?\d+)?:(-?\d+)?(?::(-?\d+))?$', x):
+    if m[0] == '-' or m[1] == '-' or m[2] == '-':
+      return None
+    return make_range(int(m[1] or 0), int(m[2] or n), int(m[3] or 1), n)
+  return None
+
+def make_range(start, end, step, n):
+  if not start:
+    start = 0
+  if not end:
+    end = n
+  if not step:
+    step = 1
+  if step == 0:
+    return None
+  if start < 0:
+    start = n + start
+  if end < 0:
+    end = n + end
+  if step > 0 and start > end:
+    step = - step
+  return range(start, end, step)
 
 def partition(seq: Iterable[Any], pred: Predicate) -> Tuple[List[Any], List[Any]]:
   true_elems: List[Any] = []

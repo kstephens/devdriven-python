@@ -78,3 +78,19 @@ def test_elapsed_ms():
 def take_some_time(arg1, arg2):
   time.sleep(0.050)
   return 1 + arg1 + arg2
+
+def test_parse_range():
+  n = 23
+  assert util.parse_range("", n) == None
+  assert util.parse_range(":", n) == range(0, n, 1)
+  assert util.parse_range("::", n) == None
+  assert util.parse_range("::5", n) == range(0, n, 5)
+  assert util.parse_range("2:10", n) == range(2, 10, 1)
+  assert util.parse_range(":10", n) == range(0, 10, 1)
+  assert util.parse_range("2:", n) == range(2, n, 1)
+  assert util.parse_range(":5", n) == range(0, 5, 1)
+  assert util.parse_range("-5:", n) == range(18, 23, 1)
+  assert util.parse_range(":-3", n) == range(0, 20, 1)
+  assert util.parse_range("-5:-2", n) == range(18, 21, 1)
+  assert util.parse_range("-2:-5", n) == range(21, 18, -1)
+  assert util.parse_range("2:10:3", n) == range(2, 10, 3)
