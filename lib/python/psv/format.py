@@ -3,6 +3,7 @@ from io import StringIO
 import json
 from devdriven.util import not_implemented
 import pandas as pd
+from devdriven.pandas import format_html
 from .command import Command, command
 import mimetypes
 
@@ -84,6 +85,19 @@ class JsonOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
       inp.to_json(writeable, orient='records', date_format='iso', index=False, indent=2)
+    else:
+      json.dump(inp, writeable, indent=2)
+    # to_json doesn't terminate last line:
+    writeable.write('\n')
+
+@command('html-', ['html'],
+        synopsis="Generate HTML.",
+        preferred_suffix='.html')
+class HtmlOut(FormatOut):
+  def format_out(self, inp, _env, writeable):
+    if isinstance(inp, pd.DataFrame):
+      # print(inp.dtypes); lkasjdfl;ksjd
+      format_html(inp, writeable)
     else:
       json.dump(inp, writeable, indent=2)
     # to_json doesn't terminate last line:

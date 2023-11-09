@@ -32,8 +32,24 @@ def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optiona
   except UnicodeDecodeError:
     return None
 
-def datetime_iso8601(obj: Any) -> Union[str, Any]:
-  return obj.strftime('%Y-%m-%dT%H:%M:%S.%f%z')
+# See: https://en.wikipedia.org/wiki/ISO_8601
+DATETIME_ISO8601_FMT = '%Y-%m-%dT%H:%M:%S.%f%z'
+# DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
+def datetime_iso8601(time: Any) -> Union[str, Any]:
+  return (time and time.replace(tzinfo=timezone.utc).strftime(DATETIME_ISO8601_FMT))
+
+def convert_windows_timestamp_to_iso8601(ts_str):
+  ts = int(ts_str) / 1000
+  dt = datetime.fromtimestamp(ts)
+  return datetime_iso8601(dt)
+
+def reorder_list(items, front, back):
+  front = [i for i in front if i in items]
+  back = [i for i in back if i in items]
+  middle = items
+  middle = [i for i in middle if i not in front]
+  middle = [i for i in middle if i not in back]
+  return front + middle + back
 
 def parse_commands(argv: List[str]) -> List[List[str]]:
   cmds = []
@@ -176,3 +192,7 @@ def cwd(path):
     yield
   finally:
     os.chdir(oldpwd)
+
+def printe(x):
+  print(x, file=sys.stderr)
+
