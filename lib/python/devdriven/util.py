@@ -154,6 +154,9 @@ def first(iterable: Iterable[Any], condition: Predicate = lambda x: True, defaul
 def flat_map(iterable: Iterable[Any], func: FuncAny, *args: Any, **kwargs: Any) -> Iterable[Any]:
   return [elem for sublist in iterable for elem in func(sublist, *args, **kwargs)]
 
+def split_flat(items, sep=','):
+  return flat_map(items, lambda x: x.split(sep))
+
 def partition(seq: Iterable[Any], pred: Predicate) -> Tuple[List[Any], List[Any]]:
   true_elems: List[Any] = []
   false_elems: List[Any] = []

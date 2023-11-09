@@ -1,7 +1,7 @@
 import sys
 from io import StringIO
 import json
-from devdriven.util import not_implemented
+from devdriven.util import not_implemented, split_flat
 import pandas as pd
 from devdriven.pandas import format_html
 from .command import Command, command

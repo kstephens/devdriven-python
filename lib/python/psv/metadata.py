@@ -1,7 +1,8 @@
-from devdriven.util import chunks
+from devdriven.util import chunks, split_flat
 from devdriven.to_dict import to_dict
 import pandas as pd
 from .command import Command, command
+from .util import *
 
 @command('add-sequence', ['seq'],
          synopsis="Add a column with a sequence of numbers.",
@@ -31,6 +32,51 @@ class AddColumns(Command):
 class RenameColumns(Command):
   def xform(self, inp, _env):
     return inp.rename(columns=dict(chunks(self.args, 2)))
+
+@command('infer-objects', ['infer'],
+         synopsis="Infer column types.")
+class InferObjects(Command):
+  def xform(self, inp, _env):
+    return inp.infer_objects()
+
+@command('coerce', ['astype'],
+         synopsis="Corece column types.",
+         args={'COL TYPE ...': 'Columns to retype.'})
+class Coerce(Command):
+  def xform_with_dict(self, inp, _env):
+    name_types = {name: type for name, type in chunks(self.args, 2)}
+    out = inp.astype(name_types)
+    return out
+  def xform_with_as_type(self, inp, _env):
+    out = inp.copy()
+    type_aliases = {
+      'float': 'float64',
+      'datetime': 'datetime64[ns]',
+    }
+    for col, typ in chunks(self.args, 2):
+      out[col] = out[col].astype(type_aliases.get(typ, type), utc=True)
+    return out
+  def xform(self, inp, _env):
+    out = inp.copy()
+    for col, typ in chunks(self.args, 2):
+      fun = getattr(self, f'_convert_to_{typ}')
+      out[col] = fun(out[col])
+    return out
+  def _convert_to_numeric(self, seq):
+    return pd.to_numeric(seq, errors='ignore')
+  def _convert_to_int(self, seq):
+    return pd.to_numeric(val, downcast='integer', errors='ignore')
+  def _convert_to_float(self, seq):
+    return pd.to_numeric(seq, downcast='float', errors='ignore')
+    # return pd.astype(val, 'float64')downcast='integer', errors='ignore')
+  def _convert_to_str(self, seq):
+    return map(str, vseqals.tolist())
+  def _convert_to_datetime(self, seq):
+    return pd.to_datetime(seq,
+                          errors='ignore',
+                          # format='mixed',
+                          utc=True)
+
 
 @command('show-columns', ['columns', 'cols'],
          synopsis="Table of column names and attributes.")

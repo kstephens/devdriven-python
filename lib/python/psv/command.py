@@ -59,9 +59,8 @@ def describe(klass, name, aliases, **kwargs):
   for arg in [name, *aliases]:
     if assigned := descriptor(arg):
       raise Exception(f"describe: {arg!r} is already assigned to {assigned!r}")
-    DESCRIPTOR_BY_NAME[arg] = desc
-  DESCRIPTOR_BY_KLASS[klass] = desc
-  DESCRIPTOR_BY_ANY[name] = DESCRIPTOR_BY_ANY[klass] = desc
+    DESCRIPTOR_BY_NAME[arg] = DESCRIPTOR_BY_ANY[arg] = desc
+  DESCRIPTOR_BY_KLASS[klass] = DESCRIPTOR_BY_ANY[klass] = desc
   DESCRIPTORS.append(desc)
 
 def main_make_xform(main, klass_or_name, argv):
