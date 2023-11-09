@@ -9,6 +9,8 @@ import mimetypes
 
 class FormatIn(Command):
   def xform(self, inp, env):
+    if isinstance(inp, pd.DataFrame):
+      return inp
     # TODO: reduce(concat,map(FormatIn,map(read, inputs)))
     env['Content-Type'] = 'application/x-pandas-dataframe'
     env['Content-Encoding'] = None

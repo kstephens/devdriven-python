@@ -1,3 +1,4 @@
+from pathlib import Path
 import devdriven.cli
 from devdriven.util import get_safe
 
@@ -32,6 +33,7 @@ def command(name, aliases, **kwargs):
   return wrapper
 
 DESCRIPTORS = []
+DESCRIPTOR_BY_ANY = {}
 DESCRIPTOR_BY_NAME = {}
 DESCRIPTOR_BY_KLASS = {}
 
@@ -59,14 +61,22 @@ def describe(klass, name, aliases, **kwargs):
       raise Exception(f"describe: {arg!r} is already assigned to {assigned!r}")
     DESCRIPTOR_BY_NAME[arg] = desc
   DESCRIPTOR_BY_KLASS[klass] = desc
+  DESCRIPTOR_BY_ANY[name] = DESCRIPTOR_BY_ANY[klass] = desc
   DESCRIPTORS.append(desc)
 
-def main_make_xform(main, name, argv):
+def main_make_xform(main, klass_or_name, argv):
   assert main
-  if name not in DESCRIPTOR_BY_NAME:
-    raise Exception(f'unknown command: {name!r} : see help')
-  xform = DESCRIPTOR_BY_NAME[name]['klass']()
+  desc = DESCRIPTOR_BY_ANY.get(klass_or_name)
+  if not desc:
+    raise Exception(f'unknown command: {klass_or_name!r} : see help')
+  xform = desc['klass']()
   xform.set_main(main)
-  xform.set_name(name)
+  xform.set_name(desc['name'])
   xform.parse_argv(argv)
   return xform
+
+def find_format(input_name, klass):
+  for desc in descriptors():
+    if issubclass(desc['klass'], klass) and desc['preferred_suffix'] == Path(input_name).suffix:
+      return desc['klass']
+  return None

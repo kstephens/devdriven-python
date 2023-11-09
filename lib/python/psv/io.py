@@ -1,7 +1,7 @@
-from pathlib import Path
 import sys
 from .content import Content
-from .command import Command, command
+from .command import Command, command, find_format
+from .format  import FormatIn, FormatOut
 
 class IoBase(Command):
   def user_agent_headers(self, env):
@@ -10,13 +10,17 @@ class IoBase(Command):
 @command('in', ['i', '-i'],
          synopsis="Read input.",
          args={"FILE ...": "input files.",
-               "-": "denotes stdin"})
+               "-": "denotes stdin"},
+         opts={"raw":  "ignore suffix."})
 class IoIn(IoBase):
   def xform(self, _inp, env):
     if not self.args:
       self.args.append('-')
-    content = Content(uri=self.args[0])
     env['input.paths'] = [self.args[0]]
+    content = Content(uri=self.args[0])
+    format_for_suffix = find_format(self.args[0], FormatIn)
+    if not self.opt('raw', False) and format_for_suffix:
+      content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
 
 @command('out', ['o', 'o-'],
@@ -36,3 +40,4 @@ class IoOut(IoBase):
     for uri in self.args:
       Content(uri=uri).put_content(body, headers=headers)
     return inp
+
