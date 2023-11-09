@@ -6,7 +6,7 @@ from collections import OrderedDict
 import subprocess
 import pandas as pd
 import pickle
-from .util import printe, reorder_list, datetime_iso8601
+from .util import printe, reorder_list
 from icecream import ic
 
 # pylint: disable=invalid-name
@@ -45,6 +45,7 @@ def count_by(df, by, name='count', sort_by=None, sort_ascending=None):
   df = df.reset_index(name=name)
   if sort_by is not None or sort_ascending is not None:
     sort_by = sort_by or name
+    sort_ascending = sort_ascending is not False
     df = df.sort_values(sort_by, ascending=sort_ascending)
   remove_index(df)
   return df

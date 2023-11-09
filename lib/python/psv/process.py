@@ -1,5 +1,6 @@
 import re
 from devdriven.util import chunks
+from devdriven.pandas import remove_index, count_by
 from .command import Command, command
 
 @command('range', [],
@@ -39,24 +40,7 @@ class Reverse(Command):
          })
 class Cut(Command):
   def xform(self, inp, _env):
-    return inp[self.select_columns(inp, self.args)]
-
-  def select_columns(self, inp, args):
-    selected = []
-    for col in args:
-      action = '+'
-      if mtch := re.match(r'^([^:]+):([-+]?)$', col):
-        col = mtch.group(1)
-        action = mtch.group(2)
-      if col == '*':
-        cols = list(inp.columns)
-      else:
-        cols = [col]
-      if action == '-':
-        selected = [x for x in selected if x not in cols]
-      else:
-        selected = selected + [x for x in cols if x not in selected]
-    return selected
+    return inp[select_columns(inp, args)]
 
 @command('sort', [],
          synposis="Sort rows by columns.",
@@ -96,6 +80,15 @@ class Grep(Command):
       return inp[filter_expr]
     return inp
 
+@command('count', [],
+         synopsis="Count of records by group.",
+         args={'column': "defaults to count"})
+class Count(Command):
+  def xform(self, inp, _env):
+    count = self.opt('column', 'count')
+    by = select_columns(inp, self.args, check=True)
+    return count_by(inp, by, sort_by=by, name=count)
+
 @command('stats', ['describe'],
          synopsis="Basic stats of numeric columns.")
 class Stats(Command):
@@ -109,3 +102,26 @@ class Stats(Command):
 class NullXform(Command):
   def xform(self, inp, _env):
     return inp
+
+def select_columns(inp, args, check=False):
+  inp_cols = list(inp.columns)
+  selected = []
+  for col in args:
+    action = '+'
+    if mtch := re.match(r'^([^:]+):([-+]?)$', col):
+      col = mtch.group(1)
+      action = mtch.group(2)
+    if col == '*':
+      cols = inp_cols
+    else:
+      cols = [col]
+    if action == '-':
+      selected = [x for x in selected if x not in cols]
+    else:
+      selected = selected + [x for x in cols if x not in selected]
+  if check:
+    if unknown := [col for col in selected if col not in inp_cols]:
+      raise Exception(f"unknown columns: {unknown!r} : available {inp_cols!r}")
+
+  return selected
+
