@@ -167,7 +167,7 @@ def write_html(dframe, file, **kwargs):
     format_html(dframe, output, **kwargs)
 
 def format_html(dframe, output, **kwargs):
-  table_name = kwargs.get('table_name')
+  table_name = kwargs.pop('table_name')
   kwargs = {
     "index": False,
     "na_rep": '',
