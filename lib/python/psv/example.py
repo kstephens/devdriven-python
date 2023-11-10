@@ -2,6 +2,7 @@ import re
 import os
 import subprocess
 import shlex
+import logging
 from devdriven.util import cwd
 from .command import Command, command
 
@@ -26,21 +27,25 @@ class Example(Command):
 
   def run_example(self, example):
     with cwd(f'{self.main.root_dir}/example'):
-      if re.match(r'.+[|<>].+', example):
+      if re.match(r'.+ [|<>;] .+', example):
         self.run_command(example)
       elif re.match(r'^psv ', example):
         self.run_main(example)
       else:
-        raise Exception(f"invalid example: {example!r}")
+        self.run_command(example)
 
-  def run_main(self, example):
-    cmd_argv = shlex.split(example)
+  def run_main(self, cmd):
+    # logging.warning('run_main: %s', repr(cmd))
+    cmd_argv = shlex.split(cmd)
     instance = self.main.__class__()
     instance.prog_path = self.main.prog_path
     instance.run(cmd_argv)
 
   def run_command(self, cmd):
+    # logging.warning('run_command: %s', repr(cmd))
     env = os.environ
+    if env.get('PSV_RUNNING'):
+      return
     env = env | {
       "PSV_RUNNING": '1',
       'PATH': f'{self.main.bin_dir}:{env["PATH"]}'
@@ -134,6 +139,10 @@ $ psv in users.txt // extract '^(?P<login>[^:]+)' // md
 $ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
 $ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
 $ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+
+# html: generate html
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head // html // o /tmp/us-states.html
+$ w3m -dump /tmp/us-states.html
 
 # null: does nothing:
 $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
