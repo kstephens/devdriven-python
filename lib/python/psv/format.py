@@ -145,8 +145,11 @@ class HtmlOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
       # print(inp.dtypes); lkasjdfl;ksjd
-      format_html(inp, writeable)
+      opts = {
+        'table_name': self.opt('table_name', None),
+        'header': bool(self.opt('header', True)),
+      }
+      format_html(inp, writeable, **opts)
+      writeable.write('\n')
     else:
-      json.dump(inp, writeable, indent=2)
-    # to_json doesn't terminate last line:
-    writeable.write('\n')
+      raise Exception("html-: cannot format {type(inp)}")
