@@ -25,11 +25,28 @@ class Range(Command):
     #  out = out.iloc[::-1]
     return out
 
+def process_range(inp, start, end, step):
+  return inp.iloc[make_range(start, end, step, len(inp))]
+
+@command('head', [],
+         synopsis='First N rows')
+class Head(Command):
+  def xform(self, inp, env):
+    count = abs(int(self.arg_or_opt(0, 'count', 10)))
+    return process_range(inp, None, count, None)
+
+@command('tail', [],
+         synopsis='Last N rows')
+class Tail(Command):
+  def xform(self, inp, env):
+    count = abs(int(self.arg_or_opt(0, 'count', 10)))
+    return process_range(inp, - count, None, None)
+
 @command('reverse', ['tac'],
          synopsis='Reverse rows.  Same as "range --step -1"')
 class Reverse(Command):
   def xform(self, inp, env):
-    return self.make_xform(['range', '--step', '-1']).xform(inp, env)
+    return process_range(inp, None, None, -1)
 
 @command('cut', ['x'],
          synopsis="Cut specified columns.",
