@@ -1,5 +1,6 @@
 import sys
 from io import StringIO
+import re
 import json
 from devdriven.util import not_implemented, split_flat
 import pandas as pd
@@ -32,6 +33,51 @@ class FormatOut(Command):
     not_implemented()
 
 ############################
+
+@command('-table', [],
+         synopsis="Parse table.",
+         preferred_suffix='.txt')
+class TableIn(FormatIn):
+  def format_in(self, readable, _env):
+    self.fs_rx = re.compile(self.opt('fs', '\s+'))
+    self.rs_rx = re.compile(self.opt('rs', '\n\r?'))
+    skip = self.opt('skip', False)
+    self.skip_rx = skip and re.compile(skip)
+    self.encoding = self.opt('encoding', 'utf-8')
+    self.header = bool(self.opt('header', False))
+    return self.parse_records(readable, _env)
+
+  def parse_records(self, readable, _env):
+    self.max_width = 0
+    def parse_row(row):
+      fields = re.split(self.fs_rx, row)
+      self.max_width = max(self.max_width, len(fields))
+      return fields
+
+    def pad_row(row):
+      row.extend(pads[max_width - len(row)])
+    rows = [ parse_row(row) for row in re.split(self.rs_rx, readable.read()) if len(row) != 0 ]
+    max_width = self.max_width
+    pads = [[''] * n for n in range(0, max_width + 1)]
+    #ic(max_width)
+    #ic(pads)
+    for row in rows:
+      pad_row(row)
+    # ic(rows)
+    # ic(list(map(len, rows)))
+    if self.header:
+      cols = rows[0]
+      rows = rows[1:]
+    else:
+      cols = map(lambda i: f'c{i}', range(1, max_width + 1))
+    return pd.DataFrame(columns=cols, data=rows)
+
+@command('table-', [],
+         synopsis="Generate table.",
+         preferred_suffix='.txt')
+class FsOut(FormatOut):
+  def format_out(self, inp, _env, writeable):
+    not_implemented()
 
 @command('-tsv', [],
          synopsis="Parse TSV rows.",
