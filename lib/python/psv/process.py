@@ -118,6 +118,31 @@ class Count(Command):
       return pd.DataFrame(columns=[count_col], data=[[len(inp)]])
     return count_by(inp, group_cols, sort_by=group_cols, name=count_col)
 
+@command('translate', ['tr'],
+         synopsis="Translate characters.",
+         args={
+           'SRC DST COL...': 'Map chars from SRC to DST in each COL.',
+           '-d DEL COL...': 'Delete chars in DEL in each COL.',
+         },
+         opts={
+           '-d': 'Delete characters.',
+         })
+class Translate(Command):
+  def xform(self, inp, _env):
+    if self.opt('d'):
+      trans = str.maketrans('', '', self.args[0])
+      args = self.args[1:]
+    else:
+      trans = str.maketrans(*self.args[0:2])
+      args = self.args[2:]
+    cols = select_columns(inp, split_flat(args, ','), check=True, default_all=True)
+    def xlate(x):
+      return str(x).translate(trans)
+    out = inp.copy()
+    for col in cols:
+      out[col] = out[col].apply(xlate)
+    return out
+
 @command('stats', ['describe'],
          synopsis="Basic stats of numeric columns.")
 class Stats(Command):

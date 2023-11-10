@@ -79,19 +79,25 @@ $ psv in a.csv // -csv // json-
 $ psv in a.tsv // -tsv // seq // md
 
 # add-sequence (seq): start at 0:
-$ psv in a.tsv // -tsv // seq --start 0 // md
+$ psv in a.tsv // -tsv // seq --start=0 // md
 
 # add-sequence (seq): step by 2:
-$ psv in a.tsv // -tsv // seq --step 2 // md
+$ psv in a.tsv // -tsv // seq --step=2 // md
 
 # add-sequence (seq): start at 5, step by -2:
-$ psv in a.tsv // -tsv // seq --start 5 --step -2 // md
+$ psv in a.tsv // -tsv // seq --start=5 --step=-2 // md
 
 # range: select a range of rows:
-$ psv in a.tsv // -tsv // seq --start 0 // range 1 3 // md
+$ psv in a.tsv // -tsv // seq --start=0 // range 1 3 // md
 
 # range: every even row:
-psv in a.tsv // -tsv // seq --start 0 // range --step 2 // md
+$ psv in a.tsv // -tsv // seq --start=0 // range --step=2 // md
+
+# head:
+$ psv in us-states.txt // -table // head 5 // md
+
+# tail:
+$ psv in us-states.txt // -table // tail 3 // md
 
 # reverse (tac):
 $ psv in a.tsv // -tsv // seq // tac // md
@@ -107,6 +113,10 @@ $ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
 # create a column i with a seqence
 $ psv in a.tsv // -tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
 
+# translate: change delete characters:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
+
 # rename: rename column 'b' to 'B':
 $ psv in a.tsv // -tsv // rename b B // md
 
@@ -115,6 +125,12 @@ $ psv in a.tsv // -tsv // show-columns // md
 
 # stats: basic stats:
 $ psv in a.tsv // -tsv // stats // md
+
+# extract: extract fields by regex:
+$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+$ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
+$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+$ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
 
 # null: does nothing:
 $ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
