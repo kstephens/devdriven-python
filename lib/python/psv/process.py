@@ -1,29 +1,28 @@
 import re
-from devdriven.util import chunks, flat_map, split_flat
+import pandas as pd
+from devdriven.util import chunks, flat_map, split_flat, parse_range, make_range
 from devdriven.pandas import remove_index, count_by
 from .command import Command, command
 from .util import *
 
 @command('range', [],
          synopsis="Select a sequence of rows.",
-         args={'start': "defaults to __i__"},
+         args={'start [end] [step]': "For 1 or more arguments.",
+               '[start]:[end]:step': "Python-style range."},
          opts={'start': 'start at: defaults to 1.',
                'step':  'step by: defaults to 1.'})
 class Range(Command):
   def xform(self, inp, _env):
-    start = int(self.arg_or_opt(0, 'start', 0))
-    end  =  int(self.arg_or_opt(1, 'end', len(inp)))
-    step  = int(self.arg_or_opt(2, 'step', 1))
-    reverse = False
-    if end < start:
-      start, end = end, start
-    if step < 0:
-      step = - step
-      reverse = True
-    index = range(start, end, step)
-    out = inp.iloc[index]
-    if reverse:
-      out = out.iloc[::-1]
+    arg0 = get_safe(self.args, 0)
+    r = arg0 and parse_range(arg0, len(inp))
+    if not r:
+      start = int(self.arg_or_opt(0, 'start', 0))
+      end  =  int(self.arg_or_opt(1, 'end', len(inp)))
+      step  = int(self.arg_or_opt(2, 'step', 1))
+      r = make_range(start, end, step, len(inp))
+    out = inp.iloc[r]
+    #if r.step < 0:
+    #  out = out.iloc[::-1]
     return out
 
 @command('reverse', ['tac'],
@@ -41,7 +40,15 @@ class Reverse(Command):
          })
 class Cut(Command):
   def xform(self, inp, _env):
-    return inp[select_columns(inp, split_flat(self.args))]
+    return inp[select_columns(inp, split_flat(self.args, ','))]
+
+@command('uniq', ['u'],
+         synopsis="Return unique rows.",
+         args={
+         })
+class Uniq(Command):
+  def xform(self, inp, _env):
+    return inp.drop_duplicates()
 
 @command('sort', [],
          synposis="Sort rows by columns.",
@@ -51,7 +58,8 @@ class Cut(Command):
          })
 class Sort(Command):
   def xform(self, inp, _env):
-    specified_cols = self.args if split_flat(self.args) else list(inp.columns)
+    imp_cols = list(inp.columns)
+    specified_cols = split_flat(self.args, ',') if self.args else imp_cols
     cols = []
     ascending = []
     for col in specified_cols:
@@ -59,6 +67,7 @@ class Sort(Command):
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
         col = mtch.group(1)
         order = mtch.group(2)
+      col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
     return inp.sort_values(by=cols, ascending=ascending)
@@ -68,14 +77,13 @@ class Sort(Command):
          args={'COL REGEX ...': 'List of NAME REGEX pairs.'})
 class Grep(Command):
   def xform(self, inp, _env):
+    imp_cols = list(inp.columns)
     filter_expr = has_filter = None
-    # https://stackoverflow.com/a/31076657/1141958
     for col, pat in chunks(self.args, 2):
+      col = parse_col_or_index(imp_cols, col)
+      # https://stackoverflow.com/a/31076657/1141958
       match = inp[col].str.match(re.compile(pat))
-      if has_filter:
-        filter_expr = filter_expr & match
-      else:
-        filter_expr = match
+      filter_expr = filter_expr & match if has_filter else match
       has_filter = True
     if has_filter:
       return inp[filter_expr]
@@ -83,12 +91,15 @@ class Grep(Command):
 
 @command('count', [],
          synopsis="Count of records by group.",
-         args={'column': "defaults to count"})
+         args={'COL ...': "Columns to group by.  If not specified, one row with the count column is returned."},
+         opts={'column': "defaults to __count__"})
 class Count(Command):
   def xform(self, inp, _env):
-    count = self.opt('column', 'count')
-    by = select_columns(inp, split_flat(self.args), check=True)
-    return count_by(inp, by, sort_by=by, name=count)
+    count_col = self.opt('column', '__count__')
+    group_cols = select_columns(inp, split_flat(self.args, ','), check=True)
+    if not group_cols:
+      return pd.DataFrame(columns=[count_col], data=[[len(inp)]])
+    return count_by(inp, group_cols, sort_by=group_cols, name=count_col)
 
 @command('stats', ['describe'],
          synopsis="Basic stats of numeric columns.")

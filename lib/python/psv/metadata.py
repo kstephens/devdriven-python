@@ -28,10 +28,13 @@ class AddColumns(Command):
 
 @command('rename-columns', ['rename'],
          synopsis="Rename columns.",
-         args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
+         args={'OLD-COL:NEW-NAME ...': 'Columns to rename.'})
 class RenameColumns(Command):
   def xform(self, inp, _env):
-    return inp.rename(columns=dict(chunks(self.args, 2)))
+    inp_cols = list(inp.columns)
+    args = split_flat(self.args, ',')
+    rename = [parse_column_and_opt(inp_cols, arg) for arg in args]
+    return inp.rename(columns=dict(rename))
 
 @command('infer-objects', ['infer'],
          synopsis="Infer column types.")
@@ -41,34 +44,22 @@ class InferObjects(Command):
 
 @command('coerce', ['astype'],
          synopsis="Corece column types.",
-         args={'COL TYPE ...': 'Columns to retype.'})
+         args={'COL:TYPE ...': 'Columns to retype.'})
 class Coerce(Command):
-  def xform_with_dict(self, inp, _env):
-    name_types = {name: type for name, type in chunks(self.args, 2)}
-    out = inp.astype(name_types)
-    return out
-  def xform_with_as_type(self, inp, _env):
-    out = inp.copy()
-    type_aliases = {
-      'float': 'float64',
-      'datetime': 'datetime64[ns]',
-    }
-    for col, typ in chunks(self.args, 2):
-      out[col] = out[col].astype(type_aliases.get(typ, type), utc=True)
-    return out
   def xform(self, inp, _env):
     out = inp.copy()
-    for col, typ in chunks(self.args, 2):
+    inp_cols = list(inp.columns)
+    col_types = [parse_column_and_opt(inp_cols, arg) for arg in split_flat(self.args, ',')]
+    for col, typ in col_types:
       fun = getattr(self, f'_convert_to_{typ}')
       out[col] = fun(out[col])
     return out
   def _convert_to_numeric(self, seq):
     return pd.to_numeric(seq, errors='ignore')
   def _convert_to_int(self, seq):
-    return pd.to_numeric(val, downcast='integer', errors='ignore')
+    return pd.to_numeric(seq, downcast='integer', errors='ignore')
   def _convert_to_float(self, seq):
     return pd.to_numeric(seq, downcast='float', errors='ignore')
-    # return pd.astype(val, 'float64')downcast='integer', errors='ignore')
   def _convert_to_str(self, seq):
     return map(str, vseqals.tolist())
   def _convert_to_datetime(self, seq):
