@@ -47,13 +47,17 @@ class InferObjects(Command):
          args={'COL:TYPE ...': 'Columns to retype.'})
 class Coerce(Command):
   def xform(self, inp, _env):
-    out = inp.copy()
     inp_cols = list(inp.columns)
     col_types = [parse_column_and_opt(inp_cols, arg) for arg in split_flat(self.args, ',')]
+    return self.coerce(inp, col_types)
+
+  def coerce(self, inp, col_types):
+    out = inp.copy()
     for col, typ in col_types:
-      fun = getattr(self, f'_convert_to_{typ}')
-      out[col] = fun(out[col])
+      out[col] = self.coercer(typ)(out[col])
     return out
+  def coercer(self, typ):
+    return getattr(self, f'_convert_to_{typ}')
   def _convert_to_numeric(self, seq):
     return pd.to_numeric(seq, errors='ignore')
   def _convert_to_int(self, seq):
@@ -61,7 +65,7 @@ class Coerce(Command):
   def _convert_to_float(self, seq):
     return pd.to_numeric(seq, downcast='float', errors='ignore')
   def _convert_to_str(self, seq):
-    return map(str, vseqals.tolist())
+    return map(str, seq.tolist())
   def _convert_to_datetime(self, seq):
     return pd.to_datetime(seq,
                           errors='ignore',

@@ -3,6 +3,7 @@ import pandas as pd
 from devdriven.util import chunks, flat_map, split_flat, parse_range, make_range
 from devdriven.pandas import remove_index, count_by
 from .command import Command, command
+from .metadata import Coerce
 from .util import *
 
 @command('range', [],
@@ -72,22 +73,26 @@ class Uniq(Command):
          args={'COL': "Sort by COL ascending",
                "COL:-": "Sort by COL descending",
                "COL:+": "Sort by COL ascending",
-         })
+         },
+         opts={'r': 'Sort descending.',
+               'n': 'Coerce columns to numeric.'})
 class Sort(Command):
   def xform(self, inp, _env):
     imp_cols = list(inp.columns)
     specified_cols = split_flat(self.args, ',') if self.args else imp_cols
     cols = []
     ascending = []
+    default_order = '-' if self.opt('r') else '+'
     for col in specified_cols:
-      order = '+'
+      order = default_order
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
         col = mtch.group(1)
         order = mtch.group(2)
       col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
-    return inp.sort_values(by=cols, ascending=ascending)
+    key = Coerce().coercer('numeric') if self.opt('n') else None
+    return inp.sort_values(by=cols, ascending=ascending, key=key)
 
 @command('grep', ['g'],
          synopsis='Search for rows where each column matches a regex.',

@@ -108,6 +108,9 @@ $ psv in a.tsv // -tsv // grep d '.*x.*' // md
 # grep: match d and b:
 $ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
 
+# sort: decreasing:
+$ psv in a.tsv // -tsv // sort -r a // md
+
 # sort by a decreasing, c increasing,
 # remove c, put d before other columns,
 # create a column i with a seqence
