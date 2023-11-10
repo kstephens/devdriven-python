@@ -58,13 +58,12 @@ class Main(devdriven.cli.Main):
 
     def exec(self):
       self.env.update({
+        'now': self.main.now,
         'Content-Type': None,
         'Content-Encoding': None,
         'history': [],
       })
-      self.env.update({'now': self.main.now})
-      inp = None  # ???
-      return self.pipeline.xform(inp, self.env)
+      return self.pipeline.xform(None, self.env)
 
 
 if __name__ == '__main__':
