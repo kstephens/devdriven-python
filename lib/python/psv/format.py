@@ -44,7 +44,7 @@ class TableIn(FormatIn):
     skip = self.opt('skip', False)
     self.skip_rx = skip and re.compile(skip)
     self.encoding = self.opt('encoding', 'utf-8')
-    self.header = bool(self.opt('header', False))
+    self.header = self.opt('header', False)
     return self.parse_records(readable, _env)
 
   def parse_records(self, readable, _env):
@@ -53,21 +53,18 @@ class TableIn(FormatIn):
       fields = re.split(self.fs_rx, row)
       self.max_width = max(self.max_width, len(fields))
       return fields
-
     def pad_row(row):
       row.extend(pads[max_width - len(row)])
-    rows = [ parse_row(row) for row in re.split(self.rs_rx, readable.read()) if len(row) != 0 ]
+    rows = re.split(self.rs_rx, readable.read())
+    if rows and rows[-1] == '':
+      rows.pop(-1)
+    rows = [ parse_row(row) for row in rows ]
     max_width = self.max_width
     pads = [[''] * n for n in range(0, max_width + 1)]
-    #ic(max_width)
-    #ic(pads)
     for row in rows:
       pad_row(row)
-    # ic(rows)
-    # ic(list(map(len, rows)))
     if self.header:
-      cols = rows[0]
-      rows = rows[1:]
+      cols = rows.pop(0)
     else:
       cols = map(lambda i: f'c{i}', range(1, max_width + 1))
     return pd.DataFrame(columns=cols, data=rows)
