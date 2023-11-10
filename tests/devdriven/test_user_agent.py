@@ -1,4 +1,3 @@
-from pprint import pprint
 from io import StringIO
 import os
 import contextlib
@@ -93,8 +92,7 @@ def file_fut(method, url, headers=None, body=None):
   # pprint(response)
   if url == '-':
     return response
-  else:
-    assert int(response.headers['Content-Length']) == len(response._body)
+  assert int(response.headers['Content-Length']) == len(response._body)
   return http_fut(method, url, headers, body)
 
 def http_fut(method, url, headers=None, body=None):

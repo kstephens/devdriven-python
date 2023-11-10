@@ -1,7 +1,7 @@
 import re
 import pandas as pd
-from devdriven.util import chunks, flat_map, split_flat, parse_range, make_range
-from devdriven.pandas import remove_index, count_by
+from devdriven.util import chunks, split_flat, parse_range, make_range
+from devdriven.pandas import count_by
 from .command import Command, command
 from .metadata import Coerce
 from .util import *
@@ -15,13 +15,13 @@ from .util import *
 class Range(Command):
   def xform(self, inp, _env):
     arg0 = get_safe(self.args, 0)
-    r = arg0 and parse_range(arg0, len(inp))
-    if not r:
+    rng = arg0 and parse_range(arg0, len(inp))
+    if not rng:
       start = int(self.arg_or_opt(0, 'start', 0))
       end  =  int(self.arg_or_opt(1, 'end', len(inp)))
       step  = int(self.arg_or_opt(2, 'step', 1))
-      r = make_range(start, end, step, len(inp))
-    out = inp.iloc[r]
+      rng = make_range(start, end, step, len(inp))
+    out = inp.iloc[rng]
     #if r.step < 0:
     #  out = out.iloc[::-1]
     return out
@@ -32,14 +32,14 @@ def process_range(inp, start, end, step):
 @command('head', [],
          synopsis='First N rows')
 class Head(Command):
-  def xform(self, inp, env):
+  def xform(self, inp, _env):
     count = abs(int(self.arg_or_opt(0, 'count', 10)))
     return process_range(inp, None, count, None)
 
 @command('tail', [],
          synopsis='Last N rows')
 class Tail(Command):
-  def xform(self, inp, env):
+  def xform(self, inp, _env):
     count = abs(int(self.arg_or_opt(0, 'count', 10)))
     return process_range(inp, - count, None, None)
 

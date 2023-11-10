@@ -29,9 +29,9 @@ class UserAgent():
       url = self.base_url + url
     scheme = self.url_flavor(url)
     headers = (self.headers or {}) | (headers or {})
-    for k,v in list(headers.items()):
-      if v is None:
-        del headers[k]
+    for key, val in list(headers.items()):
+      if val is None:
+        del headers[key]
     return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body)
 
   def _request_scheme_http(self, method, url, headers, body):
@@ -79,12 +79,11 @@ class UserAgent():
     def read_file(self, file):
       if self.is_stdio:
         return self.complete(200, {}, self.stdin.read().encode(self.encoding))
-      else:
-        body = file.read()
-        # ???: Can return multiple shapes?
-        # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
-        (content_type, _encoding) = mimetypes.guess_type(self.file_path)
-        return self.complete(200, {'Content-Type': content_type}, body)
+      body = file.read()
+      # ???: Can return multiple shapes?
+      # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
+      (content_type, _encoding) = mimetypes.guess_type(self.file_path)
+      return self.complete(200, {'Content-Type': content_type}, body)
 
     def write_file(self, file, body):
       if self.is_stdio:

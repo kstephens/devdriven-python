@@ -5,9 +5,7 @@ from datetime import datetime
 from collections import OrderedDict
 import subprocess
 import pandas as pd
-import pickle
-from .util import printe, reorder_list
-from icecream import ic
+from .util import reorder_list
 
 # pylint: disable=invalid-name
 src = 'data/src'
@@ -112,26 +110,28 @@ def write_df(dframe, report, dir=None, **_kwargs):
   file = f'{(dir or gen)}/{report}'
   msg = f'write_df : {file}.* : {len(dframe)} rows'
   logging.info('###########################################')
-  logging.info(f'{msg} : ...')
-  logging.info(f'{msg} : columns {dframe.columns!r}')
+  logging.info('%s', f'{msg} : ...')
+  logging.info('%s', f'{msg} : columns {dframe.columns!r}')
   logging.info(dframe)
   saving_df(write_pickle, dframe, report, f'{file}.pickle.xz')
   saving_df(write_tsv, dframe, report, f'{file}.tsv')
   saving_df(write_html, dframe, report, f'{file}.html')
   saving_df(write_json, dframe, report, f'{file}.json')
   saving_df(write_md, dframe, report, f'{file}.md')
-  logging.info(f'{msg} : DONE\n')
+  logging.info('%s', f'{msg} : DONE\n')
   return dframe
 
 def saving_df(fun, dframe, report, file):
-  logging.info(f"Saving {file} : ...")
+  logging.info('%s', f"Saving {file} : ...")
   fun(dframe, file)
-  saving_df_log(report, file)
+  log_row = saving_df_log(report, file)
+  if dframe is not processing_log:
+    push_row(processing_log, log_row)
   return file
 
 def saving_df_log(report, file):
   # pylint: disable-next=global-statement,invalid-name
-  global processing_log
+  # global processing_log
   if not processing_log:
     return file
   file_name = Path(file).name
@@ -144,9 +144,8 @@ def saving_df_log(report, file):
     'lines': int(subprocess.check_output(['/usr/bin/wc', '-l', file]).split()[0]),
     'now': datetime.now()
   }
-  logging.info(f'Saving {file} : {log_row!r}')
-  if dframe is not processing_log:
-    push_row(processing_log, log_row)
+  logging.info('%s', f'Saving {file} : {log_row!r}')
+  return log_row
 
 def write_pickle(dframe, file, **kwargs):
   dframe.to_pickle(file, compression='xz', **kwargs)
@@ -165,7 +164,7 @@ def write_md(dframe, file, **kw):
 
 def write_html(dframe, file, **kwargs):
   with open(file, "w", encoding='utf-8') as output:
-    format_html(dframe, out, **kwargs)
+    format_html(dframe, output, **kwargs)
 
 def format_html(dframe, output, **kwargs):
   table_name = kwargs.get('table_name')

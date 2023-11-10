@@ -11,8 +11,7 @@ def parse_column_and_opt(cols, arg):
   cols = get_columns(cols)
   if m := re.match(r'^([^:]+):(.*)$', arg):
     return parse_col_or_index(cols, m[1]), m[2]
-  else:
-    return parse_col_or_index(cols, arg), None
+  return parse_col_or_index(cols, arg), None
 
 def select_columns(inp, args, check=False, default_all=False):
   inp_cols = get_columns(inp)

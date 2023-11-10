@@ -227,4 +227,3 @@ def cwd(path):
 
 def printe(x):
   print(x, file=sys.stderr)
-

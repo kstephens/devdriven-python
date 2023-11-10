@@ -81,9 +81,9 @@ def take_some_time(arg1, arg2):
 
 def test_parse_range():
   n = 23
-  assert util.parse_range("", n) == None
+  assert util.parse_range("", n) is None
   assert util.parse_range(":", n) == range(0, n, 1)
-  assert util.parse_range("::", n) == None
+  assert util.parse_range("::", n) is None
   assert util.parse_range("::5", n) == range(0, n, 5)
   assert util.parse_range("2:10", n) == range(2, 10, 1)
   assert util.parse_range(":10", n) == range(0, 10, 1)

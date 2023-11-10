@@ -59,6 +59,6 @@ def describe_datum(datum):
     datum = datum.shape
   elif isinstance(datum, Content):
     datum = datum.uri
-  elif isinstance(datum, bytes) or isinstance(datum, list) or isinstance(datum, dict):
+  elif isinstance(datum, (bytes, list, dict)):
     datum = f'[{len(datum)}]'
   return f"<< {type_name}: {shorten_string(str(datum), 40)} >>"

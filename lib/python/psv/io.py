@@ -1,7 +1,6 @@
-import sys
 from .content import Content
 from .command import Command, command, find_format
-from .format  import FormatIn, FormatOut
+from .format import FormatIn
 
 class IoBase(Command):
   def user_agent_headers(self, env):

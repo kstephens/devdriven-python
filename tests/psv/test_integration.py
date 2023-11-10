@@ -1,7 +1,7 @@
+import shlex
+from pathlib import Path
 import psv
 import psv.main
-from pathlib import Path
-import shlex
 
 def test_example():
   run('psv example')
@@ -16,7 +16,7 @@ def test_help_markdown():
   run('psv help markdown')
 
 def test_parse_subpipe():
-  main = run('psv null a b {{ null c d }}')
+  run('psv null a b {{ null c d }}')
 
 def run(cmdline):
   args = shlex.split(cmdline)
@@ -25,4 +25,3 @@ def run(cmdline):
   main.run(args)
   assert main.exit_code == 0
   return main
-

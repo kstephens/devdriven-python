@@ -15,7 +15,7 @@ class Repl(Command):
     print(inp)
     print('========================================\n')
     out = inp
-    vars = globals()
-    vars.update(locals())
-    start_repl(vars)
+    bindings = globals()
+    bindings.update(locals())
+    start_repl(bindings)
     return out

@@ -3,7 +3,7 @@ import pandas as pd
 from devdriven.util import not_implemented
 from .content import Content
 from .command import Command, command
-from .util import *
+# from .util import *
 
 @command('extract', ['rx', 're'],
          synopsis="Extract fields by Regexp.",

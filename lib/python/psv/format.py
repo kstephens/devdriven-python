@@ -1,12 +1,11 @@
-import sys
 from io import StringIO
 import re
 import json
-from devdriven.util import not_implemented, split_flat
+import mimetypes
+from devdriven.util import not_implemented
 import pandas as pd
 from devdriven.pandas import format_html
 from .command import Command, command
-import mimetypes
 
 class FormatIn(Command):
   def xform(self, inp, env):
@@ -39,8 +38,8 @@ class FormatOut(Command):
          preferred_suffix='.txt')
 class TableIn(FormatIn):
   def format_in(self, readable, _env):
-    self.fs_rx = re.compile(self.opt('fs', '\s+'))
-    self.rs_rx = re.compile(self.opt('rs', '\n\r?'))
+    self.fs_rx = re.compile(self.opt('fs', r'\s+'))
+    self.rs_rx = re.compile(self.opt('rs', r'\n\r?'))
     skip = self.opt('skip', False)
     self.skip_rx = skip and re.compile(skip)
     self.encoding = self.opt('encoding', 'utf-8')
@@ -141,7 +140,6 @@ class JsonOut(FormatOut):
 class HtmlOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
-      # print(inp.dtypes); lkasjdfl;ksjd
       opts = {
         'table_name': self.opt('table_name', None),
         'header': bool(self.opt('header', True)),
