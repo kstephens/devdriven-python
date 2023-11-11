@@ -1,8 +1,11 @@
+import io
+import yurl
 from devdriven.user_agent import UserAgent
 
 class Content():
   def __init__(self, uri=None, content=None, headers=None):
     self.uri = uri
+    self._body = None
     self._content = content
     self.headers = headers
 
@@ -22,19 +25,43 @@ class Content():
       self._content = self.get_content()
     return self._content
 
-  def get_content(self, headers=None):
-    uri, redirects, response = self.uri, 10, None
+  def readable(self, headers=None):
+    return io.BytesIO(self.body(headers=headers))
+
+  def get_content(self, headers=None, encoding=None):
+    return self.get_body(headers=headers).decode(encoding or 'utf-8')
+
+  def body(self, headers=None):
+    if not self._body:
+      self._body = self.get_body(headers=headers)
+    return self._body
+
+  def get_body(self, headers=None):
     headers = (self.headers or {}) | (headers or {})
-    while redirects > 0:
-      response = UserAgent().request('get', self.uri, headers=headers)
-      if response.status == 301:
-        uri = uri + response.header['Location']
-        redirects =- 1
-      else:
-        break
-    return response._body.decode('utf-8')
+    def do_get(url):
+      return UserAgent().request('get', url, headers=headers)
+    response = with_http_redirects(do_get, self.uri)
+    return response._body
 
   def put_content(self, body, headers=None):
     headers = (self.headers or {}) | (headers or {})
-    UserAgent().request('put', self.uri, body=body, headers=headers)
+    def do_put(url, body):
+      return UserAgent().request('put', url, body=body, headers=headers)
+    with_http_redirects(do_put, self.uri, body)
     return self
+
+# ???: UserAgent already handle redirects:
+def with_http_redirects(fun, url, *args, **kwargs):
+  next_url = yurl.URL(url)
+  max_redirects = kwargs.pop('max_redirects', 10)
+  redirects = 0
+  while completed := redirects <= max_redirects:
+    response = fun(next_url, *args, **kwargs)
+    if response.status == 301:
+      redirects += 1
+      next_url = next_url + response.header['Location']
+    else:
+      break
+  if not completed:
+    raise Exception("Too many redirects: {self.uri} : {max_redirects}")
+  return response
