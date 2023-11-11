@@ -28,7 +28,7 @@ class FormatOut(Command):
     return out.getvalue()
   def setup_env(self, _inp, env):
     desc = self.command_descriptor()
-    (env['Content-Type'], env['Content-Encoding']) = mimetypes.guess_type('anything' + desc['preferred_suffix'])
+    (env['Content-Type'], env['Content-Encoding']) = mimetypes.guess_type('anything' + desc.preferred_suffix)
   def format_out(self, _inp, _env, _writable):
     not_implemented()
 
@@ -38,8 +38,8 @@ class FormatOut(Command):
          synopsis="Parse table.",
          preferred_suffix='.txt',
          opts={
-           '--fs=': 'Field separator.  Default: whitespace.',
-           '--rs=': 'Record separator.  Default: end of line.',
+           '--fs=REGEX': 'Field separator.  Default: whitespace: "\\s+".',
+           '--rs=REGEX': 'Record separator.  Default: end of line: "\\n\\r?".',
            '--header, -h': 'Headers are in first row.',
            '--column=': 'Column name printf template.  Default: "c%d".',
            '--encoding=': 'Encoding of input.  Default: "utf-8".',

@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import dataclass, fields
 import devdriven.cli
 from devdriven.util import get_safe
 
@@ -43,20 +44,40 @@ def descriptors():
 def descriptor(name, default=None):
   return DESCRIPTOR_BY_NAME.get(name, default)
 
+@dataclass
+class Descriptor():
+  name: str
+  aliases: list
+  synopsis: str
+  description: str
+  args: dict
+  opts: dict
+  content_type: str      # = None
+  content_encoding: str  # = None
+  preferred_suffix: str  # = None
+  klass: object
+
+def dataclass_from_dict(klass, opts):
+    field_names = {f.name for f in fields(klass) if f.init}
+    args = {k : v for k, v in opts.items() if k in field_names}
+    return klass(**args)
+
 def describe(klass, name, aliases, **kwargs):
-  desc = {
+  kwargs = {
     'synopsis': '',
+    'description': '',
     'args': {},
     'opts': {},
     'content_type': None,
     'content_encoding': None,
-    'preferred_suffix': None,
-    } | kwargs | {
-      "klass": klass,
-      "name": name,
-      "aliases": aliases,
-    }
-  for arg in [name, *aliases]:
+    'preferred_suffix': '',
+  } | kwargs | {
+    "klass": klass,
+    "name": name,
+    "aliases": aliases,
+  }
+  desc = dataclass_from_dict(Descriptor, kwargs)
+  for arg in [desc.name, *desc.aliases]:
     if assigned := descriptor(arg):
       raise Exception(f"describe: {arg!r} is already assigned to {assigned!r}")
     DESCRIPTOR_BY_NAME[arg] = DESCRIPTOR_BY_ANY[arg] = desc
@@ -68,14 +89,14 @@ def main_make_xform(main, klass_or_name, argv):
   desc = DESCRIPTOR_BY_ANY.get(klass_or_name)
   if not desc:
     raise Exception(f'unknown command: {klass_or_name!r} : see help')
-  xform = desc['klass']()
+  xform = desc.klass()
   xform.set_main(main)
-  xform.set_name(desc['name'])
+  xform.set_name(desc.name)
   xform.parse_argv(argv)
   return xform
 
 def find_format(input_name, klass):
   for desc in descriptors():
-    if issubclass(desc['klass'], klass) and desc['preferred_suffix'] == Path(input_name).suffix:
-      return desc['klass']
+    if issubclass(desc.klass, klass) and desc.preferred_suffix == Path(input_name).suffix:
+      return desc.klass
   return None
