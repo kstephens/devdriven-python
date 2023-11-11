@@ -104,7 +104,7 @@ class Grep(Command):
     for col, pat in chunks(self.args, 2):
       col = parse_col_or_index(imp_cols, col)
       # https://stackoverflow.com/a/31076657/1141958
-      match = inp[col].str.match(re.compile(pat))
+      match = inp[col].str.match(re.compile(pat), na=False)
       filter_expr = filter_expr & match if has_filter else match
       has_filter = True
     if has_filter:
