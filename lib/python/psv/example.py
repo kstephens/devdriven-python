@@ -5,25 +5,42 @@ import shlex
 import logging
 from devdriven.util import cwd
 from .command import Command, command
+from icecream import ic
 
 @command('example', [],
           synopsis="Show examples.")
 class Example(Command):
   def xform(self, _inp, _env):
+    examples = self.parse_examples(self.examples())
+    comment_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
+    examples = [ex for ex in examples if re.match(comment_rx, ex[0])]
+    self.run_examples(examples)
+
+  def run_examples(self, examples):
+    last_comment = None
+    for comment, command in examples:
+      if last_comment != comment:
+        last_comment = comment
+        print(comment)
+      print('$ ' + command)
+      self.run_example(command)
+      print('')
+
+  def parse_examples(self, lines):
+    examples = []
     comments = []
-    lines = self.examples()
-    while lines:
-      line = lines.pop(0).strip()
+    for line in lines:
+      line = line.strip()
       if not line:
-        None
+        comments = []
       elif re.match(r'^#', line):
         comments.append(line)
       elif mtch := re.match(r'^\$ +(.*)$', line):
-        print('\n'.join(comments))
-        comments = []
-        print(line)
-        self.run_example(mtch.group(1))
-        print('')
+        examples.append((
+          '\n'.join(comments),
+          mtch.group(1)
+        ))
+    return examples
 
   def run_example(self, example):
     with cwd(f'{self.main.root_dir}/example'):
@@ -63,34 +80,31 @@ $ cat a.tsv | psv in
 # in: HTTP support:
 $ psv in https://tinyurl.com/4sscj338
 
-# -tsv: Convert content to tsv:
+# -tsv: Convert content to TSV:
 $ psv in a.tsv // -tsv // md
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 $ cat a.tsv | psv -tsv // md
 
-# csv: Convert tsv to csv:
+# csv: Convert TSV to CSV:
 $ psv in a.tsv // -tsv // csv-
 
-# csv: Convert tsv to csv and save to a file:
+# out: Convert TSV to CSV and save to a file:
 $ psv in a.tsv // -tsv // csv- // out a.csv
 
-# md: Convert tsv on stdin to Markdown:
+# md: Convert TSV on stdin to Markdown:
 $ cat a.tsv | psv -tsv // md
 
-# json: Convert csv to json:
+# json: Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 
-# add-sequence (seq): add a column with a sequence:
-$ psv in a.tsv // -tsv // seq // md
+# -table: Parse generic table:
+$ psv in users.txt // -table --fs=":"
+$ psv in users.txt // -table --fs=":" --column='col%02d'
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 
-# add-sequence (seq): start at 0:
-$ psv in a.tsv // -tsv // seq --start=0 // md
-
-# add-sequence (seq): step by 2:
-$ psv in a.tsv // -tsv // seq --step=2 // md
-
-# add-sequence (seq): start at 5, step by -2:
-$ psv in a.tsv // -tsv // seq --start=5 --step=-2 // md
+# html: Generate HTML:
+$ psv in users.txt // -table --header --fs=":" // html // o /tmp/users.html
+$ w3m -dump /tmp/users.html
 
 # range: select a range of rows:
 $ psv in a.tsv // -tsv // seq --start=0 // range 1 3 // md
@@ -107,7 +121,7 @@ $ psv in us-states.txt // -table // tail 3 // md
 # reverse (tac):
 $ psv in a.tsv // -tsv // seq // tac // md
 
-# grep: match
+# grep: match columns by regex:
 $ psv in a.tsv // -tsv // grep d '.*x.*' // md
 
 # grep: match d and b:
@@ -116,7 +130,7 @@ $ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
 # sort: decreasing:
 $ psv in a.tsv // -tsv // sort -r a // md
 
-# sort by a decreasing, c increasing,
+# sort: by a decreasing, c increasing,
 # remove c, put d before other columns,
 # create a column i with a seqence
 $ psv in a.tsv // -tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
@@ -131,14 +145,26 @@ $ psv in a.tsv // -tsv // rename b B // md
 # show-columns: show column metadata:
 $ psv in a.tsv // -tsv // show-columns // md
 
-# stats: basic stats:
-$ psv in a.tsv // -tsv // stats // md
+# add-sequence (seq): add a column with a sequence:
+$ psv in a.tsv // -tsv // seq // md
+
+# add-sequence (seq): start at 0:
+$ psv in a.tsv // -tsv // seq --start=0 // md
+
+# add-sequence (seq): step by 2:
+$ psv in a.tsv // -tsv // seq --step=2 // md
+
+# add-sequence (seq): start at 5, step by -2:
+$ psv in a.tsv // -tsv // seq --start=5 --step=-2 // md
 
 # extract: extract fields by regex:
 $ psv in users.txt // extract '^(?P<login>[^:]+)' // md
 $ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
 $ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
 $ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+
+# stats: basic stats:
+$ psv in a.tsv // -tsv // stats // md
 
 # html: generate html
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head // html // o /tmp/us-states.html
