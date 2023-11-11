@@ -112,15 +112,15 @@ class Grep(Command):
     return inp
 
 @command('count', [],
-         synopsis="Count of records by group.",
-         args={'COL ...': "Columns to group by.  If not specified, one row with the count column is returned."},
-         opts={'column': "defaults to __count__"})
+         synopsis="Count of unique column values.",
+         args={'COL ...': "Columns to group by.  Defaults to all columns."},
+         opts={'column': "Defaults to __count__"})
 class Count(Command):
   def xform(self, inp, _env):
     count_col = self.opt('column', '__count__')
     group_cols = select_columns(inp, split_flat(self.args, ','), check=True)
     if not group_cols:
-      return pd.DataFrame(columns=[count_col], data=[[len(inp)]])
+      group_cols = list(inp.columns)
     return count_by(inp, group_cols, sort_by=group_cols, name=count_col)
 
 @command('translate', ['tr'],
