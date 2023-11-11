@@ -40,7 +40,7 @@ class FormatOut(Command):
          opts={
            '--fs=': 'Field separator.  Default: whitespace.',
            '--rs=': 'Record separator.  Default: end of line.',
-           '--header=': 'Headers are in first row.',
+           '--header, -h': 'Headers are in first row.',
            '--column=': 'Column name printf template.  Default: "c%d".',
            '--encoding=': 'Encoding of input.  Default: "utf-8".',
          })
@@ -54,7 +54,7 @@ class TableIn(FormatIn):
     skip = self.opt('skip', False)
     skip_rx = skip and re.compile(skip)
     encoding = self.opt('encoding', 'utf-8')
-    header = self.opt('header', False)
+    header = self.opt('header', self.opt('h', False))
     max_width = 0
     # Split content by record separator:
     if isinstance(readable, StringIO):
@@ -134,7 +134,10 @@ class MarkdownOut(FormatOut):
 
 @command('-json', [],
          synopsis="Parse JSON.",
-         preferred_suffix='.json')
+         preferred_suffix='.json',
+         opts={
+           '--orient=': 'Orientation: see pandas read_json.'
+         })
 class JsonIn(FormatIn):
   def format_in(self, readable, _env):
     orient = self.opt('orient', 'records')
@@ -154,7 +157,11 @@ class JsonOut(FormatOut):
 
 @command('html-', ['html'],
         synopsis="Generate HTML.",
-        preferred_suffix='.html')
+        preferred_suffix='.html',
+        opts={
+          '--table-name=': '<title>',
+          '--header': 'Generate header. Default: true.'
+        })
 class HtmlOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):

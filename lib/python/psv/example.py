@@ -7,7 +7,7 @@ from devdriven.util import cwd
 from .command import Command, command
 from icecream import ic
 
-@command('example', [],
+@command('examples', ['ex', 'example'],
           synopsis="Show examples.")
 class Example(Command):
   def xform(self, _inp, _env):
