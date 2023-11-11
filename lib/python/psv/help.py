@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from .format import MarkdownOut
+from .formats import MarkdownOut
 from .command import Command, command, descriptors
 
 @command('help', [],
