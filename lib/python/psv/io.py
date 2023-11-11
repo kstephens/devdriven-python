@@ -10,7 +10,7 @@ class IoBase(Command):
          synopsis="Read input.",
          args={"FILE ...": "input files.",
                "-": "denotes stdin"},
-         opts={"infer":  "Infer format from suffix."})
+         opts={"--infer, -i":  "Infer format from suffix."})
 class IoIn(IoBase):
   def xform(self, _inp, env):
     if not self.args:
@@ -18,7 +18,7 @@ class IoIn(IoBase):
     env['input.paths'] = [self.args[0]]
     content = Content(uri=self.args[0])
     format_for_suffix = find_format(self.args[0], FormatIn)
-    if self.opt('infer', False) and format_for_suffix:
+    if self.opt('infer', self.opt('i')) and format_for_suffix:
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
 

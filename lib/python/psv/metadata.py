@@ -6,9 +6,9 @@ from .util import *
 
 @command('add-sequence', ['seq'],
          synopsis="Add a column with a sequence of numbers.",
-         args={'column': "defaults to __i__"},
-         opts={'start': 'start at: defaults to 1.',
-               'step':  'step by: defaults to 1.'})
+         args={'--column=': "defaults to __i__"},
+         opts={'--start=': 'start at: defaults to 1.',
+               '--step=':  'step by: defaults to 1.'})
 class AddSequence(Command):
   def xform(self, inp, _env):
     col   = str(self.arg_or_opt(0, 'column', '__i__'))

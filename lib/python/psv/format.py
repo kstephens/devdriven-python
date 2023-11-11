@@ -38,11 +38,11 @@ class FormatOut(Command):
          synopsis="Parse table.",
          preferred_suffix='.txt',
          opts={
-           'fs': 'Field separator.  Default: whitespace.',
-           'rs': 'Record separator.  Default: end of line.',
-           'header': 'Headers are in first row.',
-           'column': 'Column name printf template.  Default: "c%d".',
-           'encoding': 'Encoding of input.  Default: "utf-8".',
+           '--fs=': 'Field separator.  Default: whitespace.',
+           '--rs=': 'Record separator.  Default: end of line.',
+           '--header=': 'Headers are in first row.',
+           '--column=': 'Column name printf template.  Default: "c%d".',
+           '--encoding=': 'Encoding of input.  Default: "utf-8".',
          })
 class TableIn(FormatIn):
   def format_in(self, readable, _env):

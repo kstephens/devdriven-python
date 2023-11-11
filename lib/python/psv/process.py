@@ -10,8 +10,8 @@ from .util import *
          synopsis="Select a sequence of rows.",
          args={'start [end] [step]': "For 1 or more arguments.",
                '[start]:[end]:step': "Python-style range."},
-         opts={'start': 'start at: defaults to 1.',
-               'step':  'step by: defaults to 1.'})
+         opts={'--start=': 'start at: defaults to 1.',
+               '--step=':  'step by: defaults to 1.'})
 class Range(Command):
   def xform(self, inp, _env):
     arg0 = get_safe(self.args, 0)
@@ -74,8 +74,8 @@ class Uniq(Command):
                "COL:-": "Sort by COL descending",
                "COL:+": "Sort by COL ascending",
          },
-         opts={'r': 'Sort descending.',
-               'n': 'Coerce columns to numeric.'})
+         opts={'-r': 'Sort descending.',
+               '-n': 'Coerce columns to numeric.'})
 class Sort(Command):
   def xform(self, inp, _env):
     imp_cols = list(inp.columns)
@@ -114,7 +114,7 @@ class Grep(Command):
 @command('count', [],
          synopsis="Count of unique column values.",
          args={'COL ...': "Columns to group by.  Defaults to all columns."},
-         opts={'column': "Defaults to __count__"})
+         opts={'--column=': "Defaults to __count__"})
 class Count(Command):
   def xform(self, inp, _env):
     count_col = self.opt('column', '__count__')
