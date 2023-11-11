@@ -4,6 +4,7 @@ from http.client import responses
 import urllib3
 from devdriven.util import not_implemented
 from devdriven.file_response import FileResponse
+import json
 import yurl
 
 class UserAgent():
@@ -17,7 +18,7 @@ class UserAgent():
   def __call__(self, *args, **kwargs):
     self.request(*args, **kwargs)
 
-  def request(self, method, url, headers=None, body=None):
+  def request(self, method, url, headers=None, body=None, **kwargs):
     method = method.upper()
     if isinstance(url, str):
       url = yurl.URL(url)
@@ -28,13 +29,17 @@ class UserAgent():
     for key, val in list(headers.items()):
       if val is None:
         del headers[key]
-    return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body)
+    return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body, kwargs)
 
-  def _request_scheme_http(self, method, url, headers, body):
-    return self.http_pool_manager.request(method, str(url), headers=headers, body=body)
+  def _request_scheme_http(self, method, url, headers, body, kwargs):
+    return self.http_pool_manager.request(method, str(url), headers=headers, body=body, **kwargs)
 
-  def _request_scheme_file(self, method, url, headers, body):
-    return FileResponse().request(method, url, headers, body)
+  def _request_scheme_file(self, method, url, headers, body, kwargs):
+    if json_body := kwargs.get('json'):
+      assert not body
+      body = json.dumps(json_body).encode()
+      headers = {'Content-Type': 'application/json'} | headers
+    return FileResponse().request(method, url, headers, body, **kwargs)
 
   def url_flavor(self, url):
     if url.scheme in ('http', 'https'):

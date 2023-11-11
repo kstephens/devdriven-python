@@ -16,7 +16,7 @@ class IoIn(IoBase):
     if not self.args:
       self.args.append('-')
     env['input.paths'] = [self.args[0]]
-    content = Content(uri=self.args[0])
+    content = Content(url=self.args[0])
     format_for_suffix = find_format(self.args[0], FormatIn)
     if self.opt('infer', self.opt('i')) and format_for_suffix:
       content = format_for_suffix().set_main(self.main).xform(content, env)
@@ -37,5 +37,5 @@ class IoOut(IoBase):
     headers = self.user_agent_headers(env)
     body = inp.encode('utf-8')
     for uri in self.args:
-      Content(uri=uri).put_content(body, headers=headers)
+      Content(url=uri).put(body, headers=headers)
     return inp

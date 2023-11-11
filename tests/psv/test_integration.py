@@ -16,7 +16,7 @@ def test_help_markdown():
   run('psv help markdown')
 
 def test_parse_subpipe():
-  run('psv null a b {{ null c d }}')
+  run('psv i /dev/null // null a b {{ null c d }}')
 
 def run(cmdline):
   args = shlex.split(cmdline)

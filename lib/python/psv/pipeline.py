@@ -58,7 +58,7 @@ def describe_datum(datum):
   elif isinstance(datum, pd.DataFrame):
     datum = datum.shape
   elif isinstance(datum, Content):
-    datum = datum.uri
+    datum = datum.url
   elif isinstance(datum, (bytes, list, dict)):
     datum = f'[{len(datum)}]'
   return f"<< {type_name}: {shorten_string(str(datum), 40)} >>"

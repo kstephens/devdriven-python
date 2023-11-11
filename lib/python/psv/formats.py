@@ -6,6 +6,7 @@ from devdriven.util import not_implemented
 import pandas as pd
 from devdriven.pandas import format_html
 from .command import Command, command
+from .content import Content
 
 class FormatIn(Command):
   def xform(self, inp, env):
@@ -15,7 +16,11 @@ class FormatIn(Command):
     env['Content-Type'] = 'application/x-pandas-dataframe'
     env['Content-Encoding'] = None
     # TODO: handle streaming:
-    return self.format_in(StringIO(str(inp)), env)
+    if isinstance(inp, str):
+      readable = StringIO(inp)
+    if isinstance(inp, Content):
+      readable = inp.response()
+    return self.format_in(readable, env)
   def format_in(self, _io, _env):
     not_implemented()
 
@@ -57,10 +62,10 @@ class TableIn(FormatIn):
     header = self.opt('header', self.opt('h', False))
     max_width = 0
     # Split content by record separator:
-    if isinstance(readable, StringIO):
-      rows = re.split(rs_rx, readable.read())
-    else:
-      rows = re.split(rs_rx, readable.read(encoding=encoding))
+    rows = readable.read()
+    if isinstance(rows, bytes):
+      rows = rows.decode(encoding)
+    rows = re.split(rs_rx, rows)
     # Remove trailing empty record:
     if rows and rows[-1] == '':
       rows.pop(-1)

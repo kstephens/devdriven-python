@@ -15,9 +15,7 @@ class Command(devdriven.cli.Command):
     return inp
 
   def make_xform(self, argv):
-    name = argv[0]
-    argv = argv[1:]
-    return main_make_xform(self.main, name, argv)
+    return main_make_xform(self.main, argv[0], argv[1:])
 
   def arg_or_opt(self, i, k, default):
     return get_safe(self.args, i, get_safe(self.opts, k, default))

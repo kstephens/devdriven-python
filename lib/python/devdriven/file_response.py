@@ -1,4 +1,5 @@
 import os
+from io import BytesIO, TextIOBase, TextIOWrapper
 import sys
 import hashlib
 import json
@@ -9,57 +10,77 @@ from email.utils import formatdate
 from http.client import responses
 from urllib3 import HTTPHeaderDict
 from devdriven.util import not_implemented
+# from icecream import ic
+
+TEXT_IO_CLASSES = (TextIOBase, TextIOWrapper)
 
 # Partially compatable with urllib3.response.HTTPResponse:
 class FileResponse():
   default_stdin = default_stdout = None
 
   def __init__(self):
-    self.request_method = self.url = self.file_path = self.is_stream = None
+    self._now = None
+    self.request_method = self.url = self.file_path = None
     self.status = self.headers = self._body = None
-    self._io = self.read_io = self.write_io = None
+    self.is_stream = self.is_stdio = None
+    self.stdin = self.stdout = None
+    self.read_io = self.write_io = None
     self.closed = True
     self.encoding = 'utf-8'
+    self.connection = '<<FileResponse.connection : NOT-IMPLEMENTED>>'
+    self.retries = '<<FileResponse.retries : NOT-IMPLEMENTED>>'
+    self._headers = self._body = None
+    self.preload_content = None
 
   # https://stackoverflow.com/questions/865115/how-do-i-correctly-clean-up-a-python-object
   def __del__(self):
-    if self._io and not self.closed:
-      self.close()
+    self.close()
 
-  def request(self, method, url, headers, body):
+  def request(self, method, url, headers, body, **kwargs):
     self.request_method = method.upper()
     self.url = url
-    self.file_path = url.path
-    self.is_stream = self.file_path == '-'
     headers = (headers or {}).copy()
-    self.read_io = headers.pop("X-STDIN", (FileResponse.default_stdin or sys.stdin))
-    self.write_io = headers.pop("X-STDOUT", (FileResponse.default_stdout or sys.stdout))
-    self.headers = HTTPHeaderDict(headers)
-
-    self.connection = '<<FileResponse.connection : NOT-IMPLEMENTED>>'
-    self.data = b'<<FileResponse.data : NOT-IMPLEMENTED>>'
-    self.retries = '<<FileResponse.retries : NOT-IMPLEMENTED>>'
+    self.stdin = headers.pop("X-STDIN", (FileResponse.default_stdin or sys.stdin))
+    self.stdout = headers.pop("X-STDOUT", (FileResponse.default_stdout or sys.stdout))
+    self._headers = HTTPHeaderDict(headers)
+    if url.path == '-':
+      self.is_stream = self.is_stdio = True
+    else:
+      self.file_path = url.path
+    self.status = 599
+    self.headers = HTTPHeaderDict({})
+    self.preload_content = kwargs.get('preload_content', True)
     getattr(self, f"_request_method_{method.lower()}")(body)
     return self
 
   def close(self):
-    if self._io and not self.closed:
-      self.closed = True
+    if not self.closed:
+      self.flush()
       if not self.is_stream:
         logging.info("FileResponse.close()")
-        # self._io.close()
-      self._io = None
+        if self.read_io:
+          self.read_io.close()
+        if self.write_io:
+          self.write_io.close()
+      self.closed = True
+      self.release_conn()
     return None
-  def connection(self):
-    return not_implemented()
+  @property
   def data(self):
-    return not_implemented()
+    if not self._body:
+      self._body = self.read()
+      self.close()
+    return self._body
   def drain_conn(self):
-    return not_implemented()
+    if self.read_io:
+      self.read_io.read()
+    return self.close()
   def fileno(self):
     return not_implemented()
   def flush(self):
-    return not_implemented()
+    if self.write_io:
+      self.write_io.flush()
+    self._etag()
   def get_redirect_location(self):
     return not_implemented()
   def getheader(self, name, default=None):
@@ -73,130 +94,158 @@ class FileResponse():
   def isatty(self):
     return not_implemented()
   def isclosed(self):
-    return not_implemented()
+    return self.closed
   def json(self):
-    return json.loads(self._body)
+    return json.load(self.read().decode(self.encoding))
   def read(self, amt=None, decode_content=None, cache_content=False):
-    return not_implemented()
+    assert not decode_content
+    assert not cache_content
+    if not self.read_io:
+      return b''
+    b = self.read_io.read(amt)
+    if isinstance(self.read_io, TEXT_IO_CLASSES):
+      b = b.encode(self.read_io.encoding or self.encoding)
+    return b
   def read_chunked(self, amt=None, decode_content=None):
-    return not_implemented()
+    assert not decode_content
+    return self.read_io.read_chunked(amt=amt)
   def readable(self):
-    return not_implemented()
+    return not not self.read_io
   def readinto(self, b):
-    return not_implemented()
-  def readline(self, size=-1, /):
-    return not_implemented()
+    return self.read_io.readinto(b)
+  def readline(self, size=-1):
+    return self.read_io.readline(size=size)
   def release_conn(self):
-    return not_implemented()
-  def seek(self, offset, whence=0, /):
-    return not_implemented()
+    self.read_io = self.write_io = None
+    self.stdin = self.stdout = None
+    return None
+  def seek(self, offset, whence=0):
+    return self.read_io.seek(offset, whence)
   def stream(self, amt=65536, decode_content=None):
-    return not_implemented()
+    assert not decode_content
+    return self.read_io.stream(amt=amt)
   def supports_chunked_reads(self):
     return not_implemented()
   def tell(self):
-    return not_implemented()
+    if self.read_io:
+      return self.read_io.tell()
+    if self.write_io:
+      return self.write_io.tell()
+    return None
   def truncate(self):
+    # self.write_io.truncate()
     return not_implemented()
+
   def writable(self):
-    return not_implemented()
-  def writelines(lines, /):
-    return not_implemented()
+    return not not self.write_io
+  def write(self, b):
+    if isinstance(self.write_io, TEXT_IO_CLASSES):
+      if isinstance(b, bytes):
+        b = b.decode(self.write_io.encoding or self.encoding)
+    return self.write_io.write(b)
+  def writelines(self, lines, /):
+    for line in lines:
+      self.write(line)
 
   ###############################
 
   def _request_method_get(self, _body):
-    self.open_with_error_handling("rb", self.read_io, self.read_file)
+    if self.is_stdio:
+      self.read_io = self.stdin
+      self._start(200)
+    else:
+      self.open_with_error_handling("rb")
+      self._preload()
     return self
 
   def _request_method_put(self, body):
-    self.open_with_error_handling("wb", self.write_io, self.write_file, body)
+    if self.is_stdio:
+      self.write_io = self.stdout
+      self._status_body(201)
+    else:
+      self.open_with_error_handling("wb")
+    self._preload()
+    if body:
+      self.write(body)
     return self
 
-  def read_file(self, io):
-    if self.is_stream:
-      return self.complete(200, {}, io.read().encode(self.encoding))
-    body = io.read()
-    # ???: Can return multiple shapes?
-    # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
-    (content_type, _encoding) = mimetypes.guess_type(self.file_path)
-    return self.complete(200, {'Content-Type': content_type}, body)
+  def _preload(self):
+    if self.preload_content and self.read_io:
+      self._body = self.read()
+      self.read_io.close()
+      self.read_io = None
 
-  def write_file(self, io, body):
-    assert not isinstance(io, str)
-    if self.is_stream:
-      if isinstance(body, bytes):
-        body = body.decode(self.encoding)
-    io.write(body)
-    return self.status_body(201, {})
-
-  def open_with_error_handling(self, mode, io, fun, *args):
-    status, headers, body, err = 599, {}, b'', None
-    result = None
+  def open_with_error_handling(self, mode, *args):
+    self.status, err = 599, None
+    error_status = None
     try:
-      if self.is_stream:
-        self._io = io
-        result = fun(io, *args)
-        self._io = None
+      if mode == 'rb':
+        self.read_io = open(self.file_path, 'rb')
+        # ???: Can return multiple shapes?
+        # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
+        (content_type, _encoding) = mimetypes.guess_type(self.file_path)
+        if content_type:
+          self.headers['Content-Type'] = content_type
+        self._start(200)
+        self._etag()
       else:
-        with open(self.file_path, mode) as io:
-          self._io = io
-          (status, headers, body) = fun(io, *args)
-          self._io = None
-        headers = headers | {
-          'Last-Modified': rfc_1123(file_mtime_datetime(self.file_path)),
-          'ETag': file_etag(self.file_path),
-        }
-        result = (status, headers, body)
+        self.write_io = open(self.file_path, 'wb')
+        self._start(201)
+        self._etag()
+        self._status_body(self.status)
+      self.closed = False
     except FileNotFoundError as exc:
-      status, err = 404, exc
+      error_status, err = 404, exc
     except (PermissionError, OSError) as exc:
       ## OSError [Errno 30] Read-only file system
-      status, err = 403, exc
-    finally:
-      self._io = None
+      error_status, err = 403, exc
     if err:
-      headers['X-Error'] = str(err)
-      result = self.status_body(status, headers)
-    self.status, self.headers, self._body = result
+      self._start(error_status)
+      self._status_body(error_status)
+      self.headers['X-Error'] = str(err)
+    return self
 
-  def status_body(self, status, headers):
-    return self.text_body(status, headers,
-                          f'{status} {responses.get(status, "Unknown")}')
+  def _status_body(self, status):
+    self._text_body(status, f'{status} {responses.get(status, "Unknown")}\n')
 
-  def text_body(self, status, headers, body):
-    return self.complete(status,
-                          headers | {'Content-Type': 'text/plain'},
-                          body.encode('utf-8'))
+  def _text_body(self, status, body):
+    body = body.encode('utf-8')
+    self.read_io = BytesIO(body)
+    self._start(status)
+    self.headers.update({'Content-Type': 'text/plain',
+                         'Content-Length': str(len(body))})
 
-  def complete(self, status, headers, body):
-    now = datetime.now()
-    # See https://google.com
-    basic_headers = {
-      'Date': rfc_1123(now),
+  def _start(self, status):
+    self.status = status
+    self._now = datetime.now()
+    self.headers.update({
+      'Date': rfc_1123(self._now),
       'Pragma': 'no-cache',
       'Expires': 'Fri, 01 Jan 1990 00:00:00 GMT',
-      'Last-Modified': headers.get('Last-Modified', rfc_1123(now)),
+      'Last-Modified': self.headers.get('Last-Modified', rfc_1123(self._now)),
       'Cache-Control': 'no-store, no-cache, must-revalidate',
-      # 'Content-Encoding': self.encoding,
-      # 'Content-Type': 'text/html',
       'Server': 'Local FileSystem',
-      'Content-Length': str(len(body)),
       'X-XSS-Protection': '0',
-    }
-    return (status, HTTPHeaderDict(self.headers | basic_headers | headers), body)
-
+    })
+  def _etag(self):
+    if not self.file_path:
+      return
+    stat = os.stat(self.file_path)
+    self.headers.update({
+      'Content-Length': str(stat.st_size),
+      'ETag': file_etag(self.file_path, stat),
+    })
+    time = datetime.fromtimestamp(stat.st_mtime)
+    self._last_modified(time)
+  def _last_modified(self, time):
+    self.headers['Last-Modified'] = rfc_1123(time)
 
 # https://stackoverflow.com/questions/225086/rfc-1123-date-representation-in-python
 # https://stackoverflow.com/a/37191167/1141958
 def rfc_1123(some_datetime):
   return formatdate(some_datetime.timestamp(), usegmt=True)
 
-def file_mtime_datetime(path):
-  return datetime.fromtimestamp(os.stat(path).st_mtime)
-
-def file_etag(path):
-  stat = os.stat(path)
+def file_etag(path, stat):
   path_hash = hashlib.sha1()
   path_hash.update(f"{path}-{stat.st_dev}-{stat.st_ino}-{stat.st_mtime}-{stat.st_size}".encode('utf-8'))
   return path_hash.hexdigest()

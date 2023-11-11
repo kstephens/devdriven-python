@@ -1,53 +1,51 @@
-import io
 import yurl
 from devdriven.user_agent import UserAgent
 
 class Content():
-  def __init__(self, uri=None, content=None, headers=None):
-    self.uri = uri
+  def __init__(self, url=None, headers=None, encoding='utf-8'):
+    self.url = url
+    self.headers = headers or {}
+    self.encoding = encoding
     self._body = None
-    self._content = content
-    self.headers = headers
+    self._content = None
+    self._response = None
 
   def __repr__(self):
-    return f'Content(uri={self.uri!r}, headers={self.headers!r})'
+    return f'Content(uri={self.url!r})'
   def __str__(self):
     return self.content()
-
-  def encode(self, encoding='utf-8'):
-    return self.content().encode(encoding)
-
   def to_dict(self):
-    return {'Content', str(self.uri)}
+    return {'Content': str(self.url)}
 
   def content(self):
     if not self._content:
-      self._content = self.get_content()
+      self._content = self.body().decode(self.encoding)
     return self._content
 
-  def readable(self, headers=None):
-    return io.BytesIO(self.body(headers=headers))
-
-  def get_content(self, headers=None, encoding=None):
-    return self.get_body(headers=headers).decode(encoding or 'utf-8')
-
-  def body(self, headers=None):
+  def body(self):
     if not self._body:
-      self._body = self.get_body(headers=headers)
+      self._body = self.response().read()
+      self._response = None
     return self._body
 
-  def get_body(self, headers=None):
-    headers = (self.headers or {}) | (headers or {})
+  def response(self):
+    if self._response:
+      return self._response
     def do_get(url):
-      return UserAgent().request('get', url, headers=headers)
-    response = with_http_redirects(do_get, self.uri)
-    return response._body
+      return UserAgent().request('get', url, headers=self.headers, preload_content=False)
+    response = with_http_redirects(do_get, self.url)
+    if not response.status == 200:
+      raise Exception(f'GET {self.url} : status {response.status}')
+    self._response = response
+    return response
 
-  def put_content(self, body, headers=None):
-    headers = (self.headers or {}) | (headers or {})
+  def put(self, body, headers=None):
+    if isinstance(body, str):
+      body = body.encode(self.encoding)
+    headers = self.headers | (headers or {})
     def do_put(url, body):
       return UserAgent().request('put', url, body=body, headers=headers)
-    with_http_redirects(do_put, self.uri, body)
+    self._response = with_http_redirects(do_put, self.url, body)
     return self
 
 # ???: UserAgent already handle redirects:
@@ -63,5 +61,6 @@ def with_http_redirects(fun, url, *args, **kwargs):
     else:
       break
   if not completed:
-    raise Exception("Too many redirects: {self.uri} : {max_redirects}")
+    raise Exception("PUT {self.url} : status {response and response.status} : Too many redirects : {max_redirects}")
   return response
+
