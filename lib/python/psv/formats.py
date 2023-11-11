@@ -38,8 +38,8 @@ class FormatOut(Command):
          synopsis="Parse table.",
          preferred_suffix='.txt',
          opts={
-           '--fs=REGEX': 'Field separator.  Default: whitespace: "\\s+".',
-           '--rs=REGEX': 'Record separator.  Default: end of line: "\\n\\r?".',
+           '--fs=REGEX': 'Field separator.  Default: "\\s+".',
+           '--rs=REGEX': 'Record separator.  Default: "\\n\\r?".',
            '--header, -h': 'Headers are in first row.',
            '--column=': 'Column name printf template.  Default: "c%d".',
            '--encoding=': 'Encoding of input.  Default: "utf-8".',
