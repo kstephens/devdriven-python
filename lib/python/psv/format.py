@@ -14,6 +14,7 @@ class FormatIn(Command):
     # TODO: reduce(concat,map(FormatIn,map(read, inputs)))
     env['Content-Type'] = 'application/x-pandas-dataframe'
     env['Content-Encoding'] = None
+    # TODO: handle streaming:
     return self.format_in(StringIO(str(inp)), env)
   def format_in(self, _io, _env):
     not_implemented()
@@ -21,11 +22,11 @@ class FormatIn(Command):
 class FormatOut(Command):
   def xform(self, inp, env):
     self.setup_env(inp, env)
-    # TODO: handle streaming.
+    # TODO: handle streaming:
     out = StringIO()
     self.format_out(inp, env, out)
     return out.getvalue()
-  def setup_env(self, inp, env):
+  def setup_env(self, _inp, env):
     desc = self.command_descriptor()
     (env['Content-Type'], env['Content-Encoding']) = mimetypes.guess_type('anything' + desc['preferred_suffix'])
   def format_out(self, _inp, _env, _writable):

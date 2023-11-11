@@ -39,4 +39,3 @@ class IoOut(IoBase):
     for uri in self.args:
       Content(uri=uri).put_content(body, headers=headers)
     return inp
-

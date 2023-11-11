@@ -72,7 +72,6 @@ class Coerce(Command):
                           # format='mixed',
                           utc=True)
 
-
 @command('show-columns', ['columns', 'cols'],
          synopsis="Table of column names and attributes.")
 class ShowColumns(Command):
