@@ -1,5 +1,5 @@
 import re
-from devdriven.util import get_safe
+from devdriven.util import get_safe, glob_to_rx
 import pandas as pd
 
 def get_columns(cols):
@@ -24,9 +24,9 @@ def select_columns(inp, args, check=False, default_all=False):
       col = mtch.group(1)
       action = mtch.group(2)
     col = parse_col_or_index(inp_cols, col)
-    if col == '*':
-      cols = inp_cols
-    else:
+    col_rx = glob_to_rx(col)
+    cols = [col for col in inp_cols if re.match(col_rx, col)]
+    if not check and not cols:
       cols = [col]
     if action == '-':
       selected = [x for x in selected if x not in cols]
