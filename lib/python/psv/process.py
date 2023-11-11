@@ -6,7 +6,7 @@ from .command import Command, command
 from .metadata import Coerce
 from .util import *
 
-@command('range', [],
+@command('range', ['r'],
          synopsis="Select a sequence of rows.",
          args={'start [end] [step]': "For 1 or more arguments.",
                '[start]:[end]:step': "Python-style range."},
@@ -29,14 +29,14 @@ class Range(Command):
 def process_range(inp, start, end, step):
   return inp.iloc[make_range(start, end, step, len(inp))]
 
-@command('head', [],
+@command('head', ['h'],
          synopsis='First N rows')
 class Head(Command):
   def xform(self, inp, _env):
     count = abs(int(self.arg_or_opt(0, 'count', 10)))
     return process_range(inp, None, count, None)
 
-@command('tail', [],
+@command('tail', ['t'],
          synopsis='Last N rows')
 class Tail(Command):
   def xform(self, inp, _env):
@@ -49,7 +49,7 @@ class Reverse(Command):
   def xform(self, inp, env):
     return process_range(inp, None, None, -1)
 
-@command('cut', ['x'],
+@command('cut', ['c', 'x'],
          synopsis="Cut specified columns.",
          args={
            'COL ...': 'List of columms to select',
@@ -68,7 +68,7 @@ class Uniq(Command):
   def xform(self, inp, _env):
     return inp.drop_duplicates()
 
-@command('sort', [],
+@command('sort', ['s'],
          synposis="Sort rows by columns.",
          args={'COL': "Sort by COL ascending",
                "COL:-": "Sort by COL descending",
