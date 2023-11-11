@@ -35,38 +35,55 @@ class FormatOut(Command):
 
 @command('-table', [],
          synopsis="Parse table.",
-         preferred_suffix='.txt')
+         preferred_suffix='.txt',
+         opts={
+           'fs': 'Field separator.  Default: whitespace.',
+           'rs': 'Record separator.  Default: end of line.',
+           'header': 'Headers are in first row.',
+           'column': 'Column name printf template.  Default: "c%d".',
+           'encoding': 'Encoding of input.  Default: "utf-8".',
+         })
 class TableIn(FormatIn):
   def format_in(self, readable, _env):
-    self.fs_rx = re.compile(self.opt('fs', r'\s+'))
-    self.rs_rx = re.compile(self.opt('rs', r'\n\r?'))
+    fs_rx = re.compile(self.opt('fs', r'\s+'))
+    rs_rx = re.compile(self.opt('rs', r'\n\r?'))
+    column = self.opt('column', 'c')
+    if '%' not in column:
+      column += '%d'
     skip = self.opt('skip', False)
-    self.skip_rx = skip and re.compile(skip)
-    self.encoding = self.opt('encoding', 'utf-8')
-    self.header = self.opt('header', False)
-    return self.parse_records(readable, _env)
-
-  def parse_records(self, readable, _env):
-    self.max_width = 0
-    def parse_row(row):
-      fields = re.split(self.fs_rx, row)
-      self.max_width = max(self.max_width, len(fields))
-      return fields
-    def pad_row(row):
-      row.extend(pads[max_width - len(row)])
-    rows = re.split(self.rs_rx, readable.read())
+    skip_rx = skip and re.compile(skip)
+    encoding = self.opt('encoding', 'utf-8')
+    header = self.opt('header', False)
+    max_width = 0
+    # Split content by record separator:
+    if isinstance(readable, StringIO):
+      rows = re.split(rs_rx, readable.read())
+    else:
+      rows = re.split(rs_rx, readable.read(encoding=encoding))
+    # Remove trailing empty record:
     if rows and rows[-1] == '':
       rows.pop(-1)
-    rows = [ parse_row(row) for row in rows ]
-    max_width = self.max_width
+    # Split row by field separator:
+    i = 0
+    for row in rows:
+      fields = re.split(fs_rx, row)
+      max_width = max(max_width, len(fields))
+      rows[i] = fields[:]
+      i += 1
+    # Pad all rows to max row width:
     pads = [[''] * n for n in range(0, max_width + 1)]
     for row in rows:
-      pad_row(row)
-    if self.header:
+      row.extend(pads[max_width - len(row)])
+    # Take header off the top,
+    # otherwise: generate columns by index:
+    if header:
       cols = rows.pop(0)
     else:
-      cols = map(lambda i: f'c{i}', range(1, max_width + 1))
+      cols = generate_columns(column, max_width)
     return pd.DataFrame(columns=cols, data=rows)
+
+def generate_columns(column_format, width):
+  return map(lambda i: column_format % i, range(1, width + 1))
 
 @command('table-', [],
          synopsis="Generate table.",
