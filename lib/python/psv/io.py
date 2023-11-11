@@ -30,12 +30,12 @@ class IoOut(IoBase):
   def xform(self, inp, env):
     if inp is None:
       return None
-    inp = str(inp)
     if not self.args:
       self.args.append('-')
     env['output.paths'] = list(map(str, self.args))
     headers = self.user_agent_headers(env)
-    body = inp.encode('utf-8')
+    # TODO: streaming:
+    body = str(inp).encode('utf-8')
     for uri in self.args:
       Content(url=uri).put(body, headers=headers)
     return inp
