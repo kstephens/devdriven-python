@@ -6,12 +6,34 @@ class IoBase(Command):
   def user_agent_headers(self, env):
     return {'Content-Type': env['Content-Type']}
 
-@command('in', ['i', '-i'],
-         synopsis="Read input.",
-         args={"FILE ...": "input files.",
-               "-": "denotes stdin"},
-         opts={"--infer, -i":  "Infer format from suffix."})
+@command()
 class IoIn(IoBase):
+  '''
+  in - Read input.
+
+  Aliases: i, -i
+
+  Arguments:
+
+  FILE             : Read FILE.
+  file///FILE      : Read FILE.
+  https?://...     : GET URL.
+  -                : Read STDIN.
+
+  Options:
+
+  --infer, -i | Infer format from suffix.
+
+  :section: I/O
+
+  Examples:
+
+# in: read from STDIN:
+$ cat a.tsv | psv in -
+
+# in: HTTP support:
+$ psv in https://tinyurl.com/4sscj338
+  '''
   def xform(self, _inp, env):
     if not self.args:
       self.args.append('-')
@@ -22,11 +44,24 @@ class IoIn(IoBase):
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
 
-@command('out', ['o', 'o-'],
-         synopsis="Write output.",
-         args={"FILE ...": "output files.",
-               "-": "denotes stdout"})
+@command()
 class IoOut(IoBase):
+  '''
+  out - write output to URLs.
+  Aliases: o, o-
+
+  FILE             : Write FILE.
+  file///FILE      : Write FILE.
+  https?://...     : PUT URL.
+  -                : Write STDOUT.
+
+  :section: I/O
+
+  Examples
+# out: Convert TSV to CSV and save to a file:
+$ psv in a.tsv // -tsv // csv- // out a.csv
+
+  '''
   def xform(self, inp, env):
     if inp is None:
       return None

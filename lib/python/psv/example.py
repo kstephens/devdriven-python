@@ -7,9 +7,15 @@ from devdriven.util import cwd
 from .command import Command, command
 from icecream import ic
 
-@command('examples', ['ex', 'example'],
-          synopsis="Show examples.")
+@command()
 class Example(Command):
+  '''
+  examples - Show examples.
+
+  Aliases: ex, example
+
+  SEARCH-STRING : Matches name, aliases, synopsis
+  '''
   def xform(self, _inp, _env):
     examples = self.parse_examples(self.examples())
     comment_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
@@ -17,14 +23,20 @@ class Example(Command):
     self.run_examples(examples)
 
   def run_examples(self, examples):
+    gen_docstring = True
     last_comment = None
-    for comment, command in examples:
+    if gen_docstring:
+      print('\nExamples:\n')
+    for comment, cmd in examples:
       if last_comment != comment:
         last_comment = comment
         print(comment)
-      print('$ ' + command)
-      self.run_example(command)
+      print('$ ' + cmd)
+      if not gen_docstring:
+        self.run_example(cmd)
       print('')
+      #if gen_docstring:
+      #  print('\n====================\n\n')
 
   def parse_examples(self, lines):
     examples = []
@@ -106,6 +118,12 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 $ psv in users.txt // -table --header --fs=":" // html // o /tmp/users.html
 $ w3m -dump /tmp/users.html
 
+# cut: select columns by index and name:
+$ psv in -i a.tsv // cut 2,d // md
+
+# cut: remove c, put d before other columns,
+$ psv in -i a.tsv // cut d '*' c:- // md
+
 # range: select a range of rows:
 $ psv in a.tsv // -tsv // seq --start=0 // range 1 3 // md
 
@@ -134,6 +152,7 @@ $ psv in a.tsv // -tsv // sort -r a // md
 # remove c, put d before other columns,
 # create a column i with a seqence
 $ psv in a.tsv // -tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+
 
 # translate: change delete characters:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md

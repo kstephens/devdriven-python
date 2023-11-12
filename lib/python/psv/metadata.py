@@ -4,12 +4,22 @@ import pandas as pd
 from .command import Command, command
 from .util import *
 
-@command('add-sequence', ['seq'],
-         synopsis="Add a column with a sequence of numbers.",
-         args={'--column=': "defaults to __i__"},
-         opts={'--start=': 'start at: defaults to 1.',
-               '--step=':  'step by: defaults to 1.'})
+@command()
 class AddSequence(Command):
+  '''
+  add-sequence - Add a column with a sequence of numbers.
+  Aliases: seq
+
+  Arguments:
+
+  --column=NAME | Default: "__i__"
+
+  Options:
+
+  --start=START | Default: 1.
+  --step=STEP   | Default: 1.
+
+  '''
   def xform(self, inp, _env):
     col   = str(self.arg_or_opt(0, 'column', '__i__'))
     start = int(self.arg_or_opt(1, 'start', 1))
@@ -19,33 +29,58 @@ class AddSequence(Command):
     out[col] = seq
     return out
 
-@command('add-columns', ['add'],
-         synopsis="Add columns.",
-         args={'OLD-NAME NEW-NAME ...': 'Columns to rename.'})
 class AddColumns(Command):
+  '''
+  add-columns - Add columns.
+  Aliases: add
+
+  Arguments:
+
+  OLD-NAME NEW-NAME ... | Columns to rename.
+
+  '''
   def xform(self, inp, _env):
     return inp.rename(columns=dict(chunks(self.args, 2)))
 
-@command('rename-columns', ['rename'],
-         synopsis="Rename columns.",
-         args={'OLD-COL:NEW-NAME ...': 'Columns to rename.'})
+@command()
 class RenameColumns(Command):
+  '''
+  rename-columns - Rename columns.
+  Aliases: rename
+
+  Arguments:
+
+  OLD-COL:NEW-NAME ... | Columns to rename.
+
+# rename: rename column 'b' to 'B':
+$ psv in a.tsv // -tsv // rename b B // md
+  '''
   def xform(self, inp, _env):
     inp_cols = list(inp.columns)
     args = split_flat(self.args, ',')
     rename = [parse_column_and_opt(inp_cols, arg) for arg in args]
     return inp.rename(columns=dict(rename))
 
-@command('infer-objects', ['infer'],
-         synopsis="Infer column types.")
+@command()
 class InferObjects(Command):
+  '''
+  infer-objects - Infer column types.
+  Aliases: infer
+
+  '''
   def xform(self, inp, _env):
     return inp.infer_objects()
 
-@command('coerce', ['astype'],
-         synopsis="Corece column types.",
-         args={'COL:TYPE ...': 'Columns to retype.'})
+@command()
 class Coerce(Command):
+  '''
+  coerce - Corece column types.
+  Aliases: astype
+
+  Arguments:
+
+  COL:TYPE ... | Columns to retype.
+  '''
   def xform(self, inp, _env):
     inp_cols = list(inp.columns)
     col_types = [parse_column_and_opt(inp_cols, arg) for arg in split_flat(self.args, ',')]
@@ -72,9 +107,17 @@ class Coerce(Command):
                           # format='mixed',
                           utc=True)
 
-@command('show-columns', ['columns', 'cols'],
-         synopsis="Table of column names and attributes.")
+@command()
 class ShowColumns(Command):
+  '''
+  show-columns - Table of column names and attributes.
+
+  Aliases: columns, cols
+
+# show-columns: show column metadata:
+$ psv in a.tsv // -tsv // show-columns // md
+
+  '''
   def xform(self, inp, _env):
     out = get_dataframe_info(inp)
     out.reset_index(inplace=True)
@@ -94,9 +137,15 @@ def get_dataframe_info(dframe):
   # df_null_count = df_null_count.sort_values(by=["null_counts"], ascending=False)
   return df_null_count
 
-@command('env-', [],
-         synopsis="Show env.")
+@command()
 class EnvOut(Command):
+  '''
+  env- - Show env.
+
+# env: display proccessing info:
+$ psv in a.tsv // -tsv // show-columns // md // env-
+
+  '''
   def xform(self, _inp, env):
     env['Content-Type'] = 'application/x-psv-env'
     return to_dict(env)

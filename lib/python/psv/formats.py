@@ -39,17 +39,28 @@ class FormatOut(Command):
 
 ############################
 
-@command('-table', [],
-         synopsis="Parse table.",
-         preferred_suffix='.txt',
-         opts={
-           '--fs=REGEX': 'Field separator.  Default: "\\s+".',
-           '--rs=REGEX': 'Record separator.  Default: "\\n\\r?".',
-           '--header, -h': 'Headers are in first row.',
-           '--column=': 'Column name printf template.  Default: "c%d".',
-           '--encoding=': 'Encoding of input.  Default: "utf-8".',
-         })
+@command(preferred_suffix='.txt')
 class TableIn(FormatIn):
+  '''
+  -table - Parse table.
+  alias: table-in
+
+  --fs=REGEX       : Field separator.  Default: "\\s+".
+  --rs=REGEX       : Record separator.  Default: "\\n\\r?".
+  --header, -h     : Headers are in first row.
+  --column=FMT     : Column name printf template.  Default: "c%d".
+  --encoding=ENC   : Encoding of input.  Default: "utf-8".
+
+  Examples:
+
+# -table: Parse generic table:
+$ psv in users.txt // -table --fs=":"
+
+$ psv in users.txt // -table --fs=":" --column='col%02d'
+
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
+
+  '''
   def format_in(self, readable, _env):
     fs_rx = re.compile(self.opt('fs', r'\s+'))
     rs_rx = re.compile(self.opt('rs', r'\n\r?'))
@@ -91,45 +102,75 @@ class TableIn(FormatIn):
 def generate_columns(column_format, width):
   return map(lambda i: column_format % i, range(1, width + 1))
 
-@command('table-', [],
-         synopsis="Generate table.",
-         preferred_suffix='.txt')
-class FsOut(FormatOut):
+@command()
+class TableOut(FormatOut):
+  '''
+  table- - Generate table.
+
+  NOT IMPLEMENTED
+
+  :preferred_suffix: .txt
+  '''
   def format_out(self, inp, _env, writeable):
     not_implemented()
 
-@command('-tsv', [],
-         synopsis="Parse TSV rows.",
-         preferred_suffix='.tsv')
+@command()
 class TsvIn(FormatIn):
+  '''
+  -tsv - Parse TSV.
+
+  :preferred_suffix=.tsv
+  '''
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep='\t', header=0)
 
-@command('tsv-', [],
-         synopsis="Generate TSV rows.",
-         preferred_suffix='.tsv')
+@command()
 class TsvOut(FormatOut):
+  '''
+  tsv- - Generate TSV.
+
+  :preferred_suffix=.tsv
+  '''
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, sep='\t', header=True, index=False, date_format='iso')
 
-@command('-csv', [],
-         synopsis="Parse CSV rows.",
-         preferred_suffix='.csv')
+@command()
 class CsvIn(FormatIn):
+  '''
+  -csv - Parse CSV.
+
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+
+  :preferred_suffix=.csv
+  '''
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep=',', header=0)
 
-@command('csv-', [],
-        synopsis="Generate CSV rows.",
-        preferred_suffix='.csv')
+@command()
 class CsvOut(FormatOut):
+  '''
+  csv- - Generate CSV.
+
+  :preferred_suffix=.csv
+
+  Examples:
+
+# tsv, csv: Convert TSV to CSV:
+$ psv in a.tsv // -tsv // csv-
+
+  '''
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, header=True, index=False, date_format='iso')
 
-@command('md', ['md-', 'markdown'],
-         synopsis="Generate a Markdown table.",
-         preferred_suffix='.md')
+@command()
 class MarkdownOut(FormatOut):
+  '''
+  md - Generate Markdown.
+  aliases: md-, markdown
+
+  :preferred_suffix=.md
+  '''
   def content_type(self):
     return 'text/markdown'
   def format_out(self, inp, _env, writeable):
@@ -137,21 +178,26 @@ class MarkdownOut(FormatOut):
     # to_markdown doesn't terminate last line:
     writeable.write('\n')
 
-@command('-json', [],
-         synopsis="Parse JSON.",
-         preferred_suffix='.json',
-         opts={
-           '--orient=': 'Orientation: see pandas read_json.'
-         })
+@command()
 class JsonIn(FormatIn):
+  '''
+  -json - Parse JSON.
+  --orient=ORIENT : Orientation: see pandas read_json.
+
+  :preferred_suffix=.json
+  '''
   def format_in(self, readable, _env):
     orient = self.opt('orient', 'records')
     return pd.read_json(readable, orient=orient)
 
-@command('json-', ['json', 'js-'],
-        synopsis="Generate JSON array of objects.",
-        preferred_suffix='.tsv')
+@command()
 class JsonOut(FormatOut):
+  '''
+  json- - Generate JSON array of objects.
+  aliases: json, js-
+
+  :preferred_suffix: .tsv
+  '''
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
       inp.to_json(writeable, orient='records', date_format='iso', index=False, indent=2)
@@ -160,14 +206,23 @@ class JsonOut(FormatOut):
     # to_json doesn't terminate last line:
     writeable.write('\n')
 
-@command('html-', ['html'],
-        synopsis="Generate HTML.",
-        preferred_suffix='.html',
-        opts={
-          '--table-name=': '<title>',
-          '--header': 'Generate header. Default: true.'
-        })
+@command()
 class HtmlOut(FormatOut):
+  '''
+  html- - Generate HTML.
+  alias: html
+  --table-name=NAME : <title>
+  --header          : Generate header. Default: True.
+
+  :preferred_suffix=.html
+
+  Examples:
+
+# html: Generate HTML:
+$ psv in users.txt // -table --header --fs=":" // html // o /tmp/users.html
+$ w3m -dump /tmp/users.html
+
+  '''
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
       opts = {

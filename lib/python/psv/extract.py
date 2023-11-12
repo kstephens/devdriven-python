@@ -3,15 +3,25 @@ import pandas as pd
 from devdriven.util import not_implemented
 from .content import Content
 from .command import Command, command
-# from .util import *
 
-@command('extract', ['rx', 're'],
-         synopsis="Extract fields by Regexp.",
-         args={
-           },
-         opts={
-               })
+@command()
 class Extract(Command):
+  '''
+  extract - Extract fields by Regexp.
+  aliases: rx, re
+
+  Examples:
+
+  # Extract by names:
+  $ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+  $ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
+
+  # Extract unnamed group:
+  $ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+
+  # Extract unnamed groups using a template:
+  $ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+  '''
   def xform(self, inp, _env):
     rx = self.args[0]
     rx = re.compile(rx)
