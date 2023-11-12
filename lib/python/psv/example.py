@@ -2,10 +2,8 @@ import re
 import os
 import subprocess
 import shlex
-import logging
 from devdriven.util import cwd
 from .command import Command, command
-from icecream import ic
 
 @command()
 class Example(Command):
@@ -15,6 +13,8 @@ class Example(Command):
   Aliases: ex, example
 
   SEARCH-STRING : Matches name, aliases, synopsis
+
+  --run, -r     : Run examples.
   '''
   def xform(self, _inp, _env):
     examples = self.parse_examples(self.examples())
@@ -23,16 +23,13 @@ class Example(Command):
     self.run_examples(examples)
 
   def run_examples(self, examples):
-    gen_docstring = True
     last_comment = None
-    if gen_docstring:
-      print('\nExamples:\n')
     for comment, cmd in examples:
       if last_comment != comment:
         last_comment = comment
         print(comment)
       print('$ ' + cmd)
-      if not gen_docstring:
+      if self.opt('run', self.opt('r', False)):
         self.run_example(cmd)
       print('')
       #if gen_docstring:
