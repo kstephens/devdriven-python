@@ -5,6 +5,7 @@ import inspect
 import time
 import re
 import sys
+import dataclasses
 from datetime import datetime, timezone
 from contextlib import contextmanager
 from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
@@ -235,3 +236,36 @@ def glob_to_rx(glob, glob_terminator=None):
   rx = rx.replace('*', r'.*')
   rx = rx.replace('?', r'.')
   return re.compile(r'^' + rx + r'$')
+
+def set_from_match(object, match : re.Match):
+  setattr_from_dict(object, match.groupdict())
+
+def setattr_from_dict(object, attrs):
+  for name, val in attrs.items():
+    setattr(object, name, val)
+
+def dataclass_from_dict(klass, opts, defaults=None):
+  defaults = defaults or {}
+  args = {f.name: opts.get(f.name, defaults.get(f.name, None))
+          for f in dataclasses.fields(klass) if f.init}
+  return klass(**args)
+
+def unpad_lines(lines):
+  lines = lines.copy()
+  while lines and not lines[0]:
+    lines.pop(0)
+  for line in lines:
+    if m := re.match(r'^( +)', line):
+      pad = re.compile(f'^{m[1]}')
+      break
+  return [re.sub(pad, '', line) for line in lines]
+
+def module_fullname(o):
+  '''
+  Does not work as expected.
+  '''
+  klass = o.__class__
+  module = klass.__module__
+  if module == 'builtins':
+    return klass.__qualname__ # avoid outputs like 'builtins.str'
+  return module + '.' + klass.__qualname__

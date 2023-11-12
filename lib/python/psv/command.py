@@ -1,8 +1,8 @@
 import re
 from pathlib import Path
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 import devdriven.cli
-from devdriven.util import get_safe
+from devdriven.util import get_safe, set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
 from icecream import ic
 
 class Command(devdriven.cli.Command):
@@ -158,31 +158,3 @@ def describe(klass, args, kwargs):
     }
     dataclass_from_dict(Descriptor, kwargs).register()
 
-def set_from_match(object, match : re.Match):
-  setattr_from_dict(object, match.groupdict())
-
-def setattr_from_dict(object, attrs):
-  for name, val in attrs.items():
-    setattr(object, name, val)
-def dataclass_from_dict(klass, opts, defaults=None):
-  defaults = defaults or {}
-  args = {f.name: opts.get(f.name, defaults.get(f.name, None))
-          for f in fields(klass) if f.init}
-  return klass(**args)
-
-def unpad_lines(lines):
-  lines = lines.copy()
-  while lines and not lines[0]:
-    lines.pop(0)
-  for line in lines:
-    if m := re.match(r'^( +)', line):
-      pad = re.compile(f'^{m[1]}')
-      break
-  return [re.sub(pad, '', line) for line in lines]
-
-def fullname(o):
-  klass = o.__class__
-  module = klass.__module__
-  if module == 'builtins':
-      return klass.__qualname__ # avoid outputs like 'builtins.str'
-  return module + '.' + klass.__qualname__
