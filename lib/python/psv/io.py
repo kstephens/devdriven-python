@@ -13,26 +13,20 @@ class IoIn(IoBase):
 
   Aliases: i, -i
 
-  Arguments:
-
   FILE             : Read FILE.
   file///FILE      : Read FILE.
   https?://...     : GET URL.
   -                : Read STDIN.
 
-  Options:
-
-  --infer, -i | Infer format from suffix.
-
-  :section: I/O
-
-  Examples:
+  --infer, -i      : Infer format from suffix.
 
 # in: read from STDIN:
 $ cat a.tsv | psv in -
 
 # in: HTTP support:
 $ psv in https://tinyurl.com/4sscj338
+
+  :section: I/O
   '''
   def xform(self, _inp, env):
     if not self.args:
@@ -55,12 +49,10 @@ class IoOut(IoBase):
   https?://...     : PUT URL.
   -                : Write STDOUT.
 
-  :section: I/O
-
-  Examples
 # out: Convert TSV to CSV and save to a file:
 $ psv in a.tsv // -tsv // csv- // out a.csv
 
+  :section: I/O
   '''
   def xform(self, inp, env):
     if inp is None:
