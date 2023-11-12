@@ -53,7 +53,10 @@ class Example(Command):
 
   def run_example(self, example):
     with cwd(f'{self.main.root_dir}/example'):
-      if re.match(r'.+ [|<>;] .+', example):
+      tokens = shlex.split(example)
+      shell_tokens = {'|', '>', '<', ';'}
+      shell_meta = [token for token in tokens if token in shell_tokens]
+      if shell_meta:
         self.run_command(example)
       elif re.match(r'^psv ', example):
         self.run_main(example)
