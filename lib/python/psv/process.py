@@ -30,10 +30,10 @@ class Range(Command):
   --step=STEP   | Default: 1.
 
   # range: select a range of rows:
-  $ psv in a.tsv // -tsv // seq --start=0 // range 1 3 // md
+  $ psv in -i a.tsv // seq --start=0 // range 1 3 // md
 
   # range: every even row:
-  $ psv in a.tsv // -tsv // seq --start=0 // range --step=2 // md
+  $ psv in -i a.tsv // seq --start=0 // range --step=2 // md
 
   '''
 
@@ -95,7 +95,7 @@ class Reverse(Command):
   Aliases: tac
 
 # reverse (tac):
-$ psv in a.tsv // -tsv // seq // tac // md
+$ psv in -i a.tsv // seq // tac // md
 
   '''
   def xform(self, inp, env):
@@ -154,12 +154,12 @@ class Sort(Command):
   -n | Coerce columns to numeric.
 
 # sort: decreasing:
-$ psv in a.tsv // -tsv // sort -r a // md
+$ psv in -i a.tsv // sort -r a // md
 
 # sort: by a decreasing, c increasing,
 # remove c, put d before other columns,
 # create a column i with a seqence
-$ psv in a.tsv // -tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+$ psv in -i a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
 
   '''
   def xform(self, inp, _env):
@@ -191,10 +191,10 @@ class Grep(Command):
   COL REGEX ... | List of NAME REGEX pairs.
 
 # grep: match columns by regex:
-$ psv in a.tsv // -tsv // grep d '.*x.*' // md
+$ psv in -i a.tsv // grep d '.*x.*' // md
 
 # grep: match d and b:
-$ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
+$ psv in -i a.tsv // grep d '.*x.*' b '.*3$' // md
 
   '''
   def xform(self, inp, _env):
@@ -280,7 +280,7 @@ class NullXform(Command):
   null - Does nothing.
 
 # null: does nothing:
-$ psv in a.tsv // -tsv // null IGNORED --OPTION=VALUE // md
+$ psv in -i a.tsv // null IGNORED --OPTION=VALUE // md
 '''
   def xform(self, inp, _env):
     return inp

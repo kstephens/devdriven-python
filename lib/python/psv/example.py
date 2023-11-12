@@ -143,7 +143,7 @@ $ psv in a.tsv // -tsv // seq // tac // md
 $ psv in a.tsv // -tsv // grep d '.*x.*' // md
 
 # grep: match d and b:
-$ psv in a.tsv // -tsv // grep d '.*x.*' b '.*3$' // md
+$ psv in -i a.tsv // grep d '.*x.*' b '.*3$' // md
 
 # sort: decreasing:
 $ psv in a.tsv // -tsv // sort -r a // md

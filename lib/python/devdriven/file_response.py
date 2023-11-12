@@ -57,7 +57,6 @@ class FileResponse():
     if not self.closed:
       self.flush()
       if not self.is_stream:
-        logging.info("FileResponse.close()")
         if self.read_io:
           self.read_io.close()
         if self.write_io:
