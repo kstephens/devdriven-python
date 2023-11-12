@@ -31,7 +31,7 @@ class Help(Command):
       if desc.aliases:
         row('', 'Aliases: ' + ', '.join(desc.aliases))
       row('', '')
-      for text in desc.description:
+      for text in desc.detail:
         row('', text)
       emit_opts('Arguments:', desc.args)
       emit_opts('Options:', desc.opts)
@@ -63,12 +63,12 @@ class HelpVerbose(Help):
 
     attrs = list(DEFAULTS.keys())
     for desc in commands:
-      row('', "'''")
+      # row('', "'''")
       row('', desc.name, ' - ', desc.synopsis)
       if desc.aliases:
         row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))
-      for text in desc.description:
+      for text in desc.detail:
         row('', text)
       emit_opts('Arguments:', desc.args)
       emit_opts('Options:', desc.opts)
@@ -84,6 +84,8 @@ class HelpVerbose(Help):
         row('', '')
         for example in desc.examples:
           row('', example)
-      row('', "'''")
-      row('', '=====================================')
+      # row('', "'''")
+      row('', '')
+      row('', '                    ==========================================================')
+      row('', '')
     return '\n'.join(lines + [''])

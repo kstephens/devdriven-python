@@ -67,7 +67,7 @@ class Descriptor():
   name: str
   aliases: list
   synopsis: str
-  description: list
+  detail: list
   args: dict
   opts: dict
   opt_aliases: dict
@@ -122,7 +122,7 @@ class Descriptor():
       elif m := re.match(r'^([^:\|]+)[:\|] *(.*)', line):
         self.args[m[1]] = m[2].strip()
       elif line:
-        self.description.append(line)
+        self.detail.append(line)
       if debug:
         ic(m and m.groupdict())
       # ic(m and (m[0], m.groups()))
@@ -140,7 +140,7 @@ def describe(klass, args, kwargs):
     'name': '',
     'synopsis': '',
     'aliases': [],
-    'description': [],
+    'detail': [],
     'args': {},
     'opts': {},
     'opt_aliases': {},
