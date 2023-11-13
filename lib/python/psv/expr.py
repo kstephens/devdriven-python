@@ -4,7 +4,6 @@ import ast
 from math import *
 from dataclasses import dataclass
 import pandas as pd
-from devdriven.util import not_implemented
 from devdriven.pandas import new_empty_df_like, normalize_column_name
 from .command import Command, command
 
@@ -126,24 +125,4 @@ class RewriteName(ast.NodeTransformer):
       )
     else:
       return node
-
-
-# @command()
-# class PdEval(Command):
-#   '''
-#   pd-eval - pandas.DataFrame.eval.
-#
-#   $ psv in -i a.tsv // pd-eval "c *= 2"
-#
-#   '''
-#   def xform(self, inp, _env):
-#     out = inp.eval(self.args[0],
-#             **self.opts_kwargs({'parser': 'pandas',
-#                                 'engine': None,
-#                                }))
-#     return out
-#
-#   def opts_kwargs(self, spec):
-#     return {name: self.opt(name, default)
-#             for name, default in spec.items()}
 
