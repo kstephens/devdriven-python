@@ -8,6 +8,8 @@ from .command import Command, command, descriptors, DEFAULTS
 class Help(Command):
   '''
   help - This help document.
+
+  --verbose, -v   : Show more detail.
   '''
   def xform(self, _inp, env):
     commands = all_commands = descriptors()
@@ -30,12 +32,13 @@ class Help(Command):
       row(desc.name, desc.synopsis)
       if desc.aliases:
         row('', 'Aliases: ' + ', '.join(desc.aliases))
-      row('', '')
-      for text in desc.detail:
-        row('', text)
-      emit_opts('Arguments:', desc.args)
-      emit_opts('Options:', desc.opts)
-      row('', '')
+      if self.opt('verbose', self.opt('v')):
+        row('', '')
+        for text in desc.detail:
+          row('', text)
+        emit_opts('Arguments:', desc.args)
+        emit_opts('Options:', desc.opts)
+        row('', '')
     return MarkdownOut().xform(tab, env)
   def command_matches(self, desc, pattern):
     desc = '|'.join([desc.name, desc.synopsis] + desc.aliases)
