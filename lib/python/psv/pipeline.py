@@ -1,6 +1,6 @@
 import shlex
 import pandas as pd
-from devdriven.util import shorten_string
+from devdriven.util import shorten_string, get_safe
 from .content import Content
 from . import command
 
@@ -40,11 +40,22 @@ class Pipeline(command.Command):
   def xform(self, inp, env):
     history = env['history']
     xform_output = xform_input = inp
+    i = 0
     for xform in self.xforms:
       current = [ describe_datum(xform), None, None, None ]
       history.append(current)
       xform_input = xform_output
-      xform_output = xform.xform(xform_input, env)
+      try:
+        env['xform'].update({'first': get_safe(self.xforms, 0),
+                             'last': get_safe(self.xforms, -1),
+                             'prev': get_safe(self.xforms, i - 1),
+                             'next': get_safe(self.xforms, i + 1),
+                             'current': current,
+        })
+        xform_output = xform.xform(xform_input, env)
+      except Exception as exc:
+        raise exc
+      #  raise Exception(f'{xform.name} : {exc}') from exc
       current[1] = describe_datum(xform_output)
       current[2] = env['Content-Type']
       current[3] = env['Content-Encoding']

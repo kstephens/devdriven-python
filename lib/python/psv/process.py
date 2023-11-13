@@ -41,8 +41,6 @@ class Range(Command):
       step  = int(self.arg_or_opt(2, 'step', 1))
       rng = make_range(start, end, step, len(inp))
     out = inp.iloc[rng]
-    #if r.step < 0:
-    #  out = out.iloc[::-1]
     return out
 
 def process_range(inp, start, end, step):
@@ -93,7 +91,7 @@ class Reverse(Command):
 $ psv in -i a.tsv // seq // tac // md
 
   '''
-  def xform(self, inp, env):
+  def xform(self, inp, _env):
     return process_range(inp, None, None, -1)
 
 @command()

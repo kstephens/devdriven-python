@@ -59,9 +59,10 @@ class Main(devdriven.cli.Main):
     def exec(self):
       self.env.update({
         'now': self.main.now,
+        'history': [],
+        'xform': {},
         'Content-Type': None,
         'Content-Encoding': None,
-        'history': [],
       })
       return self.pipeline.xform(None, self.env)
 
