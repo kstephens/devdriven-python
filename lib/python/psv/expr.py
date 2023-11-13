@@ -3,7 +3,6 @@ import os
 import ast
 from math import *
 from dataclasses import dataclass
-from typing import Any
 import pandas as pd
 from devdriven.util import not_implemented
 from .content import Content
@@ -38,7 +37,6 @@ class Eval(Command):
     cols = list(inp.columns)
     fun = make_expr_fun(self.create_expr(), cols)
     out = pd.DataFrame(columns=inp.columns)
-    stop = False
     i = 0
     for ind, row in inp.iterrows():
       result = fun(inp, env, out, ind, row, i)
