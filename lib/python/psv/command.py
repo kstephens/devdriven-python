@@ -57,6 +57,10 @@ def find_format(input_name, klass):
 def command(*args, **kwargs):
   def wrapper(klass):
     assert issubclass(klass, Command)
+    if args or kwargs:
+      ic(klass)
+      assert not args
+      assert not kwargs
     describe(klass, args, kwargs)
     return klass
   return wrapper

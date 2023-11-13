@@ -6,12 +6,7 @@ from .command import Command, command
 from .metadata import Coerce
 from .util import *
 
-@command('range', ['r'],
-         synopsis="Subset of rows.",
-         args={'start [end] [step]': "For 1 or more arguments.",
-               '[start]:[end]:step': "Python-style range."},
-         opts={'--start=': 'start at: defaults to 1.',
-               '--step=':  'step by: defaults to 1.'})
+@command()
 class Range(Command):
   '''
   range - Subset of rows.

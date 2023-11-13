@@ -39,7 +39,7 @@ class FormatOut(Command):
 
 ############################
 
-@command(preferred_suffix='.txt')
+@command()
 class TableIn(FormatIn):
   '''
   -table - Parse table.
@@ -51,8 +51,6 @@ class TableIn(FormatIn):
   --column=FMT     : Column name printf template.  Default: "c%d".
   --encoding=ENC   : Encoding of input.  Default: "utf-8".
 
-  Examples:
-
 # -table: Parse generic table:
 $ psv in users.txt // -table --fs=":"
 
@@ -60,6 +58,7 @@ $ psv in users.txt // -table --fs=":" --column='col%02d'
 
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 
+  :preferred_suffix='.txt'
   '''
   def format_in(self, readable, _env):
     fs_rx = re.compile(self.opt('fs', r'\s+'))
