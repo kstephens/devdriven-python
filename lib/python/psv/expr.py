@@ -115,22 +115,22 @@ class RewriteName(ast.NodeTransformer):
       return node
 
 
-@command()
-class PdEval(Command):
-  '''
-  pd-eval - pandas.DataFrame.eval.
-
-  $ bin/psv in -i a.tsv // pd-eval "c *= 2"
-
-  '''
-  def xform(self, inp, _env):
-    out = inp.eval(self.args[0],
-            **self.opts_kwargs({'parser': 'pandas',
-                                'engine': None,
-                               }))
-    return out
-
-  def opts_kwargs(self, spec):
-    return {name: self.opt(name, default)
-            for name, default in spec.items()}
+# @command()
+# class PdEval(Command):
+#   '''
+#   pd-eval - pandas.DataFrame.eval.
+#
+#   $ psv in -i a.tsv // pd-eval "c *= 2"
+#
+#   '''
+#   def xform(self, inp, _env):
+#     out = inp.eval(self.args[0],
+#             **self.opts_kwargs({'parser': 'pandas',
+#                                 'engine': None,
+#                                }))
+#     return out
+#
+#   def opts_kwargs(self, spec):
+#     return {name: self.opt(name, default)
+#             for name, default in spec.items()}
 
