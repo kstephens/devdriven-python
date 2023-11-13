@@ -70,6 +70,8 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
       body = inp.encode('utf-8')
     elif isinstance(inp, bytes):
       body = inp
+    elif isinstance(inp, Content):
+      body = inp.body()
     elif isinstance(inp, pd.DataFrame):
       body = (str(inp) + '\n').encode('utf-8')
     else:
