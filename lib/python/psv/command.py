@@ -25,6 +25,9 @@ class Command(devdriven.cli.Command):
   def command_descriptor(self):
     return DESCRIPTOR_BY_KLASS[self.__class__]
 
+  def to_dict(self):
+    return [self.name, *self.argv]
+
 DESCRIPTORS = []
 DESCRIPTOR_BY_ANY = {}
 DESCRIPTOR_BY_NAME = {}

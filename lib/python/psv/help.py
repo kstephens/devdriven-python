@@ -1,7 +1,9 @@
 import re
+import json
 import pandas as pd
 from tabulate import tabulate
-from .formats import MarkdownOut
+from devdriven.to_dict import to_dict
+from .formats import MarkdownOut, JsonOut
 from .command import Command, command, descriptors, DEFAULTS
 
 @command()
@@ -14,7 +16,7 @@ class Help(Command):
   def xform(self, _inp, env):
     commands = all_commands = descriptors()
     if self.args:
-      commands = filter(lambda cmd: self.command_matches(cmd, self.argv[0]), all_commands)
+      commands = list(filter(lambda cmd: self.command_matches(cmd, self.argv[0]), all_commands))
     return self.do_commands(commands, env)
   def do_commands(self, commands, env):
     tab = pd.DataFrame(columns=['command', 'description'])
@@ -49,8 +51,21 @@ class HelpVerbose(Help):
   '''
   help-verbose - This help document.
   Alias: help+
+
+  --raw, -r   : Show raw info.
   '''
-  def do_commands(self, commands, _env):
+  def do_commands(self, commands, env):
+    if self.opt('raw', self.opt('r', False)):
+      return self.do_commands_raw(commands, env)
+    else:
+      return self.do_commands_plain(commands, env)
+
+  def do_commands_raw(self, commands, env):
+    # env['Content-Type'] = 'application/json'
+    # return json.dumps(to_dict(commands), indent=2)
+    return JsonOut().xform(to_dict(commands), env)
+
+  def do_commands_plain(self, commands, _env):
     lines = []
     def row(*cols):
       lines.append(''.join(['  '] + list(cols[1:])))

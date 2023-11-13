@@ -107,7 +107,7 @@ class Main:
 
   def emit_output(self, output):
     output = to_dict(output)
-    json.dump(output, fp=self.output_file())
+    json.dump(output, fp=self.output_file(), indent=2)
     return output
 
   def output_file(self):
