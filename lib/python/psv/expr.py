@@ -28,10 +28,10 @@ class Eval(Command):
 
   STATEMENT ...  : Statements.  Final statement may return a value.
 
-  $ bin/psv in -i a.tsv // eval "c *= 2"
-  $ bin/psv in -i a.tsv // eval "return c > 0"
-  $ bin/psv in -i a.tsv // eval "return {'a': 99, 'd': 2}"
-  $ bin/psv in -i a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
+  $ psv in -i a.tsv // eval "c *= 2"
+  $ psv in -i a.tsv // eval "return c > 0"
+  $ psv in -i a.tsv // eval "return {'a': 99, 'd': 2}"
+  $ psv in -i a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
 
   '''
   def xform(self, inp, env):

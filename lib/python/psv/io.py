@@ -25,6 +25,7 @@ class IoIn(IoBase):
 
 # in: read from STDIN:
 $ cat a.tsv | psv in -
+$ cat a.tsv | psv in
 
 # in: HTTP support:
 $ psv in https://tinyurl.com/4sscj338

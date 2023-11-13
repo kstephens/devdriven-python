@@ -56,7 +56,7 @@ class RenameColumns(Command):
 
   OLD-COL:NEW-NAME ... | Columns to rename.
 
-# rename: rename column 'b' to 'B':
+# rename-columns: rename column 'b' to 'B':
 $ psv in -i a.tsv // rename b B // md
   '''
   def xform(self, inp, _env):

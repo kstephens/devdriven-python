@@ -72,7 +72,7 @@ class Tail(Command):
 
   N : Default: 10
 
-# tail:
+# tail: last 3 rows:
 $ psv in us-states.txt // -table // tail 3 // md
 
   '''
@@ -87,7 +87,7 @@ class Reverse(Command):
 
   Aliases: tac
 
-# reverse (tac):
+# reverse:
 $ psv in -i a.tsv // seq // tac // md
 
   '''
@@ -235,10 +235,11 @@ class Translate(Command):
   -d DEL COL...  : Delete chars in DEL in each COL.
   -d             : Delete characters.
 
-# translate: change delete characters:
-$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
-
+# translate: change characters in specific field:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
+
+# translate: delete characters:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
 
   '''
   def xform(self, inp, _env):
@@ -261,6 +262,10 @@ class Stats(Command):
   '''
   stats - Basic stats of numeric columns.
   aliases: describe
+
+# stats: basic stats:
+$ psv in a.tsv // -tsv // stats // md
+
   '''
   def xform(self, inp, _env):
     out = inp.describe()

@@ -54,8 +54,10 @@ class TableIn(FormatIn):
 # -table: Parse generic table:
 $ psv in users.txt // -table --fs=":"
 
+# -table: Columns named col01, col02, ...:
 $ psv in users.txt // -table --fs=":" --column='col%02d'
 
+# -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 
   :preferred_suffix='.txt'
@@ -118,6 +120,14 @@ class TsvIn(FormatIn):
   '''
   -tsv - Parse TSV.
 
+# -tsv, csv: Convert TSV to CSV:
+$ psv in a.tsv // -tsv // csv-
+
+# -tsv: Convert content to TSV:
+$ psv in a.tsv // -tsv // md
+$ psv in https://tinyurl.com/4sscj338 // -tsv // md
+$ cat a.tsv | psv -tsv // md
+
   :preferred_suffix=.tsv
   '''
   def format_in(self, readable, _env):
@@ -151,13 +161,10 @@ class CsvOut(FormatOut):
   '''
   csv- - Generate CSV.
 
-  :preferred_suffix=.csv
-
-  Examples:
-
 # tsv, csv: Convert TSV to CSV:
 $ psv in a.tsv // -tsv // csv-
 
+  :preferred_suffix=.csv
   '''
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, header=True, index=False, date_format='iso')
@@ -167,6 +174,9 @@ class MarkdownOut(FormatOut):
   '''
   md - Generate Markdown.
   aliases: md-, markdown
+
+# md: Convert TSV on STDIN to Markdown:
+$ cat a.tsv | psv -tsv // md
 
   :preferred_suffix=.md
   '''
@@ -194,6 +204,9 @@ class JsonOut(FormatOut):
   '''
   json- - Generate JSON array of objects.
   aliases: json, js-
+
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
 
   :preferred_suffix: .tsv
   '''
