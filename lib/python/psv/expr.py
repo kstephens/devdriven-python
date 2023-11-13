@@ -1,13 +1,13 @@
 import re
 import os
 import ast
+from math import *
 from dataclasses import dataclass
 from typing import Any
 import pandas as pd
 from devdriven.util import not_implemented
 from .content import Content
 from .command import Command, command
-from icecream import ic
 
 
 @command()
@@ -58,10 +58,8 @@ class Eval(Command):
     elif isinstance(result, dict):
       row = row.to_dict()
       new_row = row | result
-      if len(new_row) > len(row):
-        cols = list(out.columns)
-        for col in [col for col in new_row.keys() if col not in cols]:
-          out.insert(len(cols), col, None)
+      for col in set(result).difference(set(out.columns)):
+        out.insert(len(out.columns), col, None)
       out.loc[len(out)] = new_row
 
 @command()
