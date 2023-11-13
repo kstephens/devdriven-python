@@ -21,12 +21,12 @@ class Eval(Command):
   Each column is bound to a variable.
 
   When expression returns:
-    * "BREAK":   all remaining rows (inclusive) are dropped.
     * "FINISH":  all remaining rows are dropped.
+    * "BREAK":   all remaining rows (inclusive) are dropped.
     * False:     the row is removed.
     * Dict:      the row is updated and new columns are added.
 
-  LOGICAL-STATEMENT ...  : Logical statements
+  STATEMENT ...  : Statements.  Final statement may return a value.
 
   $ bin/psv in -i a.tsv // eval "c *= 2"
   $ bin/psv in -i a.tsv // eval "return c > 0"
@@ -69,10 +69,10 @@ class Select(Eval):
   '''
   select - Select rows.
 
-  When expression is:
-  True, the row is selected.
-
   Aliases: where
+
+  When expression is True, the row is selected.
+  "BREAK" and "FINISH" conditions in `eval` command also apply.
 
   LOGICAL-EXPRESSION ...  : Logical expression.
 
