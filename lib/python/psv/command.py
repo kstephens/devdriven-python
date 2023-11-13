@@ -51,9 +51,9 @@ def main_make_xform(main, klass_or_name, argv):
   xform.parse_argv(argv)
   return xform
 
-def find_format(input_name, klass):
+def find_format(path, klass):
   for desc in descriptors():
-    if issubclass(desc.klass, klass) and desc.preferred_suffix == Path(input_name).suffix:
+    if issubclass(desc.klass, klass) and desc.preferred_suffix == Path(path).suffix:
       return desc.klass
   return None
 
