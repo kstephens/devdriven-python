@@ -11,11 +11,11 @@ class Content():
     self._response = None
 
   def __repr__(self):
-    return f'Content(uri={self.url!r})'
+    return f'Content(url={self.url!r})'
   def __str__(self):
     return self.content()
   def to_dict(self):
-    return {'Content': str(self.url)}
+    return __repr__
 
   def content(self):
     if not self._content:
