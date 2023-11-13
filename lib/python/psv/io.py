@@ -1,3 +1,6 @@
+import json
+import pandas as pd
+from devdriven.to_dict import to_dict
 from .content import Content
 from .command import Command, command, find_format
 from .formats import FormatIn
@@ -62,7 +65,14 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
     env['output.paths'] = list(map(str, self.args))
     headers = self.user_agent_headers(env)
     # TODO: streaming:
-    body = str(inp).encode('utf-8')
+    if isinstance(inp, str):
+      body = inp.encode('utf-8')
+    elif isinstance(inp, bytes):
+      body = inp
+    elif isinstance(inp, pd.DataFrame):
+      body = (str(inp) + '\n').encode('utf-8')
+    else:
+      body = json.dumps(to_dict(inp), indent=2)
     for uri in self.args:
       Content(url=uri).put(body, headers=headers)
     return inp
