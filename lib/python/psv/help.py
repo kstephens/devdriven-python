@@ -1,5 +1,4 @@
 import re
-import json
 import pandas as pd
 from tabulate import tabulate
 from devdriven.to_dict import to_dict
@@ -61,8 +60,6 @@ class HelpVerbose(Help):
       return self.do_commands_plain(commands, env)
 
   def do_commands_raw(self, commands, env):
-    # env['Content-Type'] = 'application/json'
-    # return json.dumps(to_dict(commands), indent=2)
     return JsonOut().xform(to_dict(commands), env)
 
   def do_commands_plain(self, commands, _env):
@@ -101,7 +98,10 @@ class HelpVerbose(Help):
         row('', 'Examples:')
         row('', '')
         for example in desc.examples:
-          row('', example)
+          for comment in example.comments:
+            row('', "# ", comment)
+          row('', '$ ', example.command)
+          row('', '')
       # row('', "'''")
       row('', '')
       row('', '                    ==========================================================')

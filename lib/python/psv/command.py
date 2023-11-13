@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 from dataclasses import dataclass
+from typing import List
 import devdriven.cli
 from devdriven.util import get_safe, set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
 from icecream import ic
@@ -103,6 +104,7 @@ class Descriptor():
     def eat_blanks():
       while lines and not lines[0]:
         lines.pop(0)
+    comments = []
     while lines:
       line = lines.pop(0)
       if debug:
@@ -117,8 +119,11 @@ class Descriptor():
         found_aliases = True
       elif m := re.match(r'(?i)^(Arguments|Options|Examples):\s*$', line):
         None
-      elif m := re.match(r'(?i)^([#$] .*)', line):
-        self.examples.append(m[1])
+      elif m := re.match(r'^[#] (.+)', line):
+        comments.append(m[1])
+      elif m := re.match(r'^\$ (.+)', line):
+        self.examples.append(Example(command=m[1], comments=comments))
+        comments = []
       elif m := re.match(r'^(--?[^:\|]+)[:\|] *(.*)', line):
         name, *opt_aliases = re.split(r', *', m[1].strip())
         if debug:
@@ -132,8 +137,12 @@ class Descriptor():
         self.detail.append(line)
       if debug:
         ic(m and m.groupdict())
-      # ic(m and (m[0], m.groups()))
     return self
+
+@dataclass
+class Example():
+  command: str
+  comments: List[str]
 
 DEFAULTS = {
   'section': '',
