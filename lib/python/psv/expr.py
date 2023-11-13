@@ -5,7 +5,7 @@ from math import *
 from dataclasses import dataclass
 import pandas as pd
 from devdriven.util import not_implemented
-from .content import Content
+from devdriven.pandas import new_empty_df_like, normalize_column_name
 from .command import Command, command
 
 
@@ -16,8 +16,13 @@ class Eval(Command):
 
   Aliases: each
 
-  `row` is bound to the current row.
-  Each column is bound to a variable.
+  Variable Bindings:
+  * Columns are bound to variables.
+  * `inp` : input table.
+  * `out` : output table.
+  * `row` : current row.
+  * `ind` : row index.
+  * `offset` : row offset (zero origin).
 
   When expression returns:
     * "FINISH":  all remaining rows are dropped.
@@ -27,25 +32,35 @@ class Eval(Command):
 
   STATEMENT ...  : Statements.  Final statement may return a value.
 
+  --columns=COL1,COL2  | Columns bound within STATEMENT.  Default: input columns.
+  --normalize, -n  | Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.  Default: False.
+
   $ psv in -i a.tsv // eval "c *= 2"
   $ psv in -i a.tsv // eval "return c > 0"
-  $ psv in -i a.tsv // eval "return {'a': 99, 'd': 2}"
+  $ psv in -i a.tsv // eval "return {'i': offset, 'd_length': 2}"
   $ psv in -i a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
+  $ psv in -i a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
+  $ psv in -i a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
 
   '''
   def xform(self, inp, env):
-    cols = list(inp.columns)
-    fun = make_expr_fun(self.create_expr(), cols)
-    out = pd.DataFrame(columns=inp.columns)
-    i = 0
+    cols = list(filter(len, self.opt('columns', '').split(','))) or list(inp.columns)
+    if self.opt(('normalize', 'n'), False):
+      ident_to_column = {normalize_column_name(col): col for col in cols}
+    else:
+      ident_to_column = dict(zip(cols, cols))
+    fun = make_expr_fun(self.create_expr(), ident_to_column)
+    out = new_empty_df_like(inp)
+    offset = 0
     for ind, row in inp.iterrows():
-      result = fun(inp, env, out, ind, row, i)
+      result = fun(inp, env, out, ind, row, offset)
       if result == 'BREAK':
         break
       elif result == 'FINISH':
         self.process_row(inp, row, out, result)
         break
       self.process_row(inp, row, out, result)
+      offset += 1
     return out
 
   def create_expr(self):
@@ -83,30 +98,30 @@ class Select(Eval):
 
 COUNTER=[0]
 
-def make_expr_fun(expr, columns):
+def make_expr_fun(expr: str, ident_to_column : dict):
   COUNTER[0] += 1
   name = f'_psv_Eval_eval_{os.getpid()}_{COUNTER[0]}'
-  expr = f'def {name}(inp, env, out, ind, row, i):\n  {expr}\n'
-  expr = rewrite(expr, columns)
+  expr = f'def {name}(inp, env, out, ind, row, offset):\n  {expr}\n'
+  expr = rewrite(expr, ident_to_column)
   bindings = globals()
   exec(expr, bindings)
   return bindings[name]
 
-def rewrite(expr: str, columns: list):
+def rewrite(expr: str, ident_to_column: dict):
   parsed = ast.parse(expr, mode='exec')
-  rewriter = RewriteName(columns)
+  rewriter = RewriteName(ident_to_column)
   rewritten= rewriter.visit(parsed)
   return ast.unparse(rewritten)
 
 @dataclass
 class RewriteName(ast.NodeTransformer):
-  columns: list
+  ident_to_column: dict
   # pylint: disable-next=invalid-name
   def visit_Name(self, node):
-    if node.id in self.columns:
+    if col := self.ident_to_column.get(node.id, None):
       return ast.Subscript(
         value=ast.Name(id='row', ctx=ast.Load()),
-        slice=ast.Constant(value=node.id),
+        slice=ast.Constant(value=col),
         ctx=node.ctx
       )
     else:
