@@ -151,7 +151,7 @@ DEFAULTS = {
   'preferred_suffix': '',
 }
 
-def describe(klass, args, kwargs):
+def describe(klass, _args, kwargs):
   kwargs = {
     'name': '',
     'synopsis': '',
@@ -164,13 +164,4 @@ def describe(klass, args, kwargs):
   } | DEFAULTS | kwargs | {
     "klass": klass,
   }
-  if klass.__doc__:
-    dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__).register()
-  else:
-    raise Exception(f'Missing __doc__ string : {klass!r}')
-    kwargs = kwargs | {
-      "name": args[0],
-      "aliases": args[1],
-    }
-    dataclass_from_dict(Descriptor, kwargs).register()
-
+  dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__).register()
