@@ -15,85 +15,82 @@ class Eval(Command):
   '''
   eval - Evaluate expression for each row.
 
-  `row` is bound to the current row.
-  Return False, the row is removed.
-  Return a Dict, the row is updated.
-
   Aliases: each
+
+  `row` is bound to the current row.
+  Each column is bound to a variable.
+
+  When expression returns:
+    * "BREAK":   all remaining rows (inclusive) are dropped.
+    * "FINISH":  all remaining rows are dropped.
+    * False:     the row is removed.
+    * Dict:      the row is updated and new columns are added.
 
   LOGICAL-STATEMENT ...  : Logical statements
 
-  Examples:
-
   $ bin/psv in -i a.tsv // eval "c *= 2"
   $ bin/psv in -i a.tsv // eval "return c > 0"
-  $ bin/psv in -i a.tsv // eval "return {'a': 5}"
+  $ bin/psv in -i a.tsv // eval "return {'a': 99, 'd': 2}"
+  $ bin/psv in -i a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
 
   '''
   def xform(self, inp, env):
     cols = list(inp.columns)
-    expr = ';'.join(self.args + ['return None'])
-    fun = make_expr_fun(expr, cols)
+    fun = make_expr_fun(self.create_expr(), cols)
     out = pd.DataFrame(columns=inp.columns)
-    stopped = False
+    stop = False
+    i = 0
     for ind, row in inp.iterrows():
-      def stop():
-      row = row.to_dict()
-      result = fun(inp, env, out, ind, row)
-      if stopped:
+      result = fun(inp, env, out, ind, row, i)
+      if result == 'BREAK':
         break
-      if result is False:
-        None
-      elif result is True or result is None:
-        out.loc[len(out.index)] = row
-      elif isinstance(result, dict) :
-        out.loc[len(out.index)] = row | result
-      else:
-        raise Exception("eval: unexpected result : {result!r}")
+      elif result == 'FINISH':
+        self.process_row(inp, row, out, result)
+        break
+      self.process_row(inp, row, out, result)
     return out
 
+  def create_expr(self):
+    return ';'.join(self.args + ['return None'])
+  def process_row(self, inp, row, out, result):
+    if result is True or result is None:
+      out.loc[len(out)] = row
+    elif isinstance(result, dict):
+      row = row.to_dict()
+      new_row = row | result
+      if len(new_row) > len(row):
+        cols = list(out.columns)
+        for col in [col for col in new_row.keys() if col not in cols]:
+          out.insert(len(cols), col, None)
+      out.loc[len(out)] = new_row
+
 @command()
-class Select(Command):
+class Select(Eval):
   '''
   select - Select rows.
 
-  `row` is bound to the current row.
-  When expression is true, the row is selected.
+  When expression is:
+  True, the row is selected.
 
-  Aliases: each, select
+  Aliases: where
 
   LOGICAL-EXPRESSION ...  : Logical expression.
 
-  Examples:
-
-  $ bin/psv in -i a.tsv // select "c *= 2"
-  $ bin/psv in -i a.tsv // select "c > 0"
+  $ psv in -i a.tsv // select "c > 0"
 
   '''
-  def xform(self, inp, env):
-    cols = list(inp.columns)
-    expr = ';'.join(self.args + ['return None'])
-    fun = make_expr_fun(expr, cols)
-    out = pd.DataFrame(columns=inp.columns)
-    for ind, row in inp.iterrows():
-      row = row.to_dict()
-      result = fun(inp, env, out, ind, row)
-      if result is False:
-        break
-      elif result == 'BREAK':
-        break
-      elif result == 'FINISH':
-        out.loc[len(out.index)] = row
-        break
-      out.loc[len(out.index)] = row
-    return out
+  def create_expr(self):
+    return ';'.join(self.args[0:-2] + ['return ' + self.args[-1]])
+  def process_row(self, _inp, row, out, result):
+    if result:
+      out.loc[len(out)] = row
 
 COUNTER=[0]
 
 def make_expr_fun(expr, columns):
   COUNTER[0] += 1
   name = f'_psv_Eval_eval_{os.getpid()}_{COUNTER[0]}'
-  expr = f'def {name}(inp, env, out, ind, row):\n  {expr}\n'
+  expr = f'def {name}(inp, env, out, ind, row, i):\n  {expr}\n'
   expr = rewrite(expr, columns)
   bindings = globals()
   exec(expr, bindings)
@@ -101,18 +98,14 @@ def make_expr_fun(expr, columns):
 
 def rewrite(expr: str, columns: list):
   parsed = ast.parse(expr, mode='exec')
-  #print(ast.dump(parsed, indent=2))
-  #print(ast.unparse(parsed))
   rewriter = RewriteName(columns)
   rewritten= rewriter.visit(parsed)
-  #print(ast.dump(rewritten, indent=2))
-  unparsed = ast.unparse(rewritten)
-  #print(unparsed)
-  return unparsed
+  return ast.unparse(rewritten)
 
 @dataclass
 class RewriteName(ast.NodeTransformer):
   columns: list
+  # pylint: disable-next=invalid-name
   def visit_Name(self, node):
     if node.id in self.columns:
       return ast.Subscript(
