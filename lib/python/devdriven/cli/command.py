@@ -59,6 +59,8 @@ class Command:
       raise Exception(f'Invalid option : {name!r}')
 
   def opt(self, key, *default):
+    if isinstance(key, tuple) and key:
+      return self.opt(key[0], self.opt(key[1:], *default))
     if key in self.opts:
       return self.opts[key]
     if default:
