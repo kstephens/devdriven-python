@@ -1,6 +1,8 @@
 import json
 import subprocess
 import re
+import dataclasses
+import inspect
 from typing import Any, Optional
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +30,14 @@ class ToDict:
       for key, val in obj.items():
         walked[self.walk(key)] = self.walk(val)
       return walked
+    if dataclasses.is_dataclass(obj_type):
+      rep = {
+        'class': obj_type,
+        'fields': dataclasses.asdict(obj),
+      }
+      return self.walk(rep)
+    if inspect.isclass(obj):
+      return repr(obj)
     if issubclass(obj_type, list) or issubclass(obj_type, tuple):
       return [self.walk(elem) for elem in obj]
     if issubclass(obj_type, re.Pattern):
