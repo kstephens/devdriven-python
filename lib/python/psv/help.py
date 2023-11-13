@@ -2,22 +2,35 @@ import re
 import pandas as pd
 from tabulate import tabulate
 from devdriven.to_dict import to_dict
+from devdriven.cli.descriptor import DEFAULTS
+from devdriven.cli.command import descriptors
+from .command import Command, command
 from .formats import MarkdownOut, JsonOut
-from .command import Command, command, descriptors, DEFAULTS
 
 @command()
 class Help(Command):
   '''
   help - This help document.
 
-  --verbose, -v   : Show more detail.
+  --verbose, -v   | Show more detail.
+  --plain, -v     | Show plain docs.
+  --raw, -r       | Raw detail.
   '''
   def xform(self, _inp, env):
     commands = all_commands = descriptors()
     if self.args:
       commands = list(filter(lambda cmd: self.command_matches(cmd, self.argv[0]), all_commands))
     return self.do_commands(commands, env)
+
   def do_commands(self, commands, env):
+    if self.opt('raw', self.opt('r', False)):
+      return self.do_commands_raw(commands, env)
+    if self.opt('plain', self.opt('p', False)):
+      return self.do_commands_plain(commands, env)
+    else:
+      return self.do_commands_table(commands, env)
+
+  def do_commands_table(self, commands, env):
     tab = pd.DataFrame(columns=['command', 'description'])
     def row(*cols):
       tab.loc[len(tab.index)] = cols
@@ -44,20 +57,6 @@ class Help(Command):
   def command_matches(self, desc, pattern):
     desc = '|'.join([desc.name, desc.synopsis] + desc.aliases)
     return re.match(re.compile(f'(?i).*{pattern}.*'), desc)
-
-@command()
-class HelpVerbose(Help):
-  '''
-  help-verbose - This help document.
-  Alias: help+
-
-  --raw, -r   : Show raw info.
-  '''
-  def do_commands(self, commands, env):
-    if self.opt('raw', self.opt('r', False)):
-      return self.do_commands_raw(commands, env)
-    else:
-      return self.do_commands_plain(commands, env)
 
   def do_commands_raw(self, commands, env):
     return JsonOut().xform(to_dict(commands), env)

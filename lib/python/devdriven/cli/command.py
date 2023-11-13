@@ -1,4 +1,7 @@
 import re
+from pathlib import Path
+from devdriven.util import get_safe
+import devdriven.cli.descriptor as desc
 
 class Command:
   def __init__(self):
@@ -62,6 +65,15 @@ class Command:
       return default[0]
     return self.opt_default(key)
 
+  def arg_or_opt(self, i, k, default):
+    return get_safe(self.args, i, get_safe(self.opts, k, default))
+
+  def command_descriptor(self):
+    return descriptor(self.__class__)
+
+  def to_dict(self):
+    return [self.name, *self.argv]
+
   # OVERRIDE:
   def opt_valid(self, _key, _val):
     return True
@@ -76,3 +88,38 @@ class Command:
   def exec(self):
     return self.rtn
 
+DESCRIPTORS = []
+DESCRIPTOR_BY_ANY = {}
+DESCRIPTOR_BY_NAME = {}
+DESCRIPTOR_BY_KLASS = {}
+
+def descriptors():
+  return DESCRIPTORS
+
+def descriptor(name_or_klass, default=None):
+  return DESCRIPTOR_BY_ANY.get(name_or_klass, default)
+
+def find_format(path, klass):
+  for dsc in descriptors():
+    if issubclass(dsc.klass, klass) and dsc.preferred_suffix == Path(path).suffix:
+      return dsc.klass
+  return None
+
+def register(self):
+  for name in [self.name, *self.aliases]:
+    if not name:
+      raise Exception(f"Command: {self.klass!r} : invalid name or alias")
+    if assigned := descriptor(name):
+      raise Exception(f"Command: {self.klass!r} : {name!r} : is already assigned to {assigned!r}")
+    DESCRIPTOR_BY_NAME[name] = DESCRIPTOR_BY_ANY[name] = self
+  DESCRIPTOR_BY_KLASS[self.klass] = DESCRIPTOR_BY_ANY[self.klass] = self
+  DESCRIPTORS.append(self)
+  return self
+
+# Decorator
+def command():
+  def wrapper(klass):
+    assert issubclass(klass, Command)
+    register(desc.create_descriptor(klass))
+    return klass
+  return wrapper
