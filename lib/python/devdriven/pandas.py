@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -33,6 +34,19 @@ def select_rows(rows, match):
   selected.drop(['level_0', 'index'], axis=0, errors='ignore', inplace=True)
   selected.drop(['level_0', 'index'], axis=1, errors='ignore', inplace=True)
   return selected
+
+def new_empty_df_like(other):
+  # https://stackoverflow.com/a/39174024/1141958
+  df = pd.DataFrame().reindex_like(other)
+  df.drop(df.index, inplace=True)
+  # df = df.iloc[0:0]
+  return df
+
+def normalize_column_name(name):
+  def decamel(m):
+    return f'{m[1]}_{m[2]}'.lower()
+  name = re.sub(r'([^A-Z]+)([A-Z]+)', decamel, name)
+  return re.sub(r'(?i)[^A-Z0-9]', '_', name)
 
 def push_row(dframe, row):
   dframe.loc[len(dframe)] = row
