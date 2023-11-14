@@ -60,7 +60,7 @@ $ psv in us-states.txt // -table // head 5 // md
 
   '''
   def xform(self, inp, _env):
-    count = abs(int(self.arg_or_opt(0, 'count', 10)))
+    count = int(self.arg_or_opt(0, 'count', 10))
     return process_range(inp, None, count, None)
 
 @command()
@@ -77,7 +77,7 @@ $ psv in us-states.txt // -table // tail 3 // md
 
   '''
   def xform(self, inp, _env):
-    count = abs(int(self.arg_or_opt(0, 'count', 10)))
+    count = int(self.arg_or_opt(0, 'count', 10))
     return process_range(inp, - count, None, None)
 
 @command()
