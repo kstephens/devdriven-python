@@ -27,6 +27,10 @@ class Help(Command):
       commands = list(filter(command_match, all_commands))
     return self.do_commands(commands, env)
 
+  def build_synopsis(self, desc):
+    cmd = [' ', 'psv', desc.name, *desc.opts.keys(), *desc.args.keys()]
+    return ' '.join(cmd)
+
   def do_commands(self, commands, env):
     if self.opt('raw', self.opt('r', False)):
       return self.do_commands_raw(commands, env)
@@ -49,6 +53,7 @@ class Help(Command):
 
     for desc in commands:
       row(desc.name, desc.synopsis)
+      row('', self.build_synopsis(desc))
       if desc.aliases:
         row('', 'Aliases: ' + ', '.join(desc.aliases))
       if self.opt('verbose', self.opt('v')):
@@ -80,6 +85,7 @@ class Help(Command):
     for desc in commands:
       # row('', "'''")
       row('', desc.name, ' - ', desc.synopsis)
+      row('', self.build_synopsis(desc))
       if desc.aliases:
         row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))
