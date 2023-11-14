@@ -15,6 +15,15 @@ def test_help_md():
 def test_help_markdown():
   run('psv help markdown')
 
+def test_help_verbose():
+  run('psv help --verbose sort')
+
+def test_help_plain():
+  run('psv help --plain sort')
+
+def test_help_plain():
+  run('psv help --raw sort')
+
 def test_parse_subpipe():
   run('psv i /dev/null // null a b {{ null c d }}')
 

@@ -13,13 +13,18 @@ class Help(Command):
   help - This help document.
 
   --verbose, -v   | Show more detail.
-  --plain, -v     | Show plain docs.
+  --plain, -p     | Show plain docs.
   --raw, -r       | Raw detail.
   '''
   def xform(self, _inp, env):
     commands = all_commands = descriptors()
     if self.args:
-      commands = list(filter(lambda cmd: self.command_matches(cmd, self.argv[0]), all_commands))
+      pattern = '|'.join(self.args)
+      rx = re.compile(f'(?i).*{pattern}.*')
+      def command_match(desc):
+        desc = ' | '.join([desc.name, desc.synopsis] + desc.aliases)
+        return re.match(rx, desc)
+      commands = list(filter(command_match, all_commands))
     return self.do_commands(commands, env)
 
   def do_commands(self, commands, env):
@@ -54,9 +59,6 @@ class Help(Command):
         emit_opts('Options:', desc.opts)
         row('', '')
     return MarkdownOut().xform(tab, env)
-  def command_matches(self, desc, pattern):
-    desc = '|'.join([desc.name, desc.synopsis] + desc.aliases)
-    return re.match(re.compile(f'(?i).*{pattern}.*'), desc)
 
   def do_commands_raw(self, commands, env):
     return JsonOut().xform(to_dict(commands), env)
@@ -74,7 +76,6 @@ class Help(Command):
         for line in tabulate(table, tablefmt="presto").splitlines():
           line = line[1:]
           row('', line)
-
     attrs = list(DEFAULTS.keys())
     for desc in commands:
       # row('', "'''")
@@ -88,12 +89,6 @@ class Help(Command):
       emit_opts('Options:', desc.opts)
       if desc.examples:
         row('', '')
-        for attr in attrs:
-          val = getattr(desc, attr)
-          if val:
-            row(f':{attr}={val}')
-      if desc.examples:
-        row('', '')
         row('', 'Examples:')
         row('', '')
         for example in desc.examples:
@@ -102,7 +97,13 @@ class Help(Command):
           row('', '$ ', example.command)
           row('', '')
       # row('', "'''")
-      row('', '')
-      row('', '                    ==========================================================')
-      row('', '')
+      if attrs:
+        row('', '')
+        for attr in attrs:
+          val = getattr(desc, attr)
+          if val:
+            row(f':{attr}={val}')
+      if len(commands) > 1:
+        row('', '                    ==========================================================')
+        row('', '')
     return '\n'.join(lines + [''])
