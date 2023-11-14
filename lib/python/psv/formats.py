@@ -1,8 +1,9 @@
-from io import StringIO
+from io import StringIO, BytesIO
 import re
 import json
 import mimetypes
 from devdriven.util import not_implemented
+from devdriven.file_response import FileResponse
 import pandas as pd
 from devdriven.pandas import format_html
 from .command import Command, command
@@ -17,10 +18,15 @@ class FormatIn(Command):
     env['Content-Encoding'] = None
     # TODO: handle streaming:
     if isinstance(inp, str):
-      readable = StringIO(inp)
+      if encoding := self.default_encoding():
+        readable = StringIO(inp)
+      else:
+        readable = BytesIO(inp.decode(encoding))
     if isinstance(inp, Content):
       readable = inp.response()
     return self.format_in(readable, env)
+  def default_encoding(self):
+    return 'utf-8'
   def format_in(self, _io, _env):
     not_implemented()
 
@@ -28,12 +34,17 @@ class FormatOut(Command):
   def xform(self, inp, env):
     self.setup_env(inp, env)
     # TODO: handle streaming:
-    out = StringIO()
+    if self.default_encoding():
+      out = StringIO()
+    else:
+      out = BytesIO()
     self.format_out(inp, env, out)
     return out.getvalue()
   def setup_env(self, _inp, env):
     desc = self.command_descriptor()
     (env['Content-Type'], env['Content-Encoding']) = mimetypes.guess_type('anything' + desc.preferred_suffix)
+  def default_encoding(self):
+    return 'utf-8'
   def format_out(self, _inp, _env, _writable):
     not_implemented()
 
@@ -70,12 +81,12 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
       column += '%d'
     skip = self.opt('skip', False)
     skip_rx = skip and re.compile(skip)
-    encoding = self.opt('encoding', 'utf-8')
+    encoding = self.opt('encoding', self.default_encoding())
     header = self.opt('header', self.opt('h', False))
     max_width = 0
     # Split content by record separator:
     rows = readable.read()
-    if isinstance(rows, bytes):
+    if isinstance(rows, bytes) and encoding:
       rows = rows.decode(encoding)
     rows = re.split(rs_rx, rows)
     # Remove trailing empty record:
@@ -181,8 +192,6 @@ $ cat a.tsv | psv -tsv // md
 
   :preferred_suffix=.md
   '''
-  def content_type(self):
-    return 'text/markdown'
   def format_out(self, inp, _env, writeable):
     inp.to_markdown(writeable, index=False)
     # to_markdown doesn't terminate last line:
@@ -219,6 +228,35 @@ $ psv in a.csv // -csv // json-
       json.dump(inp, writeable, indent=2)
     # to_json doesn't terminate last line:
     writeable.write('\n')
+
+@command()
+class PickleIn(FormatIn):
+  '''
+  -pickle - Read Pandas Dataframe pickle.
+  alias: -dataframe
+
+  :preferred_suffix=.pickle.xz
+  '''
+  def default_encoding(self):
+    return None
+  def format_in(self, readable, _env):
+    return pd.read_pickle(readable, compression='xz')
+
+@command()
+class PickleOut(FormatIn):
+  '''
+  pickle- - Write Pandas DataFrame pickle.
+  alias: dataframe-
+
+  :preferred_suffix=.pickle.xz
+  '''
+  def default_encoding(self):
+    return None
+  def setup_env(self, inp, env):
+    super().setup_env(inp, env)
+    env['Content-Type'] = 'application/x-pandas-dataframe-pickle'
+  def format_out(self, inp, _env, writeable):
+    inp.to_pickle(writeable, compression='xz')
 
 @command()
 class HtmlOut(FormatOut):

@@ -2,7 +2,7 @@ import yurl
 from devdriven.user_agent import UserAgent
 
 class Content():
-  def __init__(self, url=None, headers=None, encoding='utf-8'):
+  def __init__(self, url=None, headers=None, encoding=None):
     self.url = url
     self.headers = headers or {}
     self.encoding = encoding
@@ -17,9 +17,14 @@ class Content():
   def to_dict(self):
     return __repr__
 
+  def set_encoding(self, encoding):
+    self._content = None
+    self.encoding = encoding
+    return self
+
   def content(self):
     if not self._content:
-      self._content = self.body().decode(self.encoding)
+      self._content = self.body().decode(self.encoding or 'utf-8')
     return self._content
 
   def body(self):
@@ -41,7 +46,7 @@ class Content():
 
   def put(self, body, headers=None):
     if isinstance(body, str):
-      body = body.encode(self.encoding)
+      body = body.encode(self.encoding or 'utf-8')
     headers = self.headers | (headers or {})
     def do_put(url, body):
       return UserAgent().request('put', url, body=body, headers=headers)

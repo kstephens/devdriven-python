@@ -26,7 +26,7 @@ class FileResponse():
     self.stdin = self.stdout = None
     self.read_io = self.write_io = None
     self.closed = True
-    self.encoding = 'utf-8'
+    self.encoding = None
     self.connection = '<<FileResponse.connection : NOT-IMPLEMENTED>>'
     self.retries = '<<FileResponse.retries : NOT-IMPLEMENTED>>'
     self._headers = self._body = None
@@ -95,15 +95,15 @@ class FileResponse():
   def isclosed(self):
     return self.closed
   def json(self):
-    return json.load(self.read().decode(self.encoding))
+    return json.load(self.read().decode(self.encoding or 'utf-8'))
   def read(self, amt=None, decode_content=None, cache_content=False):
     assert not decode_content
     assert not cache_content
     if not self.read_io:
       return b''
     b = self.read_io.read(amt)
-    if isinstance(self.read_io, TEXT_IO_CLASSES):
-      b = b.encode(self.read_io.encoding or self.encoding)
+    if encoding := self._needs_encoding(self.read_io):
+      b = b.encode(encoding)
     return b
   def read_chunked(self, amt=None, decode_content=None):
     assert not decode_content
@@ -138,13 +138,15 @@ class FileResponse():
   def writable(self):
     return not not self.write_io
   def write(self, b):
-    if isinstance(self.write_io, TEXT_IO_CLASSES):
-      if isinstance(b, bytes):
-        b = b.decode(self.write_io.encoding or self.encoding)
+    if encoding := isinstance(b, bytes) and self._needs_encoding(self.write_io):
+      b = b.decode(encoding)
     return self.write_io.write(b)
   def writelines(self, lines, /):
     for line in lines:
       self.write(line)
+
+  def _needs_encoding(self, io):
+    return isinstance(io, TEXT_IO_CLASSES) and (self.encoding or io.encoding)
 
   ###############################
 
