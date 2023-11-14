@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import List
 from devdriven.util import set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
+from .option import Option
 from icecream import ic
 
 @dataclass
@@ -35,6 +36,8 @@ class Descriptor():
       if debug:
         ic(line)
       m = None
+      # if doc_option := Option().parse_doc(line):
+      #   ic(doc_option)
       if m := re.match(r'^:(?P<name>[a-z_]+)[:=] *(?P<value>.*)', line):
         setattr(self, m.group('name'), m.group('value').strip())
       elif m := not self.name and re.match(r'^(?P<name>[-a-z]+) +- +(?P<brief>.+)', line):
@@ -49,8 +52,10 @@ class Descriptor():
       elif m := re.match(r'^\$ (.+)', line):
         self.examples.append(Example(command=m[1], comments=comments))
         comments = []
+      elif m := re.match(r'^(-) *[\|] *(.*)', line):
+        self.args[m[1].strip()] = m[2].strip()
       elif m := re.match(r'^(--?[^\|]+)[\|] *(.*)', line):
-        name, *opt_aliases = map(lambda x: x.strip(), re.split(r', *', m[1].strip()))
+        name, *opt_aliases = map(lambda x: x.strip(), re.split(r', ', m[1].strip()))
         if debug:
           ic((name, opt_aliases))
         self.opts[name] = m[2].strip()
@@ -58,13 +63,33 @@ class Descriptor():
           self.opt_aliases[opt_alias] = name
       elif m := re.match(r'^([^\|]+)[\|] *(.*)', line):
         self.args[m[1].strip()] = m[2].strip()
-      elif line:
+      else:
         self.detail.append(line)
       if debug:
         ic(m and m.groupdict())
-    cmd = [' ', 'psv', self.name, *self.opts.keys(), *self.args.keys()]
-    self.synopsis = ' '.join(cmd)
+    self.build_synopsis()
+    self.trim_detail()
     return self
+
+  def aliases_for_opt(self, opt):
+    return [k for k, v in self.opt_aliases.items() if v == opt]
+
+  def build_synopsis(self):
+    cmd = ['psv', self.name]
+    for opt in self.opts.keys():
+      opts = [opt] + self.aliases_for_opt(opt)
+      cmd.append(f'[{",".join(opts)}]')
+    for arg in self.args.keys():
+      if arg.endswith(' ...') or len(self.args) > 1:
+        arg = f'[{arg}]'
+      cmd.append(arg)
+    self.synopsis = ' '.join(cmd)
+
+  def trim_detail(self):
+    while self.detail and not self.detail[0]:
+      self.detail.pop(0)
+    while self.detail and not self.detail[-1]:
+      self.detail.pop(-1)
 
 @dataclass
 class Example():

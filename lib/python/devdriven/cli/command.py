@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from devdriven.util import get_safe
 import devdriven.cli.descriptor as desc
+from devdriven.cli.option import Option
 
 class Command:
   def __init__(self):
@@ -27,18 +28,10 @@ class Command:
         break
       if self.args:
         self.args.append(arg)
-      elif mtch := re.match(r'^--([a-zA-Z][-_a-zA-Z0-9]*)=(.*)$', arg):
-        self.set_opt(mtch.group(1), mtch.group(2))
-      elif mtch := re.match(r'^--([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
-        self.set_opt(mtch.group(1), True)
-      elif mtch := re.match(r'^\+\+([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
-        self.set_opt(mtch.group(1), False)
-      elif mtch := re.match(r'^-([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
-        for flag in [*mtch.group(1)]:
-          self.set_opt(flag, True)
-      elif mtch := re.match(r'^\+([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
-        for flag in [*mtch.group(1)]:
-          self.set_opt(flag, False)
+      elif opt := Option().parse_arg(arg):
+        self.set_opt(opt.name, opt.value)
+        for alias in opt.aliases:
+          self.set_opt(alias.name, opt.value)
       else:
         self.args.append(arg)
     return self
@@ -51,7 +44,7 @@ class Command:
     self.main = main
     return self
 
-  def set_opt(self, name, val, arg=None):
+  def set_opt(self, name, val):
     key = self.opt_name_key(name)
     if self.opt_valid(key, val):
       self.opts[key] = val
