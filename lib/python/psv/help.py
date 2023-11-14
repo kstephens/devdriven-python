@@ -19,10 +19,10 @@ class Help(Command):
   def xform(self, _inp, env):
     commands = all_commands = descriptors()
     if self.args:
-      pattern = '|'.join(self.args)
-      rx = re.compile(f'(?i).*{pattern}.*')
+      pattern = '|'.join([f'\\b{arg}\\b' for arg in self.args])
+      rx = re.compile(f'(?i){pattern}')
       def command_match(desc):
-        desc = ' | '.join([desc.name, desc.brief] + desc.aliases)
+        desc = ' '.join([desc.name, desc.brief] + desc.aliases)
         return re.match(rx, desc)
       commands = list(filter(command_match, all_commands))
     return self.do_commands(commands, env)
