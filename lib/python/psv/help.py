@@ -22,14 +22,10 @@ class Help(Command):
       pattern = '|'.join(self.args)
       rx = re.compile(f'(?i).*{pattern}.*')
       def command_match(desc):
-        desc = ' | '.join([desc.name, desc.synopsis] + desc.aliases)
+        desc = ' | '.join([desc.name, desc.brief] + desc.aliases)
         return re.match(rx, desc)
       commands = list(filter(command_match, all_commands))
     return self.do_commands(commands, env)
-
-  def build_synopsis(self, desc):
-    cmd = [' ', 'psv', desc.name, *desc.opts.keys(), *desc.args.keys()]
-    return ' '.join(cmd)
 
   def do_commands(self, commands, env):
     if self.opt('raw', self.opt('r', False)):
@@ -52,8 +48,8 @@ class Help(Command):
           row('', line)
 
     for desc in commands:
-      row(desc.name, desc.synopsis)
-      row('', self.build_synopsis(desc))
+      row(desc.name, desc.brief)
+      row('', desc.synopsis)
       if desc.aliases:
         row('', 'Aliases: ' + ', '.join(desc.aliases))
       if self.opt('verbose', self.opt('v')):
@@ -84,8 +80,10 @@ class Help(Command):
     attrs = list(DEFAULTS.keys())
     for desc in commands:
       # row('', "'''")
-      row('', desc.name, ' - ', desc.synopsis)
-      row('', self.build_synopsis(desc))
+      row('', desc.name, ' - ', desc.brief)
+      row('', '')
+      row('', desc.synopsis)
+      row('', '')
       if desc.aliases:
         row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))

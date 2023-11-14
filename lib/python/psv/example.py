@@ -13,7 +13,7 @@ class Example(Command):
 
   Aliases: ex, example
 
-  SEARCH-STRING | Matches name, aliases, synopsis
+  SEARCH-STRING | Matches name, aliases, brief
 
   --run, -r     | Run examples.
   '''
