@@ -24,7 +24,7 @@ class Example(Command):
     def match(x):
       return re.match(comment_rx, x)
     def command_matches(cmd):
-      return match(cmd.command) or any(map(match, cmd.comments))
+      return match(cmd.command) or any(map(match, cmd.comments[0:]))
     examples = list(filter(command_matches, examples))
     self.run_examples(examples)
 
