@@ -6,6 +6,9 @@ import psv.main
 def test_example():
   run('psv example')
 
+def test_example_run():
+  run('psv example --run range')
+
 def test_help():
   run('psv help')
 
