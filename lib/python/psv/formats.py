@@ -172,8 +172,8 @@ $ psv in a.tsv // -tsv // csv-
 @command()
 class MarkdownOut(FormatOut):
   '''
-  md - Generate Markdown.
-  aliases: md-, markdown
+  markdown - Generate Markdown.
+  aliases: md, md-, markdown-
 
 # md: Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
