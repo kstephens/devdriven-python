@@ -95,8 +95,14 @@ def descriptor(name_or_klass, default=None):
   return DESCRIPTOR_BY_ANY.get(name_or_klass, default)
 
 def find_format(path, klass):
+  short_suffix = long_suffix = Path(path).suffix
+  if m := re.match(r'(?:^|/)[^.]+(\.[^/]+)$', str(path)):
+    long_suffix = m[1]
   for dsc in descriptors():
-    if issubclass(dsc.klass, klass) and dsc.preferred_suffix == Path(path).suffix:
+    if issubclass(dsc.klass, klass) and dsc.preferred_suffix == long_suffix:
+      return dsc.klass
+  for dsc in descriptors():
+    if issubclass(dsc.klass, klass) and dsc.preferred_suffix == short_suffix:
       return dsc.klass
   return None
 
