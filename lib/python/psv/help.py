@@ -12,9 +12,9 @@ class Help(Command):
   '''
   help - This help document.
 
-  --verbose, -v   | Show more detail.
-  --plain, -p     | Show plain docs.
-  --raw, -r       | Raw detail.
+  --verbose, -v   |  Show more detail.
+  --plain, -p     |  Show plain docs.
+  --raw, -r       |  Raw detail.
   '''
   def xform(self, _inp, env):
     commands = all_commands = descriptors()

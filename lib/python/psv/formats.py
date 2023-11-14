@@ -45,11 +45,11 @@ class TableIn(FormatIn):
   -table - Parse table.
   alias: table-in
 
-  --fs=REGEX       | Field separator.  Default: "\\s+".
-  --rs=REGEX       | Record separator.  Default: "\\n\\r?".
-  --header, -h     | Headers are in first row.
-  --column=FMT     | Column name printf template.  Default: "c%d".
-  --encoding=ENC   | Encoding of input.  Default: "utf-8".
+  --fs=REGEX       |  Field separator.  Default: "\\s+".
+  --rs=REGEX       |  Record separator.  Default: "\\n\\r?".
+  --header, -h     |  Headers are in first row.
+  --column=FMT     |  Column name printf template.  Default: "c%d".
+  --encoding=ENC   |  Encoding of input.  Default: "utf-8".
 
 # -table: Parse generic table:
 $ psv in users.txt // -table --fs=":"
@@ -227,7 +227,7 @@ class HtmlOut(FormatOut):
   alias: html
 
   --table-name=NAME  |  <title>
-  --header           |  Generate header. Default: True.
+  --header, -h       |  Generate header. Default: True.
 
   :preferred_suffix=.html
 

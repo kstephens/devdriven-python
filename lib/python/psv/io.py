@@ -16,9 +16,11 @@ class IoIn(IoBase):
 
   Aliases: i, -i
 
+If no arguments are given, read from STDIN.
+
   FILE             |  Read FILE.
-  file///FILE      |  Read FILE.
-  https?://...     |  GET URL.
+  file:///FILE     |  Read FILE.
+  https?://URL     |  GET URL.
   -                |  Read STDIN.
 
   --raw, -r        |  Do not infer format from suffix.
@@ -47,6 +49,8 @@ class IoOut(IoBase):
   '''
   out - write output to URLs.
   Aliases: o, o-
+
+If no arguments are given, write to STDOUT.
 
   FILE             |  Write FILE.
   file///FILE      |  Write FILE.
