@@ -28,12 +28,11 @@ class Help(Command):
     return self.do_commands(commands, env)
 
   def do_commands(self, commands, env):
+    if self.opt('plain', self.opt('p', False)) or len(self.args) == 1:
+      return self.do_commands_plain(commands, env)
     if self.opt('raw', self.opt('r', False)):
       return self.do_commands_raw(commands, env)
-    if self.opt('plain', self.opt('p', False)):
-      return self.do_commands_plain(commands, env)
-    else:
-      return self.do_commands_table(commands, env)
+    return self.do_commands_table(commands, env)
 
   def do_commands_table(self, commands, env):
     tab = pd.DataFrame(columns=['command', 'description'])
@@ -67,7 +66,7 @@ class Help(Command):
   def do_commands_plain(self, commands, _env):
     lines = []
     def row(*cols):
-      lines.append(''.join(['  '] + list(cols[1:])))
+      lines.append(''.join(cols))
     def emit_opts(title, opts):
       if opts:
         row('', '')
@@ -76,14 +75,13 @@ class Help(Command):
         table = list(opts.items())
         for line in tabulate(table, tablefmt="presto").splitlines():
           line = line[1:]
-          row('', line)
+          row('  ', line)
     attrs = list(DEFAULTS.keys())
     for desc in commands:
       # row('', "'''")
       row('', desc.name, ' - ', desc.brief)
       row('', '')
-      row('', desc.synopsis)
-      row('', '')
+      row('  ', desc.synopsis)
       if desc.aliases:
         row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))
@@ -101,7 +99,7 @@ class Help(Command):
           row('', '$ ', example.command)
           row('', '')
       # row('', "'''")
-      if attrs:
+      if attrs and self.opt('verbose', self.opt('v')):
         row('', '')
         for attr in attrs:
           val = getattr(desc, attr)
