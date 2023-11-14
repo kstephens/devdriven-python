@@ -51,6 +51,8 @@ class Content():
     def do_put(url, body):
       return UserAgent().request('put', url, body=body, headers=headers)
     self._response = with_http_redirects(do_put, self.url, body)
+    if not (200 <= self._response.status <= 299):
+      raise Exception("{url} : unexpected status : {self._response.status}")
     return self
 
 # ???: UserAgent already handle redirects:
