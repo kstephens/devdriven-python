@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import List
 from devdriven.util import set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
-# from icecream import ic
+from icecream import ic
 
 @dataclass
 class Descriptor():
@@ -48,14 +48,14 @@ class Descriptor():
       elif m := re.match(r'^\$ (.+)', line):
         self.examples.append(Example(command=m[1], comments=comments))
         comments = []
-      elif m := re.match(r'^(--?[^:\|]+)[:\|] *(.*)', line):
+      elif m := re.match(r'^(--?[^\|]+)[\|] *(.*)', line):
         name, *opt_aliases = re.split(r', *', m[1].strip())
         if debug:
           ic((name, opt_aliases))
         self.opts[name] = m[2].strip()
         for opt_alias in opt_aliases:
           self.opt_aliases[opt_alias] = name
-      elif m := re.match(r'^([^:\|]+)[:\|] *(.*)', line):
+      elif m := re.match(r'^([^\|]+)[\|] *(.*)', line):
         self.args[m[1]] = m[2].strip()
       elif line:
         self.detail.append(line)

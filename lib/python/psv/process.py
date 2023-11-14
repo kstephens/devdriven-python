@@ -15,14 +15,14 @@ class Range(Command):
 
   Arguments:
 
-  start [end] [step] | For 1 or more arguments.
-  [start]:[end]:step | Python-style range.
+  start [end] [step]  |  For 1 or more arguments.
+  [start]:[end]:step  |  Python-style range.
 
   Options:
 
-  --start=START | Inclusive.  Default: 1.
-  --end=END     | Non-inclusive.  Default: last row.
-  --step=STEP   | Default: 1.
+  --start=START       |  Inclusive.  Default: 1.
+  --end=END           |  Non-inclusive.  Default: last row.
+  --step=STEP         |  Default: 1.
 
   # range: select a range of rows:
   $ psv in -i a.tsv // seq --start=0 // range 1 3 // md
@@ -103,11 +103,11 @@ class Cut(Command):
 
   Arguments:
 
-  NAME     | Select name.
-  I       | Select index.
-  COL:-   | Remove column.
-  *       | Add all columns.
-  NAME*   | Any columns starting with "NAME".
+  NAME    |  Select name.
+  I       |  Select index.
+  COL:-   |  Remove column.
+  *       |  Add all columns.
+  NAME*   |  Any columns starting with "NAME".
 
 # cut: select columns by index and name:
 psv in -i a.tsv // cut 2,d // md
@@ -137,14 +137,14 @@ class Sort(Command):
 
   Arguments:
 
-  COL   | Sort by COL ascending
-  COL:- | Sort by COL descending
-  COL:+ | Sort by COL ascending
+  COL    |  Sort by COL ascending
+  COL:-  |  Sort by COL descending
+  COL:+  |  Sort by COL ascending
 
   Options:
 
-  -r | Sort descending.
-  -n | Coerce columns to numeric.
+  -r     |  Sort descending.
+  -n     |  Coerce columns to numeric.
 
 # sort: decreasing:
 $ psv in -i a.tsv // sort -r a // md
@@ -210,11 +210,11 @@ class Count(Command):
 
   Arguments:
 
-  COL ... | Columns to group by.  Default: ALL C.
+  COL ...        |  Columns to group by.  Default: ALL COLUMNS.
 
   Options:
 
-  --column= | Default: "__count__"
+  --column=NAME  |  Default: "__count__"
   '''
   def xform(self, inp, _env):
     count_col = self.opt('column', '__count__')
@@ -231,9 +231,9 @@ class Translate(Command):
 
   Similar to Unix tr command.
 
-  SRC DST COL... : Map chars from SRC to DST in each COL.
-  -d DEL COL...  : Delete chars in DEL in each COL.
-  -d             : Delete characters.
+  SRC DST COL...  |  Map chars from SRC to DST in each COL.
+  -d DEL COL...   |  Delete chars in DEL in each COL.
+  -d              |  Delete characters.
 
 # translate: change characters in specific field:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md

@@ -45,11 +45,11 @@ class TableIn(FormatIn):
   -table - Parse table.
   alias: table-in
 
-  --fs=REGEX       : Field separator.  Default: "\\s+".
-  --rs=REGEX       : Record separator.  Default: "\\n\\r?".
-  --header, -h     : Headers are in first row.
-  --column=FMT     : Column name printf template.  Default: "c%d".
-  --encoding=ENC   : Encoding of input.  Default: "utf-8".
+  --fs=REGEX       | Field separator.  Default: "\\s+".
+  --rs=REGEX       | Record separator.  Default: "\\n\\r?".
+  --header, -h     | Headers are in first row.
+  --column=FMT     | Column name printf template.  Default: "c%d".
+  --encoding=ENC   | Encoding of input.  Default: "utf-8".
 
 # -table: Parse generic table:
 $ psv in users.txt // -table --fs=":"
@@ -191,7 +191,8 @@ $ cat a.tsv | psv -tsv // md
 class JsonIn(FormatIn):
   '''
   -json - Parse JSON.
-  --orient=ORIENT : Orientation: see pandas read_json.
+
+  --orient=ORIENT  |  Orientation: see pandas read_json.
 
   :preferred_suffix=.json
   '''
@@ -223,8 +224,9 @@ class HtmlOut(FormatOut):
   '''
   html- - Generate HTML.
   alias: html
-  --table-name=NAME : <title>
-  --header          : Generate header. Default: True.
+
+  --table-name=NAME  |  <title>
+  --header           |  Generate header. Default: True.
 
   :preferred_suffix=.html
 

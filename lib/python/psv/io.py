@@ -16,12 +16,12 @@ class IoIn(IoBase):
 
   Aliases: i, -i
 
-  FILE             : Read FILE.
-  file///FILE      : Read FILE.
-  https?://...     : GET URL.
-  -                : Read STDIN.
+  FILE             |  Read FILE.
+  file///FILE      |  Read FILE.
+  https?://...     |  GET URL.
+  -                |  Read STDIN.
 
-  --infer, -i      : Infer format from suffix.
+  --infer, -i      |  Infer format from suffix.
 
 # in: read from STDIN:
 $ cat a.tsv | psv in -
@@ -48,10 +48,10 @@ class IoOut(IoBase):
   out - write output to URLs.
   Aliases: o, o-
 
-  FILE             : Write FILE.
-  file///FILE      : Write FILE.
-  https?://...     : PUT URL.
-  -                : Write STDOUT.
+  FILE             |  Write FILE.
+  file///FILE      |  Write FILE.
+  https?://...     |  PUT URL.
+  -                |  Write STDOUT.
 
 # out: Convert TSV to CSV and save to a file:
 $ psv in a.tsv // -tsv // csv- // out a.csv

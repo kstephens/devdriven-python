@@ -13,9 +13,9 @@ class Example(Command):
 
   Aliases: ex, example
 
-  SEARCH-STRING : Matches name, aliases, synopsis
+  SEARCH-STRING | Matches name, aliases, synopsis
 
-  --run, -r     : Run examples.
+  --run, -r     | Run examples.
   '''
   def xform(self, _inp, _env):
     examples = list(flat_map(ddc.descriptors(), lambda cmd: cmd.examples))

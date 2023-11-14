@@ -10,9 +10,9 @@ class AddSequence(Command):
   add-sequence - Add a column with a sequence of numbers.
   Aliases: seq
 
-  --column=NAME | Default: "__i__"
-  --start=START | Default: 1.
-  --step=STEP   | Default: 1.
+  --column=NAME  |  Default: "__i__"
+  --start=START  |  Default: 1.
+  --step=STEP    |  Default: 1.
 
 # add-sequence (seq): add a column with a sequence:
 $ psv in -i a.tsv // seq // md
@@ -42,7 +42,7 @@ class AddColumns(Command):
   add-columns - Add columns.
   Aliases: add
 
-  OLD-NAME NEW-NAME ... | Columns to rename.
+  OLD-NAME NEW-NAME ...  |  Columns to rename.
 
   '''
   def xform(self, inp, _env):
@@ -54,7 +54,7 @@ class RenameColumns(Command):
   rename-columns - Rename columns.
   Aliases: rename
 
-  OLD-COL:NEW-NAME ... | Columns to rename.
+  OLD-COL:NEW-NAME ...  |  Columns to rename.
 
 # rename-columns: rename column 'b' to 'B':
 $ psv in -i a.tsv // rename b B // md
@@ -83,7 +83,7 @@ class Coerce(Command):
 
   Arguments:
 
-  COL:TYPE ... | Columns to retype.
+  COL:TYPE ...  |  Columns to retype.
   '''
   def xform(self, inp, _env):
     inp_cols = list(inp.columns)

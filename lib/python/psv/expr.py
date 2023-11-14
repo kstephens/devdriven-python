@@ -29,10 +29,10 @@ class Eval(Command):
     * False:     the row is removed.
     * Dict:      the row is updated and new columns are added.
 
-  STATEMENT ...  : Statements.  Final statement may return a value.
+  STATEMENT ...        |  Statements.  Final statement may return a value.
 
-  --columns=COL1,COL2  | Columns bound within STATEMENT.  Default: input columns.
-  --normalize, -n  | Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.  Default: False.
+  --columns=COL1,COL2  |  Columns bound within STATEMENT.  Default: input columns.
+  --normalize, -n      |  Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.  Default: False.
 
   $ psv in -i a.tsv // eval "c *= 2"
   $ psv in -i a.tsv // eval "return c > 0"
@@ -84,7 +84,7 @@ class Select(Eval):
   When expression is True, the row is selected.
   "BREAK" and "FINISH" conditions in `eval` command also apply.
 
-  LOGICAL-EXPRESSION ...  : Logical expression.
+  LOGICAL-EXPRESSION ...  |  Logical expression.
 
   $ psv in -i a.tsv // select "c > 0"
 

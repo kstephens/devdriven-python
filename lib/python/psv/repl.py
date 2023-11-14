@@ -7,8 +7,8 @@ class Repl(Command):
   '''
   repl - Start an interactive REPL.
 
-  `inp` : Input Pandas DataFrame.
-  `out` : Copy of `inp`.
+  `inp`  |  Input table.
+  `out`  |  Output table; copy of `inp`.
 
   '''
   def xform(self, inp, env):
