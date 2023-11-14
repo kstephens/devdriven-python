@@ -34,10 +34,10 @@ class Example(Command):
         print('# ' + comment)
       print('$ ' + ex.command)
       if self.opt('run', self.opt('r', False)):
+        sys.stdout.flush()
+        sys.stderr.flush()
         self.run_example(ex)
       print('')
-      #if gen_docstring:
-      #  print('\n====================\n\n')
 
   def run_example(self, ex):
     with cwd(f'{self.main.root_dir}/example'):
