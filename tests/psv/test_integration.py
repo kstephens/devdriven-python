@@ -24,7 +24,7 @@ def test_help_verbose():
 def test_help_plain():
   run('psv help --plain sort')
 
-def test_help_plain():
+def test_help_raw():
   run('psv help --raw sort')
 
 def test_parse_subpipe():
