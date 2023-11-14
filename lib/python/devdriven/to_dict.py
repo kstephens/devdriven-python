@@ -16,7 +16,13 @@ class ToDict:
     if obj is None:
       return None
     if callable(getattr(obj, 'to_dict', None)):  # https://stackoverflow.com/a/54625079
-      return self.walk(obj.to_dict())
+      try:
+        return self.walk(obj.to_dict())
+      except Exception as exc:
+        # print(repr(type(obj)))
+        # print(repr(obj))
+        return f'<< {repr(obj)} >>'
+        # raise exc
     obj_type = type(obj)
     if issubclass(obj_type, int) or issubclass(obj_type, float) or issubclass(obj_type, str):
       return obj
@@ -50,7 +56,7 @@ class ToDict:
       return self.walk(vars(obj))
     if issubclass(obj_type, BaseException):
       return self.walk_exception(obj)
-    return obj
+    return {'class': obj_type.__name__, 'repr': repr(obj)}
 
   def walk_exception(self, obj: Any) -> Any:
     obj_type = type(obj)
