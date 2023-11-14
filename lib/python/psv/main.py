@@ -32,11 +32,10 @@ class Main(devdriven.cli.Main):
     return output
 
   def output_file(self):
-    return sys.stderr
+    return self.stdout
 
   def parse_pipeline(self, name, argv):
-    pipe = pipeline.Pipeline().set_main(self).set_name(name).parse_argv(argv)
-    return pipe
+    return pipeline.Pipeline().set_main(self).set_name(name).parse_argv(argv)
 
   class MainCommand(devdriven.cli.Command):
     def __init__(self, *args):
