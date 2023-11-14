@@ -15,16 +15,16 @@ class AddSequence(Command):
   --step=STEP    |  Default: 1.
 
 # add-sequence (seq): add a column with a sequence:
-$ psv in -i a.tsv // seq // md
+$ psv in a.tsv // seq // md
 
 # add-sequence (seq): start at 0:
-$ psv in -i a.tsv // seq --start=0 // md
+$ psv in a.tsv // seq --start=0 // md
 
 # add-sequence (seq): step by 2:
-$ psv in -i a.tsv // seq --step=2 // md
+$ psv in a.tsv // seq --step=2 // md
 
 # add-sequence (seq): start at 5, step by -2:
-$ psv in -i a.tsv // seq --start=5 --step=-2 // md
+$ psv in a.tsv // seq --start=5 --step=-2 // md
 
 
   '''
@@ -57,7 +57,7 @@ class RenameColumns(Command):
   OLD-COL:NEW-NAME ...  |  Columns to rename.
 
 # rename-columns: rename column 'b' to 'B':
-$ psv in -i a.tsv // rename b B // md
+$ psv in a.tsv // rename b B // md
   '''
   def xform(self, inp, _env):
     inp_cols = list(inp.columns)
@@ -119,7 +119,7 @@ class ShowColumns(Command):
   Aliases: columns, cols
 
 # show-columns: show column metadata:
-$ psv in -i a.tsv // show-columns // md
+$ psv in a.tsv // show-columns // md
 
   '''
   def xform(self, inp, _env):
@@ -147,7 +147,7 @@ class EnvOut(Command):
   env- - Show env.
 
 # env: display proccessing info:
-$ psv in -i a.tsv // show-columns // md // env-
+$ psv in a.tsv // show-columns // md // env-
 
   '''
   def xform(self, _inp, env):

@@ -34,12 +34,12 @@ class Eval(Command):
   --columns=COL1,COL2  |  Columns bound within STATEMENT.  Default: input columns.
   --normalize, -n      |  Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.  Default: False.
 
-  $ psv in -i a.tsv // eval "c *= 2"
-  $ psv in -i a.tsv // eval "return c > 0"
-  $ psv in -i a.tsv // eval "return {'i': offset, 'd_length': 2}"
-  $ psv in -i a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
-  $ psv in -i a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
-  $ psv in -i a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
+  $ psv in a.tsv // eval "c *= 2"
+  $ psv in a.tsv // eval "return c > 0"
+  $ psv in a.tsv // eval "return {'i': offset, 'd_length': 2}"
+  $ psv in a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
+  $ psv in a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
+  $ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
 
   '''
   def xform(self, inp, env):
@@ -86,7 +86,7 @@ class Select(Eval):
 
   LOGICAL-EXPRESSION ...  |  Logical expression.
 
-  $ psv in -i a.tsv // select "c > 0"
+  $ psv in a.tsv // select "c > 0"
 
   '''
   def create_expr(self):

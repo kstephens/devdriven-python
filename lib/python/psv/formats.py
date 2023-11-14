@@ -121,12 +121,13 @@ class TsvIn(FormatIn):
   -tsv - Parse TSV.
 
 # -tsv, csv: Convert TSV to CSV:
-$ psv in a.tsv // -tsv // csv-
+$ cat a.tsv | psv -tsv // csv-
 
-# -tsv: Convert content to TSV:
-$ psv in a.tsv // -tsv // md
+# -tsv, md: Convert TSV to Markdown:
+$ psv in a.tsv // md
+
+# -tsv: Convert HTTP TSV content to Markdown.
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
-$ cat a.tsv | psv -tsv // md
 
   :preferred_suffix=.tsv
   '''

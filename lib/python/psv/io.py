@@ -21,7 +21,7 @@ class IoIn(IoBase):
   https?://...     |  GET URL.
   -                |  Read STDIN.
 
-  --infer, -i      |  Infer format from suffix.
+  --raw, -r        |  Do not infer format from suffix.
 
 # in: read from STDIN:
 $ cat a.tsv | psv in -
@@ -38,7 +38,7 @@ $ psv in https://tinyurl.com/4sscj338
     env['input.paths'] = [self.args[0]]
     content = Content(url=self.args[0])
     format_for_suffix = find_format(self.args[0], FormatIn)
-    if self.opt('infer', self.opt('i')) and format_for_suffix:
+    if not self.opt(('raw', 'r'), False) and format_for_suffix:
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
 

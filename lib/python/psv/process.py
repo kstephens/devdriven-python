@@ -25,10 +25,10 @@ class Range(Command):
   --step=STEP         |  Default: 1.
 
   # range: select a range of rows:
-  $ psv in -i a.tsv // seq --start=0 // range 1 3 // md
+  $ psv in a.tsv // seq --start=0 // range 1 3 // md
 
   # range: every even row:
-  $ psv in -i a.tsv // seq --start=0 // range --step=2 // md
+  $ psv in a.tsv // seq --start=0 // range --step=2 // md
 
   '''
 
@@ -88,7 +88,7 @@ class Reverse(Command):
   Aliases: tac
 
 # reverse:
-$ psv in -i a.tsv // seq // tac // md
+$ psv in a.tsv // seq // tac // md
 
   '''
   def xform(self, inp, _env):
@@ -110,10 +110,10 @@ class Cut(Command):
   NAME*   |  Any columns starting with "NAME".
 
 # cut: select columns by index and name:
-psv in -i a.tsv // cut 2,d // md
+psv in a.tsv // cut 2,d // md
 
 # cut: remove c, put d before other columns,
-$ psv in -i a.tsv // cut d '*' c:- // md
+$ psv in a.tsv // cut d '*' c:- // md
 
   '''
   def xform(self, inp, _env):
@@ -147,12 +147,12 @@ class Sort(Command):
   -n     |  Coerce columns to numeric.
 
 # sort: decreasing:
-$ psv in -i a.tsv // sort -r a // md
+$ psv in a.tsv // sort -r a // md
 
 # sort: by a decreasing, c increasing,
 # remove c, put d before other columns,
 # create a column i with a seqence
-$ psv in -i a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
 
   '''
   def xform(self, inp, _env):
@@ -181,13 +181,13 @@ class Grep(Command):
 
   Arguments:
 
-  COL REGEX ... | List of NAME REGEX pairs.
+  COL REGEX ...  |  List of NAME REGEX pairs.
 
 # grep: match columns by regex:
-$ psv in -i a.tsv // grep d '.*x.*' // md
+$ psv in a.tsv // grep d '.*x.*' // md
 
 # grep: match d and b:
-$ psv in -i a.tsv // grep d '.*x.*' b '.*3$' // md
+$ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
 
   '''
   def xform(self, inp, _env):
@@ -278,7 +278,7 @@ class NullXform(Command):
   null - Does nothing.
 
 # null: does nothing:
-$ psv in -i a.tsv // null IGNORED --OPTION=VALUE // md
+$ psv in a.tsv // null IGNORED --OPTION=VALUE // md
 '''
   def xform(self, inp, _env):
     return inp
