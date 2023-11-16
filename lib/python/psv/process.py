@@ -209,12 +209,6 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
     return inp
 
   def add_match(self, inp, col, pat, combine_default):
-    combine_opt = False
-    if self.opt('all'):
-      combine_opt = 'all'
-    elif self.opt('any'):
-      combine_opt = 'any'
-    combine = combine_opt or combine_default
     if self.opt('quote'):
       pat = re.escape(pat)
     pat = f'.*{pat}'
@@ -222,6 +216,14 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
       pat = f'(?i){pat}'
     rx = re.compile(pat)
     # ic((col, pat, rx, combine))
+
+    combine_opt = False
+    if self.opt('all'):
+      combine_opt = 'all'
+    elif self.opt('any'):
+      combine_opt = 'any'
+    combine = combine_opt or combine_default
+
     match = None
     try:
       # https://stackoverflow.com/a/31076657/1141958
@@ -240,8 +242,8 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
       else:
         raise Exception("grep : invalid combinator {combine!r}")
     else:
+      self.has_filter = True
       self.filter_expr = match
-    self.has_filter = True
 
 @command()
 class Count(Command):
