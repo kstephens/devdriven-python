@@ -5,6 +5,7 @@ from devdriven.pandas import count_by
 from .command import Command, command
 from .metadata import Coerce
 from .util import *
+from icecream import ic
 
 @command()
 class Range(Command):
@@ -175,13 +176,16 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
 @command()
 class Grep(Command):
   '''
-  grep - Search for rows where each column matches a regex.
+  grep - Search for rows where columns match a regex.
 
   Aliases: g
 
-  Arguments:
-
-  COL REGEX ...  |  List of NAME REGEX pairs.
+  COL REGEX ...          |  Select rows where COL REGEX pairs match.
+  REGEX                  |  Select rows where COL REGEX pairs match.
+  --all                  |  All patterns must match.
+  --any                  |  Any pattern must match.
+  --quote, -q, -f        |  Match fixed string.
+  --case-insensitive, i  |  Case-insensitve match.
 
 # grep: match columns by regex:
 $ psv in a.tsv // grep d '.*x.*' // md
@@ -192,16 +196,52 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
   '''
   def xform(self, inp, _env):
     imp_cols = list(inp.columns)
-    filter_expr = has_filter = None
-    for col, pat in chunks(self.args, 2):
-      col = parse_col_or_index(imp_cols, col)
-      # https://stackoverflow.com/a/31076657/1141958
-      match = inp[col].str.match(re.compile(pat), na=False)
-      filter_expr = filter_expr & match if has_filter else match
-      has_filter = True
-    if has_filter:
-      return inp[filter_expr]
+    self.filter_expr = self.has_filter = None
+    if len(self.args) == 1:
+      for col in imp_cols:
+        self.add_match(inp, col, self.args[0], 'any')
+    else:
+      for col, pat in chunks(self.args, 2):
+        self.add_match(inp, col, pat, 'all')
+    if self.has_filter:
+      ic(self.filter_expr)
+      return inp[self.filter_expr]
     return inp
+
+  def add_match(self, inp, col, pat, combine_default):
+    combine_opt = False
+    if self.opt('all'):
+      combine = 'all'
+    elif self.opt('any'):
+      combine_opt = 'any'
+    combine = combine_opt or combine_default
+    if self.opt('quote'):
+      pat = re.escape(pat)
+    pat = f'.*{pat}'
+    if self.opt('case-insensitive', self.opt('i')):
+      pat = f'(?i){pat}'
+    rx = re.compile(pat)
+    # ic((col, pat, rx, combine))
+    match = None
+    try:
+      # https://stackoverflow.com/a/31076657/1141958
+      # https://stackoverflow.com/a/52065957
+      str_seq = inp[col].astype(str, errors='ignore').str
+      # ic(str_seq)
+      match = str_seq.match(rx, na=False)
+    except (AttributeError, TypeError) as exc:
+      self.log('warning', f'cannot match {pat!r} against column {col!r} : {exc}')
+      return
+    if self.has_filter:
+      if combine == 'all':
+        self.filter_expr = self.filter_expr & match
+      elif combine == 'any':
+        self.filter_expr = self.filter_expr | match
+      else:
+        raise Exception("grep : invalid combinator {combine!r}")
+    else:
+      self.filter_expr = match
+    self.has_filter = True
 
 @command()
 class Count(Command):
