@@ -211,7 +211,7 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
   def add_match(self, inp, col, pat, combine_default):
     combine_opt = False
     if self.opt('all'):
-      combine = 'all'
+      combine_opt = 'all'
     elif self.opt('any'):
       combine_opt = 'any'
     combine = combine_opt or combine_default
