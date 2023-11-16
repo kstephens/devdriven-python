@@ -1,4 +1,5 @@
 import re
+import logging
 from pathlib import Path
 from devdriven.util import get_safe
 import devdriven.cli.descriptor as desc
@@ -14,6 +15,9 @@ class Command:
     self.opts_defaults = {}
     self.opt_char_map = {}
     self.rtn = None
+
+  def log(self, level, fmt, *args):
+    getattr(logging, level)(f'%s : ' + fmt, self.name, *args)
 
   def run(self, argv):
     self.parse_argv(argv)

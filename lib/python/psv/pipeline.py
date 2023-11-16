@@ -54,6 +54,7 @@ class Pipeline(command.Command):
         })
         xform_output = xform.xform(xform_input, env)
       except Exception as exc:
+        self.log('error', '%s', f'{exc}')
         raise exc
       #  raise Exception(f'{xform.name} : {exc}') from exc
       current[1] = describe_datum(xform_output)
