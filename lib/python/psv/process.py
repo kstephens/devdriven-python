@@ -144,8 +144,8 @@ class Sort(Command):
 
   Options:
 
-  -r     |  Sort descending.
-  -n     |  Coerce columns to numeric.
+  --reverse, -r     |  Sort descending.
+  --numeric, -n     |  Coerce columns to numeric.
 
 # sort: decreasing:
 $ psv in a.tsv // sort -r a // md
@@ -161,7 +161,7 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
     specified_cols = split_flat(self.args, ',') if self.args else imp_cols
     cols = []
     ascending = []
-    default_order = '-' if self.opt('r') else '+'
+    default_order = '-' if self.opt('reverse', self.opt('r')) else '+'
     for col in specified_cols:
       order = default_order
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
@@ -170,7 +170,7 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
       col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
-    key = Coerce().coercer('numeric') if self.opt('n') else None
+    key = Coerce().coercer('numeric') if self.opt('numeric', self.opt('n')) else None
     return inp.sort_values(by=cols, ascending=ascending, key=key)
 
 @command()
