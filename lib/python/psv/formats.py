@@ -286,3 +286,24 @@ $ w3m -dump /tmp/users.html
       writeable.write('\n')
     else:
       raise Exception("html-: cannot format {type(inp)}")
+
+@command()
+class SQLOut(FormatOut):
+  '''
+  sql- - Write SQL.
+  alias: sql
+
+# sql: Convert TSV to SQL schema:
+$ psv in a.tsv // sql
+
+  :preferred_suffix=.sql
+  '''
+  def format_out(self, inp, _env, writeable):
+    # https://stackoverflow.com/a/31075679/1141958
+    # https://stackoverflow.com/a/51294670/1141958
+    action = self.opt('action', 'create-table')
+    table_name = self.opt('table', '__table__')
+    if action == 'create-table':
+      sql = pd.io.sql.get_schema(inp.reset_index(), table_name)
+    writeable.write(sql)
+
