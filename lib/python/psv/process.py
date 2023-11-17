@@ -1,7 +1,7 @@
 import re
 import pandas as pd
 from devdriven.util import chunks, split_flat, parse_range, make_range
-from devdriven.pandas import count_by
+from devdriven.pandas import count_by, summarize
 from .command import Command, command
 from .metadata import Coerce
 from .util import *
@@ -215,7 +215,6 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
     if self.opt('case-insensitive', self.opt('i')):
       pat = f'(?i){pat}'
     rx = re.compile(pat)
-    # ic((col, pat, rx, combine))
 
     combine_opt = False
     if self.opt('all'):
@@ -244,26 +243,6 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
     else:
       self.has_filter = True
       self.filter_expr = match
-
-@command()
-class Count(Command):
-  '''
-  count - Count of unique column values.
-
-  Arguments:
-
-  COL ...        |  Columns to group by.  Default: ALL COLUMNS.
-
-  Options:
-
-  --column=NAME  |  Default: "__count__"
-  '''
-  def xform(self, inp, _env):
-    count_col = self.opt('column', '__count__')
-    group_cols = select_columns(inp, split_flat(self.args, ','), check=True)
-    if not group_cols:
-      group_cols = list(inp.columns)
-    return count_by(inp, group_cols, sort_by=group_cols, name=count_col)
 
 @command()
 class Translate(Command):

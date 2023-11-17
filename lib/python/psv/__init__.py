@@ -4,6 +4,7 @@ from . import pipeline
 from . import io
 from . import formats
 from . import process
+from . import summary
 from . import metadata
 from . import extract
 from . import expr
