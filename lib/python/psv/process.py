@@ -185,7 +185,8 @@ class Grep(Command):
   --all                  |  All patterns must match.
   --any                  |  Any pattern must match.
   --quote, -q, -f        |  Match fixed string.
-  --case-insensitive, i  |  Case-insensitve match.
+  --ignore-case, -i      |  Ignore case distinctions.
+  --invert-match, -v     |  Invert the sense of matching, to select non-matching rows.
 
 # grep: match columns by regex:
 $ psv in a.tsv // grep d '.*x.*' // md
@@ -204,7 +205,8 @@ $ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
       for col, pat in chunks(self.args, 2):
         self.add_match(inp, col, pat, 'all')
     if self.has_filter:
-      ic(self.filter_expr)
+      if self.opt('invert-match', self.opt('v', False)):
+        self.filter_expr = ~ self.filter_expr
       return inp[self.filter_expr]
     return inp
 
