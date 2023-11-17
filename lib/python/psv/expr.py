@@ -67,11 +67,17 @@ class Eval(Command):
   def process_row(self, inp, row, out, result):
     if result is True or result is None:
       out.loc[len(out)] = row
+    # elif isinstance(result, tuple):
+    #  col, val = result
+    #  out.insert(len(out.columns), col, None)
+    #  row[col] = val
     elif isinstance(result, dict):
       row = row.to_dict()
       new_row = row | result
-      for col in set(result).difference(set(out.columns)):
-        out.insert(len(out.columns), col, None)
+      if len(new_row) > len(out.columns):
+        for col in set(result.keys()).difference(set(out.columns)):
+          # self.log('debug', 'inserting %s', repr(col))
+          out.insert(len(out.columns), col, None)
       out.loc[len(out)] = new_row
 
 @command()
