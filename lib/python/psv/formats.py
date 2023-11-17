@@ -242,7 +242,7 @@ class PickleIn(FormatIn):
     return pd.read_pickle(readable, compression='xz')
 
 @command()
-class PickleOut(FormatIn):
+class PickleOut(FormatOut):
   '''
   pickle- - Write Pandas DataFrame pickle.
   alias: dataframe-
