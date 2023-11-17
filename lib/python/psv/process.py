@@ -181,7 +181,7 @@ class Grep(Command):
   Aliases: g
 
   COL REGEX ...          |  Select rows where COL REGEX pairs match.
-  REGEX                  |  Select rows where COL REGEX pairs match.
+  REGEX                  |  Select rows where REGEX is applied to all columns.
   --all                  |  All patterns must match.
   --any                  |  Any pattern must match.
   --fixed-strings, -F    |  Match fixed string.
@@ -189,10 +189,12 @@ class Grep(Command):
   --invert-match, -v     |  Invert the sense of matching, to select non-matching rows.
 
 # grep: match columns by regex:
-$ psv in a.tsv // grep d '.*x.*' // md
+$ psv in a.tsv // grep d 'x' // md
+$ psv in a.tsv // grep d '^x' // md
+$ psv in a.tsv // grep d 'x.+p' // md
 
-# grep: match d and b:
-$ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
+# grep: match where d contains "x" and b ends with "3":
+$ psv in a.tsv // grep d 'x' b '3$' // md
 
   '''
   def xform(self, inp, _env):
