@@ -184,7 +184,7 @@ class Grep(Command):
   REGEX                  |  Select rows where COL REGEX pairs match.
   --all                  |  All patterns must match.
   --any                  |  Any pattern must match.
-  --quote, -q, -f        |  Match fixed string.
+  --fixed-strings, -F    |  Match fixed string.
   --ignore-case, -i      |  Ignore case distinctions.
   --invert-match, -v     |  Invert the sense of matching, to select non-matching rows.
 
