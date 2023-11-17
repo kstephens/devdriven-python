@@ -52,8 +52,25 @@ def push_row(dframe, row):
   dframe.loc[len(dframe)] = row
   return dframe
 
+agg_fun_aliases = {
+  'count': 'size',
+  'avg': 'mean',
+  'total': 'sum',
+  'variance': 'var',
+  'stddef': 'std',
+  'kurtosis': 'kurt',
+  'q': 'quantile',
+  'r': 'rank',
+}
+
 def count_by(df, by, name='count', sort_by=None, sort_ascending=None):
-  df = df.groupby(by).size()
+  return summary_by(df, by, None, 'size', name, sort_by, sort_ascending)
+
+def summary_by(df, by, val_col, fun, name, sort_by=None, sort_ascending=None):
+  group = df.groupby(by)
+  if val_col:
+    group = group[val_col]
+  df = getattr(group, agg_fun_aliases.get(fun, fun))()
   df = df.reset_index(name=name)
   if sort_by is not None or sort_ascending is not None:
     sort_by = sort_by or name
@@ -69,6 +86,8 @@ def summarize(dframe, col_agg_funs, group_by=None, rename=None, sort_by=None, so
   if group_by:
     summary = dframe[group_by + cols].groupby(group_by).agg(**aggs)
   else:
+    if not cols:
+      cols = list(dframe.columns)
     summary = dframe[cols].agg(**aggs).transpose()
   summary.reset_index(inplace=True)
   if rename:
@@ -84,7 +103,7 @@ def summary_aggs(col_agg_funs):
   for col, funs in col_agg_funs:
     for fun in funs:
       agg_col = f'{col}_{fun}'
-      aggs[agg_col] = pd.NamedAgg(column=col, aggfunc=fun)
+      aggs[agg_col] = pd.NamedAgg(column=col, aggfunc=agg_fun_aliases.get(fun, fun))
   return aggs
 
 def reorder_cols(dframe, front=None, back=None):

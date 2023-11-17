@@ -5,7 +5,6 @@ import mimetypes
 from devdriven.util import not_implemented
 from devdriven.file_response import FileResponse
 import pandas as pd
-from devdriven.pandas import format_html
 from .command import Command, command
 from .content import Content
 
@@ -243,7 +242,7 @@ class PickleIn(FormatIn):
     return pd.read_pickle(readable, compression='xz')
 
 @command()
-class PickleOut(FormatIn):
+class PickleOut(FormatOut):
   '''
   pickle- - Write Pandas DataFrame pickle.
   alias: dataframe-
@@ -277,6 +276,7 @@ $ w3m -dump /tmp/users.html
 
   '''
   def format_out(self, inp, _env, writeable):
+    from devdriven.pandas import format_html
     if isinstance(inp, pd.DataFrame):
       opts = {
         'table_name': self.opt('table_name', None),

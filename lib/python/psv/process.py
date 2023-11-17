@@ -1,10 +1,11 @@
 import re
 import pandas as pd
 from devdriven.util import chunks, split_flat, parse_range, make_range
-from devdriven.pandas import count_by
+from devdriven.pandas import count_by, summarize
 from .command import Command, command
 from .metadata import Coerce
 from .util import *
+from icecream import ic
 
 @command()
 class Range(Command):
@@ -143,8 +144,8 @@ class Sort(Command):
 
   Options:
 
-  -r     |  Sort descending.
-  -n     |  Coerce columns to numeric.
+  --reverse, -r     |  Sort descending.
+  --numeric, -n     |  Coerce columns to numeric.
 
 # sort: decreasing:
 $ psv in a.tsv // sort -r a // md
@@ -160,7 +161,7 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
     specified_cols = split_flat(self.args, ',') if self.args else imp_cols
     cols = []
     ascending = []
-    default_order = '-' if self.opt('r') else '+'
+    default_order = '-' if self.opt('reverse', self.opt('r')) else '+'
     for col in specified_cols:
       order = default_order
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
@@ -169,59 +170,83 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
       col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
-    key = Coerce().coercer('numeric') if self.opt('n') else None
+    key = Coerce().coercer('numeric') if self.opt('numeric', self.opt('n')) else None
     return inp.sort_values(by=cols, ascending=ascending, key=key)
 
 @command()
 class Grep(Command):
   '''
-  grep - Search for rows where each column matches a regex.
+  grep - Search for rows where columns match a regex.
 
   Aliases: g
 
-  Arguments:
-
-  COL REGEX ...  |  List of NAME REGEX pairs.
+  COL REGEX ...          |  Select rows where COL REGEX pairs match.
+  REGEX                  |  Select rows where REGEX is applied to all columns.
+  --all                  |  All patterns must match.
+  --any                  |  Any pattern must match.
+  --fixed-strings, -F    |  Match fixed string.
+  --ignore-case, -i      |  Ignore case distinctions.
+  --invert-match, -v     |  Invert the sense of matching, to select non-matching rows.
 
 # grep: match columns by regex:
-$ psv in a.tsv // grep d '.*x.*' // md
+$ psv in a.tsv // grep d 'x' // md
+$ psv in a.tsv // grep d '^x' // md
+$ psv in a.tsv // grep d 'x.+p' // md
 
-# grep: match d and b:
-$ psv in a.tsv // grep d '.*x.*' b '.*3$' // md
+# grep: match where d contains "x" and b ends with "3":
+$ psv in a.tsv // grep d 'x' b '3$' // md
 
   '''
   def xform(self, inp, _env):
     imp_cols = list(inp.columns)
-    filter_expr = has_filter = None
-    for col, pat in chunks(self.args, 2):
-      col = parse_col_or_index(imp_cols, col)
-      # https://stackoverflow.com/a/31076657/1141958
-      match = inp[col].str.match(re.compile(pat), na=False)
-      filter_expr = filter_expr & match if has_filter else match
-      has_filter = True
-    if has_filter:
-      return inp[filter_expr]
+    self.filter_expr = self.has_filter = None
+    if len(self.args) == 1:
+      for col in imp_cols:
+        self.add_match(inp, col, self.args[0], 'any')
+    else:
+      for col, pat in chunks(self.args, 2):
+        self.add_match(inp, col, pat, 'all')
+    if self.has_filter:
+      if self.opt('invert-match', self.opt('v', False)):
+        self.filter_expr = ~ self.filter_expr
+      return inp[self.filter_expr]
     return inp
 
-@command()
-class Count(Command):
-  '''
-  count - Count of unique column values.
+  def add_match(self, inp, col, pat, combine_default):
+    if self.opt('quote'):
+      pat = re.escape(pat)
+    pat = f'.*{pat}'
+    if self.opt('case-insensitive', self.opt('i')):
+      pat = f'(?i){pat}'
+    rx = re.compile(pat)
 
-  Arguments:
+    combine_opt = False
+    if self.opt('all'):
+      combine_opt = 'all'
+    elif self.opt('any'):
+      combine_opt = 'any'
+    combine = combine_opt or combine_default
 
-  COL ...        |  Columns to group by.  Default: ALL COLUMNS.
-
-  Options:
-
-  --column=NAME  |  Default: "__count__"
-  '''
-  def xform(self, inp, _env):
-    count_col = self.opt('column', '__count__')
-    group_cols = select_columns(inp, split_flat(self.args, ','), check=True)
-    if not group_cols:
-      group_cols = list(inp.columns)
-    return count_by(inp, group_cols, sort_by=group_cols, name=count_col)
+    match = None
+    try:
+      # https://stackoverflow.com/a/31076657/1141958
+      # https://stackoverflow.com/a/52065957
+      str_seq = inp[col].astype(str, errors='ignore').str
+      # ic(str_seq)
+      match = str_seq.match(rx, na=False)
+    except (AttributeError, TypeError) as exc:
+      self.log('warning', f'cannot match {pat!r} against column {col!r} : {exc}')
+      return
+    if self.has_filter:
+      if combine == 'all':
+        self.filter_expr = self.filter_expr & match
+      elif combine == 'any':
+        self.filter_expr = self.filter_expr | match
+      else:
+        raise Exception("grep : invalid combinator {combine!r}")
+    else:
+      self.has_filter = True
+      self.filter_expr = match
 
 @command()
 class Translate(Command):
