@@ -181,7 +181,8 @@ def write_html(dframe, file, **kwargs):
     format_html(dframe, output, **kwargs)
 
 def format_html(dframe, output, **kwargs):
-  table_name = kwargs.pop('table_name')
+  if table_name := kwargs.pop('table_name', ''):
+    table_name = f'<title>{table_name}</title>'
   kwargs = {
     "index": False,
     "na_rep": '',
@@ -194,7 +195,7 @@ def format_html(dframe, output, **kwargs):
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>{table_name}</title>
+{table_name}
 <style>{html_css()}</style>
 </head>
 <body>
