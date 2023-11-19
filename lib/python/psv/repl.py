@@ -21,7 +21,9 @@ class Repl(Command):
     print('inp:')
     print(inp)
     print('========================================\n')
-    out = inp.copy()
+    out = inp
+    if getattr(inp, 'copy', False):
+      out = inp.copy()
     bindings = globals()
     bindings.update(locals())
     start_repl(bindings)
