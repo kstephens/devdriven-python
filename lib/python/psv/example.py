@@ -9,7 +9,7 @@ from .command import Command, begin_section, command
 
 begin_section('Documentation')
 
-@command()
+@command
 class Example(Command):
   '''
   examples - Show examples.

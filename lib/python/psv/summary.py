@@ -5,7 +5,7 @@ from .util import get_safe, select_columns
 
 begin_section('Summaries')
 
-@command()
+@command
 class Count(Command):
   '''
   count - Count of unique column values.
@@ -25,7 +25,7 @@ class Count(Command):
       group_cols = list(inp.columns)
     return count_by(inp, group_cols, sort_by=group_cols, name=count_col)
 
-@command()
+@command
 class Summary(Command):
   '''
   summary - summary of column values.

@@ -6,7 +6,7 @@ from .util import *
 
 begin_section('Metadata')
 
-@command()
+@command
 class AddSequence(Command):
   '''
   add-sequence - Add a column with a sequence of numbers.
@@ -50,7 +50,7 @@ class AddColumns(Command):
   def xform(self, inp, _env):
     return inp.rename(columns=dict(chunks(self.args, 2)))
 
-@command()
+@command
 class RenameColumns(Command):
   '''
   rename-columns - Rename columns.
@@ -67,7 +67,7 @@ $ psv in a.tsv // rename b B // md
     rename = [parse_column_and_opt(inp_cols, arg) for arg in args]
     return inp.rename(columns=dict(rename))
 
-@command()
+@command
 class InferObjects(Command):
   '''
   infer-objects - Infer column types.
@@ -77,7 +77,7 @@ class InferObjects(Command):
   def xform(self, inp, _env):
     return inp.infer_objects()
 
-@command()
+@command
 class Coerce(Command):
   '''
   coerce - Corece column types.
@@ -113,7 +113,7 @@ class Coerce(Command):
                           # format='mixed',
                           utc=True)
 
-@command()
+@command
 class ShowColumns(Command):
   '''
   show-columns - Table of column names and attributes.
@@ -143,7 +143,7 @@ def get_dataframe_info(dframe):
   # df_null_count = df_null_count.sort_values(by=["null_counts"], ascending=False)
   return df_null_count
 
-@command()
+@command
 class EnvOut(Command):
   '''
   env- - Show env.

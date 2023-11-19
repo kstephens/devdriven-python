@@ -9,7 +9,7 @@ from icecream import ic
 
 begin_section('Manipulation')
 
-@command()
+@command
 class Range(Command):
   '''
   range - Subset of rows.
@@ -49,7 +49,7 @@ class Range(Command):
 def process_range(inp, start, end, step):
   return inp.iloc[make_range(start, end, step, len(inp))]
 
-@command()
+@command
 class Head(Command):
   '''
   head - First N rows
@@ -66,7 +66,7 @@ $ psv in us-states.txt // -table // head 5 // md
     count = int(self.arg_or_opt(0, 'count', 10))
     return process_range(inp, None, count, None)
 
-@command()
+@command
 class Tail(Command):
   '''
   tail - Last N rows
@@ -83,7 +83,7 @@ $ psv in us-states.txt // -table // tail 3 // md
     count = int(self.arg_or_opt(0, 'count', 10))
     return process_range(inp, - count, None, None)
 
-@command()
+@command
 class Reverse(Command):
   '''
   reverse - Reverse rows.  Same as "range --step=-1"
@@ -97,7 +97,7 @@ $ psv in a.tsv // seq // tac // md
   def xform(self, inp, _env):
     return process_range(inp, None, None, -1)
 
-@command()
+@command
 class Cut(Command):
   '''
   cut - Cut specified columns.
@@ -122,7 +122,7 @@ $ psv in a.tsv // cut d '*' c:- // md
   def xform(self, inp, _env):
     return inp[select_columns(inp, split_flat(self.args, ','))]
 
-@command()
+@command
 class Uniq(Command):
   '''
   uniq - Return unique rows.
@@ -132,7 +132,7 @@ class Uniq(Command):
   def xform(self, inp, _env):
     return inp.drop_duplicates()
 
-@command()
+@command
 class Sort(Command):
   '''
   sort - Sort rows by columns.
@@ -172,10 +172,10 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
       col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
-    key = Coerce().coercer('numeric') if self.opt('numeric', self.opt('n')) else None
+    key = Coerce().coercer('numeric') if self.opt(('numeric', 'n')) else None
     return inp.sort_values(by=cols, ascending=ascending, key=key)
 
-@command()
+@command
 class Grep(Command):
   '''
   grep - Search for rows where columns match a regex.
@@ -250,7 +250,7 @@ $ psv in a.tsv // grep d 'x' b '3$' // md
       self.has_filter = True
       self.filter_expr = match
 
-@command()
+@command
 class Translate(Command):
   '''
   translate - Translate characters.
@@ -284,7 +284,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
       out[col] = out[col].apply(xlate)
     return out
 
-@command()
+@command
 class Stats(Command):
   '''
   stats - Basic stats of numeric columns.
@@ -299,7 +299,7 @@ $ psv in a.tsv // -tsv // stats // md
     out['stat'] = out.index
     return out
 
-@command()
+@command
 class NullXform(Command):
   '''
   null - Does nothing.

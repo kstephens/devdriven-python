@@ -4,7 +4,7 @@ from .command import Command, begin_section, command
 
 begin_section('Expression Evaluation')
 
-@command()
+@command
 class Repl(Command):
   '''
   repl - Start an interactive REPL.

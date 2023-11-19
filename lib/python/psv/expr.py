@@ -10,7 +10,7 @@ from .command import Command, begin_section, command
 
 begin_section('Expression Evaluation')
 
-@command()
+@command
 class Eval(Command):
   '''
   eval - Evaluate expression for each row.
@@ -82,7 +82,7 @@ class Eval(Command):
           out.insert(len(out.columns), col, None)
       out.loc[len(out)] = new_row
 
-@command()
+@command
 class Select(Eval):
   '''
   select - Select rows.

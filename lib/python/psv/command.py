@@ -41,5 +41,6 @@ def descriptors_by_sections(secs=None):
   return list(chain.from_iterable([descriptors_for_section(sec) for sec in sections()]))
 
 # Decorator
-def command():
-  return cmd.command()
+def command(klass):
+  return cmd.command(klass)
+

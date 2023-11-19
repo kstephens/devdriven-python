@@ -10,7 +10,7 @@ from icecream import ic
 
 begin_section('Documentation')
 
-@command()
+@command
 class Help(Command):
   '''
   help - This help document.

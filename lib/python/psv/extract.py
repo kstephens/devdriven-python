@@ -6,7 +6,7 @@ from .command import Command, begin_section, command
 
 begin_section('Format')
 
-@command()
+@command
 class Extract(Command):
   '''
   extract - Extract fields by Regexp.

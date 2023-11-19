@@ -125,9 +125,7 @@ def register(self):
   return self
 
 # Decorator
-def command():
-  def wrapper(klass):
-    assert issubclass(klass, Command)
-    register(desc.create_descriptor(klass))
-    return klass
-  return wrapper
+def command(klass):
+  assert issubclass(klass, Command)
+  register(desc.create_descriptor(klass))
+  return klass

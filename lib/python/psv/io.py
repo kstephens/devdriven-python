@@ -11,7 +11,7 @@ class IoBase(Command):
   def user_agent_headers(self, env):
     return {'Content-Type': env['Content-Type']}
 
-@command()
+@command
 class IoIn(IoBase):
   '''
   in - Read input.
@@ -46,7 +46,7 @@ $ psv in https://tinyurl.com/4sscj338
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
 
-@command()
+@command
 class IoOut(IoBase):
   '''
   out - write output to URLs.

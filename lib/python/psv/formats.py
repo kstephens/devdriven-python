@@ -50,7 +50,7 @@ class FormatOut(Command):
 
 ############################
 
-@command()
+@command
 class TableIn(FormatIn):
   '''
   -table - Parse table.
@@ -114,7 +114,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 def generate_columns(column_format, width):
   return map(lambda i: column_format % i, range(1, width + 1))
 
-@command()
+@command
 class TableOut(FormatOut):
   '''
   table- - Generate table.
@@ -126,7 +126,7 @@ class TableOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     not_implemented()
 
-@command()
+@command
 class TsvIn(FormatIn):
   '''
   -tsv - Parse TSV.
@@ -155,7 +155,7 @@ class TsvOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, sep='\t', header=True, index=False, date_format='iso')
 
-@command()
+@command
 class CsvIn(FormatIn):
   '''
   -csv - Parse CSV.
@@ -168,7 +168,7 @@ $ psv in a.csv // -csv // json-
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep=',', header=0)
 
-@command()
+@command
 class CsvOut(FormatOut):
   '''
   csv- - Generate CSV.
@@ -181,7 +181,7 @@ $ psv in a.tsv // -tsv // csv-
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, header=True, index=False, date_format='iso')
 
-@command()
+@command
 class MarkdownOut(FormatOut):
   '''
   markdown - Generate Markdown.
@@ -197,7 +197,7 @@ $ cat a.tsv | psv -tsv // md
     # to_markdown doesn't terminate last line:
     writeable.write('\n')
 
-@command()
+@command
 class JsonIn(FormatIn):
   '''
   -json - Parse JSON.
@@ -210,7 +210,7 @@ class JsonIn(FormatIn):
     orient = self.opt('orient', 'records')
     return pd.read_json(readable, orient=orient)
 
-@command()
+@command
 class JsonOut(FormatOut):
   '''
   json- - Generate JSON array of objects.
@@ -229,7 +229,7 @@ $ psv in a.csv // -csv // json-
     # to_json doesn't terminate last line:
     writeable.write('\n')
 
-@command()
+@command
 class PickleIn(FormatIn):
   '''
   -pickle - Read Pandas Dataframe pickle.
@@ -242,7 +242,7 @@ class PickleIn(FormatIn):
   def format_in(self, readable, _env):
     return pd.read_pickle(readable, compression='xz')
 
-@command()
+@command
 class PickleOut(FormatOut):
   '''
   pickle- - Write Pandas DataFrame pickle.
@@ -258,7 +258,7 @@ class PickleOut(FormatOut):
   def format_out(self, inp, _env, writeable):
     inp.to_pickle(writeable, compression='xz')
 
-@command()
+@command
 class HtmlOut(FormatOut):
   '''
   html- - Generate HTML.
@@ -288,7 +288,7 @@ $ w3m -dump /tmp/users.html
     else:
       raise Exception("html-: cannot format {type(inp)}")
 
-@command()
+@command
 class SQLOut(FormatOut):
   '''
   sql- - Write SQL.
