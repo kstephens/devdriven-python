@@ -10,16 +10,24 @@ class Count(Command):
   '''
   count - Count of unique column values.
 
-  Arguments:
-
   COL ...        |  Columns to group by.  Default: ALL COLUMNS.
+  --column=NAME  |  Default: "count"
 
-  Options:
+  # Count the number of transfers by Payer:
+  $ psv in transfers.csv // count Payer // md
 
-  --column=NAME  |  Default: "__count__"
+  # Count the number of transfers from Payer to Payee:
+  $ psv in transfers.csv // count Payer,Payee // md
+
+  # Count the number of transfers from Payee:
+  $ psv in transfers.csv // count --column=PayeeTransfers Payee // md
+
   '''
   def xform(self, inp, _env):
-    count_col = self.opt('column', '__count__')
+    count_col = self.opt('column', 'count')
+    cols = list(inp.columns)
+    if count_col in cols:
+      raise AttributeError(f"--column={count_col!r} conflics with columns {cols!r}")
     group_cols = select_columns(inp, split_flat(self.args, ','), check=True)
     if not group_cols:
       group_cols = list(inp.columns)
