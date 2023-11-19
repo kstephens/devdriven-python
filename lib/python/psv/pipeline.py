@@ -12,6 +12,12 @@ class Pipeline(command.Command):
   def parse_argv(self, argv):
     self.xforms = []
     xform_argv = []
+    def parse_xform(argv):
+      if argv:
+        xform = self.make_xform(argv)
+        self.xforms.append(xform)
+        return xform
+      return None
     depth = 0
     for arg in argv:
       if arg == '{{':
@@ -23,19 +29,12 @@ class Pipeline(command.Command):
       elif depth > 0:
         xform_argv.append(arg)
       elif arg == '//':
-        self.parse_xform(xform_argv)
+        parse_xform(xform_argv)
         xform_argv = []
       else:
         xform_argv.append(arg)
-    self.parse_xform(xform_argv)
+    parse_xform(xform_argv)
     return self
-
-  def parse_xform(self, argv):
-    if argv:
-      xform = self.make_xform(argv)
-      self.xforms.append(xform)
-      return xform
-    return None
 
   def xform(self, inp, env):
     history = env['history']
