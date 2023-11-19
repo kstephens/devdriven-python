@@ -44,6 +44,12 @@ class Summary(Command):
   STAT,...      |  One of: 'count,sum,min,max,mean,median,std,skew'. Default: is all of them.  See Pandas "DataFrameGroupBy" documentation.
   GROUP-BY,...  |  Any column not in the COL list.  Default: is all of them.
 
+  # Statistic of transfers by Payer and Payee:
+  $ psv in transfers.csv // summary Amount
+
+  # Basic statistic of all transfers:
+  $ psv in transfers.csv // cut Amount // summary Amount
+
   '''
   def xform(self, inp, _env):
     cols = get_safe(self.args, 0, '').split(',')
@@ -57,8 +63,4 @@ class Summary(Command):
     if not cols:
       cols = [group_by[0]]
     col_agg_funs = [[col, agg_funs] for col in cols]
-    # ic(cols)
-    # ic(group_by)
-    # ic(agg_funs)
-    # ic(col_agg_funs)
     return summarize(inp, col_agg_funs, group_by=group_by, sort_by=group_by)
