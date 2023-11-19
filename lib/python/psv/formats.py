@@ -58,15 +58,19 @@ class TableIn(FormatIn):
 
   --fs=REGEX       |  Field separator.  Default: "\\s+".
   --rs=REGEX       |  Record separator.  Default: "\\n\\r?".
-  --header, -h     |  Headers are in first row.
+  --header, -h     |  Column names are in first row.
   --column=FMT     |  Column name printf template.  Default: "c%d".
   --encoding=ENC   |  Encoding of input.  Default: "utf-8".
+  --skip=REGEX     |  Records matching REGEX are skipped.
 
 # -table: Parse generic table:
-$ psv in users.txt // -table --fs=":"
+$ psv in users.txt // -table --fs=':'
+
+# -table: Skip users w/o login:
+$ psv in users.txt // -table --fs=':' --skip='.*nologin'
 
 # -table: Columns named col01, col02, ...:
-$ psv in users.txt // -table --fs=":" --column='col%02d'
+$ psv in users.txt // -table --fs=':' --column='col%02d'
 
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
@@ -90,6 +94,14 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
     # Remove trailing empty record:
     if rows and rows[-1] == '':
       rows.pop(-1)
+    # Remove invalid rows:
+    if skip_rx := self.opt('skip'):
+      skip_rx = re.compile(skip_rx)
+      rows = [row for row in rows if not re.match(skip_rx, row)]
+    #   --keep=REGEX     |  Records matching REGEX are kept.
+    # if keep_rx := self.opt('keep'):
+    #   keep_rx = re.compile(keep_rx)
+    #   rows = [row for row in rows if re.match(keep_rx, row)]
     # Split row by field separator:
     i = 0
     for row in rows:
