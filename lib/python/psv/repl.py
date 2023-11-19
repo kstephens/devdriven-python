@@ -1,6 +1,8 @@
 from pprint import pprint
 from devdriven.repl import start_repl
-from .command import Command, command
+from .command import Command, begin_section, command
+
+begin_section('Expression Evaluation')
 
 @command()
 class Repl(Command):

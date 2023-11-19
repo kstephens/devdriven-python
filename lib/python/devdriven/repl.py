@@ -2,6 +2,7 @@ import code
 import readline
 import rlcompleter
 import sys
+from pprint import pprint
 
 # https://stackoverflow.com/questions/50917938/enabling-console-features-with-code-interact
 # https://stackoverflow.com/questions/17248383/pretty-print-by-default-in-python-repl

@@ -4,8 +4,11 @@ from tabulate import tabulate
 from devdriven.to_dict import to_dict
 from devdriven.cli.descriptor import DEFAULTS
 from devdriven.cli.command import descriptors
-from .command import Command, command
+from .command import Command, begin_section, descriptors_by_sections, command
 from .formats import MarkdownOut, JsonOut
+from icecream import ic
+
+begin_section('Documentation')
 
 @command()
 class Help(Command):
@@ -17,7 +20,7 @@ class Help(Command):
   --raw, -r       |  Raw detail.
   '''
   def xform(self, _inp, env):
-    commands = all_commands = descriptors()
+    commands = all_commands = descriptors_by_sections()
     if self.args:
       pattern = '|'.join([f'\\b{arg}\\b' for arg in self.args])
       rx = re.compile(f'(?i){pattern}')
@@ -46,18 +49,25 @@ class Help(Command):
         for line in tabulate(table, tablefmt="presto").splitlines():
           row('', line)
 
+    section = None
     for desc in commands:
+      if section != desc.section:
+        section = desc.section
+        row('', '')
+        row('', f'---- {section} ----')
+        row('', '')
       row(desc.name, desc.brief)
       row('', desc.synopsis)
       if desc.aliases:
         row('', 'Aliases: ' + ', '.join(desc.aliases))
-      if self.opt('verbose', self.opt('v')):
+      if self.opt(('verbose', 'v')):
         row('', '')
         for text in desc.detail:
           row('', text)
         emit_opts('Arguments:', desc.args)
         emit_opts('Options:', desc.opts)
         row('', '')
+      row('', '')
     return MarkdownOut().xform(tab, env)
 
   def do_commands_raw(self, commands, env):

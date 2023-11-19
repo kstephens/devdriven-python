@@ -2,7 +2,9 @@ import re
 import pandas as pd
 from devdriven.util import not_implemented
 from .content import Content
-from .command import Command, command
+from .command import Command, begin_section, command
+
+begin_section('Format')
 
 @command()
 class Extract(Command):

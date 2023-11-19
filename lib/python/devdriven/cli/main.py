@@ -3,10 +3,10 @@ import logging as log
 import json
 import re
 import sys
+from pathlib import Path
 from datetime import datetime
 from devdriven.util import not_implemented
 from devdriven.to_dict import to_dict
-from pathlib import Path
 import urllib3
 
 class Main:

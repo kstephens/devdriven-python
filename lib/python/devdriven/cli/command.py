@@ -98,6 +98,9 @@ def descriptors():
 def descriptor(name_or_klass, default=None):
   return DESCRIPTOR_BY_ANY.get(name_or_klass, default)
 
+def descriptors_for_section(name):
+  return [desc for desc in descriptors() if desc.section == name]
+
 def find_format(path, klass):
   short_suffix = long_suffix = Path(path).suffix
   if m := re.match(r'(?:^|/)[^.]+(\.[^/]+)$', str(path)):

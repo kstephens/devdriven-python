@@ -3,10 +3,11 @@ import re
 import json
 import mimetypes
 from devdriven.util import not_implemented
-from devdriven.file_response import FileResponse
 import pandas as pd
-from .command import Command, command
+from .command import Command, begin_section, command
 from .content import Content
+
+begin_section('Formats')
 
 class FormatIn(Command):
   def xform(self, inp, env):
@@ -144,7 +145,7 @@ $ psv in https://tinyurl.com/4sscj338 // -tsv // md
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep='\t', header=0)
 
-@command()
+@command
 class TsvOut(FormatOut):
   '''
   tsv- - Generate TSV.

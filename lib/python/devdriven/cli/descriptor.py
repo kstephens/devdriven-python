@@ -2,8 +2,18 @@ import re
 from dataclasses import dataclass
 from typing import List
 from devdriven.util import set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
-from .option import Option
 from icecream import ic
+
+_sections = []
+def sections():
+  return _sections
+current_section = 'UNKNOWN'
+def begin_section(name):
+  global current_section
+  assert name
+  current_section = name
+  if name not in _sections:
+    _sections.append(name)
 
 @dataclass
 class Descriptor():
@@ -104,6 +114,7 @@ DEFAULTS = {
 }
 
 def create_descriptor(klass):
+  assert current_section
   kwargs = {
     'name': '',
     'brief': '',
@@ -115,6 +126,7 @@ def create_descriptor(klass):
     'opt_aliases': {},
     'examples': [],
   } | DEFAULTS | {
+    'section': current_section,
     "klass": klass,
   }
   return dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__)

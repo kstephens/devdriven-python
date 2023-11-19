@@ -5,8 +5,10 @@ from math import *
 from dataclasses import dataclass
 import pandas as pd
 from devdriven.pandas import new_empty_df_like, normalize_column_name
-from .command import Command, command
+from .command import Command, begin_section, command
 
+
+begin_section('Expression Evaluation')
 
 @command()
 class Eval(Command):

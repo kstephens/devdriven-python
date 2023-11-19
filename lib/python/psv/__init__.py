@@ -9,7 +9,7 @@ from . import metadata
 from . import extract
 from . import expr
 from . import repl
-from . import example
 from . import help
+from . import example
 install()
 ic.configureOutput(includeContext=True)

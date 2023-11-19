@@ -5,7 +5,9 @@ import subprocess
 import shlex
 import devdriven.cli.command as ddc
 from devdriven.util import cwd, flat_map
-from .command import Command, command
+from .command import Command, begin_section, command
+
+begin_section('Documentation')
 
 @command()
 class Example(Command):

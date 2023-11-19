@@ -2,10 +2,12 @@ import re
 import pandas as pd
 from devdriven.util import chunks, split_flat, parse_range, make_range
 from devdriven.pandas import count_by, summarize
-from .command import Command, command
+from .command import Command, begin_section, command
 from .metadata import Coerce
 from .util import *
 from icecream import ic
+
+begin_section('Manipulation')
 
 @command()
 class Range(Command):

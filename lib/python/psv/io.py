@@ -2,8 +2,10 @@ import json
 import pandas as pd
 from devdriven.to_dict import to_dict
 from .content import Content
-from .command import Command, command, find_format
+from .command import Command, command, begin_section, find_format
 from .formats import FormatIn
+
+begin_section('I/O')
 
 class IoBase(Command):
   def user_agent_headers(self, env):
