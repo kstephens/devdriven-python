@@ -37,9 +37,6 @@ class Descriptor():
     found_aliases = None
     debug = False
     lines = unpad_lines(docstr.splitlines())
-    def eat_blanks():
-      while lines and not lines[0]:
-        lines.pop(0)
     comments = []
     while lines:
       line = lines.pop(0)
