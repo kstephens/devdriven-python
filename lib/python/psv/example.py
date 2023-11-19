@@ -35,7 +35,7 @@ class Example(Command):
       for comment in ex.comments:
         print('# ' + comment)
       print('$ ' + ex.command)
-      if self.opt('run', self.opt('r', False)):
+      if self.opt(('run', 'r'), False):
         sys.stdout.flush()
         sys.stderr.flush()
         self.run_example(ex)

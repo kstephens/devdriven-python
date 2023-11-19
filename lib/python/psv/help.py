@@ -31,9 +31,9 @@ class Help(Command):
     return self.do_commands(commands, env)
 
   def do_commands(self, commands, env):
-    if self.opt('plain', self.opt('p', False)) or len(self.args) == 1:
+    if self.opt(('plain','p'), False) or len(self.args) == 1:
       return self.do_commands_plain(commands, env)
-    if self.opt('raw', self.opt('r', False)):
+    if self.opt(('raw', 'r'), False):
       return self.do_commands_raw(commands, env)
     return self.do_commands_table(commands, env)
 

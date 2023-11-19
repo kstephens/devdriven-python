@@ -79,10 +79,8 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
     column = self.opt('column', 'c')
     if '%' not in column:
       column += '%d'
-    skip = self.opt('skip', False)
-    skip_rx = skip and re.compile(skip)
     encoding = self.opt('encoding', self.default_encoding())
-    header = self.opt('header', self.opt('h', False))
+    header = self.opt(('header', 'h'))
     max_width = 0
     # Split content by record separator:
     rows = readable.read()

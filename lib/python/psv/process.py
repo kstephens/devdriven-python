@@ -163,7 +163,7 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
     specified_cols = split_flat(self.args, ',') if self.args else imp_cols
     cols = []
     ascending = []
-    default_order = '-' if self.opt('reverse', self.opt('r')) else '+'
+    default_order = '-' if self.opt(('reverse', 'r')) else '+'
     for col in specified_cols:
       order = default_order
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
@@ -209,16 +209,16 @@ $ psv in a.tsv // grep d 'x' b '3$' // md
       for col, pat in chunks(self.args, 2):
         self.add_match(inp, col, pat, 'all')
     if self.has_filter:
-      if self.opt('invert-match', self.opt('v', False)):
+      if self.opt(('invert-match', 'v'), False):
         self.filter_expr = ~ self.filter_expr
       return inp[self.filter_expr]
     return inp
 
   def add_match(self, inp, col, pat, combine_default):
-    if self.opt('quote'):
+    if self.opt(('fixed-strings', 'F')):
       pat = re.escape(pat)
     pat = f'.*{pat}'
-    if self.opt('case-insensitive', self.opt('i')):
+    if self.opt(('case-insensitive', 'i')):
       pat = f'(?i){pat}'
     rx = re.compile(pat)
 
@@ -258,9 +258,9 @@ class Translate(Command):
 
   Similar to Unix tr command.
 
-  SRC DST COL...  |  Map chars from SRC to DST in each COL.
-  -d DEL COL...   |  Delete chars in DEL in each COL.
-  -d              |  Delete characters.
+  SRC DST COL,...  |  Map chars from SRC to DST in each COL.
+  -d DEL COL,...   |  Delete chars in DEL in each COL.
+  --delete, -d     |  Delete characters.
 
 # translate: change characters in specific field:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
@@ -270,7 +270,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
 
   '''
   def xform(self, inp, _env):
-    if self.opt('d'):
+    if self.opt(('delete', 'd')):
       trans = str.maketrans('', '', self.args[0])
       args = self.args[1:]
     else:
