@@ -28,15 +28,19 @@ class Count(Command):
 @command
 class Summary(Command):
   '''
-  summary - summary of column values.
+  summary - Summary of column values.
 
-  COL,... STAT,... GROUP-BY,...    |  COLs to summarize STATs grouped by GROUP-BY
+  COL,... [STAT,...] [GROUP-BY,...]    |  COLs to summarize STATs grouped by GROUP-BY
+
+  COL,...       |  Any numeric columns separated by ",".
+  STAT,...      |  One of: 'count,sum,min,max,mean,median,std,skew'. Default: is all of them.  See Pandas "DataFrameGroupBy" documentation.
+  GROUP-BY,...  |  Any column not in the COL list.  Default: is all of them.
 
   '''
   def xform(self, inp, _env):
     cols = get_safe(self.args, 0, '').split(',')
     cols = select_columns(inp, cols, check=True)
-    agg_funs = (get_safe(self.args, 1, '') or 'count,sum,min,max,mean,median,skew').split(',')
+    agg_funs = (get_safe(self.args, 1, '') or 'count,sum,min,mean,median,std,max,skew').split(',')
     group_by = get_safe(self.args, 2, '').split(',')
     group_by = select_columns(inp, group_by, check=True, default_all=True)
     if not group_by:
