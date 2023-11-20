@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from icecream import ic
 
 @dataclass
 class Option():

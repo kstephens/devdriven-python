@@ -1,7 +1,8 @@
-Payer,Payee,Amount
-Bob,Alice,12.34
-Bob,Joe,30.25
-Alice,Joe,45.23
-Alice,Frank,10.99
-Bob,Alice,1.99
-William,Rich,9.33
+Payer,Payee,Amount,Fee
+Bob,Alice,12.34,0.60
+Bob,Joe,30.25,1.25
+Alice,Joe,45.23,2.50
+Alice,Frank,10.99,1.01
+Bob,Alice,1.99,0.10
+William,Rich,9.33,0.25
+Bob,Alice,100.00,15.00

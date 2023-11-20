@@ -41,20 +41,29 @@ class Summary(Command):
   COL,... [STAT,...] [GROUP-BY,...]    |  COLs to summarize STATs grouped by GROUP-BY
 
   COL,...       |  Any numeric columns separated by ",".
-  STAT,...      |  One of: 'count,sum,min,max,mean,median,std,skew'. Default: is all of them.  See Pandas "DataFrameGroupBy" documentation.
+  STAT,...      |  One or more of: 'count,sum,min,max,mean,median,std,skew'. Default: is all of them.  See Pandas "DataFrameGroupBy" documentation.
   GROUP-BY,...  |  Any column not in the COL list.  Default: is all of them.
 
-  # Statistic of transfers by Payer and Payee:
-  $ psv in transfers.csv // summary Amount
+  # Summary of transfers by Payer and Payee:
+  $ psv in transfers.csv // summary Amount '*' Payer,Payee
 
-  # Basic statistic of all transfers:
-  $ psv in transfers.csv // cut Amount // summary Amount
+  # Summary of transfers by Payer:
+  $ psv in transfers.csv // summary Amount count,sum Payer
+
+  # Sum of Fee by Payee:
+  $ psv in transfers.csv // summary Fee sum Payee
+
+  # Summary of all transfer Ammount and Fee:
+  $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
 
   '''
   def xform(self, inp, _env):
     cols = get_safe(self.args, 0, '').split(',')
     cols = select_columns(inp, cols, check=True)
-    agg_funs = (get_safe(self.args, 1, '') or 'count,sum,min,mean,median,std,max,skew').split(',')
+    agg_funs = get_safe(self.args, 1, '')
+    if not agg_funs or agg_funs == '*':
+      agg_funs = 'count,sum,min,mean,median,std,max,skew'
+    agg_funs = agg_funs.split(',')
     group_by = get_safe(self.args, 2, '').split(',')
     group_by = select_columns(inp, group_by, check=True, default_all=True)
     if not group_by:
