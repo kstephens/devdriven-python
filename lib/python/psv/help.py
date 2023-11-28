@@ -41,12 +41,11 @@ class Help(Command):
     tab = pd.DataFrame(columns=['command', 'description'])
     def row(*cols):
       tab.loc[len(tab.index)] = cols
-    def emit_opts(title, opts):
-      if opts:
+    def emit_opts(title, items):
+      if items:
         row('', '')
         row('', title)
-        table = list(opts.items())
-        for line in tabulate(table, tablefmt="presto").splitlines():
+        for line in tabulate(list(items), tablefmt="presto").splitlines():
           row('', line)
 
     section = None
@@ -64,8 +63,8 @@ class Help(Command):
         row('', '')
         for text in desc.detail:
           row('', text)
-        emit_opts('Arguments:', desc.args)
-        emit_opts('Options:', desc.opts)
+        emit_opts('Arguments:', desc.options.arg_by_name.items())
+        emit_opts('Options:', [opt.table_row() for opt in desc.options.opts])
         row('', '')
       row('', '')
     return MarkdownOut().xform(tab, env)
@@ -77,13 +76,12 @@ class Help(Command):
     lines = []
     def row(*cols):
       lines.append(''.join(cols))
-    def emit_opts(title, opts):
-      if opts:
+    def emit_opts(title, items):
+      if items:
         row('', '')
         row('', title)
         row('', '')
-        table = list(opts.items())
-        for line in tabulate(table, tablefmt="presto").splitlines():
+        for line in tabulate(list(items), tablefmt="presto").splitlines():
           line = line[1:]
           row('  ', line)
     attrs = list(DEFAULTS.keys())
@@ -97,8 +95,8 @@ class Help(Command):
         row('', 'Aliases: ' + ', '.join(desc.aliases))
       for text in desc.detail:
         row('', text)
-      emit_opts('Arguments:', desc.args)
-      emit_opts('Options:', desc.opts)
+      emit_opts('Arguments:', desc.options.arg_by_name.items())
+      emit_opts('Options:', [opt.table_row() for opt in desc.options.opts])
       if desc.examples:
         row('', '')
         row('', 'Examples:')

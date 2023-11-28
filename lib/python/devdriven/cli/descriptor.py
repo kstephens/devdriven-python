@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from typing import List
+from devdriven.cli.options import Options
 from devdriven.util import set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
 from icecream import ic
 
@@ -23,9 +24,7 @@ class Descriptor():
   synopsis: str
   aliases: list
   detail: list
-  args: dict
-  opts: dict
-  opt_aliases: dict
+  options: Options
   examples: list
   section: str
   content_type: str      # = None
@@ -59,17 +58,9 @@ class Descriptor():
       elif m := re.match(r'^\$ (.+)', line):
         self.examples.append(Example(command=m[1], comments=comments))
         comments = []
-      elif m := re.match(r'^(-) *[\|] *(.*)', line):
-        self.args[m[1].strip()] = m[2].strip()
-      elif m := re.match(r'^(--?[^\|]+)[\|] *(.*)', line):
-        name, *opt_aliases = map(lambda x: x.strip(), re.split(r', ', m[1].strip()))
+      elif m := self.options.parse_docstring(line):
         if debug:
-          ic((name, opt_aliases))
-        self.opts[name] = m[2].strip()
-        for opt_alias in opt_aliases:
-          self.opt_aliases[opt_alias] = name
-      elif m := re.match(r'^([^\|]+)[\|] *(.*)', line):
-        self.args[m[1].strip()] = m[2].strip()
+          ic((self.name, self.options))
       else:
         self.detail.append(line)
       if debug:
@@ -78,18 +69,14 @@ class Descriptor():
     self.trim_detail()
     return self
 
-  def aliases_for_opt(self, opt):
-    return [k for k, v in self.opt_aliases.items() if v == opt]
+  def x_opt_by_name(self, name, aliases=False):
+    return self.options.opt_by_name(name, aliases)
+
+  def get_opt_aliases(self, opt):
+    return self.options.get_opt_aliases(opt)
 
   def build_synopsis(self):
-    cmd = ['psv', self.name]
-    for opt in self.opts.keys():
-      opts = [opt] + self.aliases_for_opt(opt)
-      cmd.append(f'[{",".join(opts)}]')
-    for arg in self.args.keys():
-      if arg.endswith(' ...') or len(self.args) > 1:
-        arg = f'[{arg}]'
-      cmd.append(arg)
+    cmd = ['psv', self.name] + self.options.command_synopsis()
     self.synopsis = ' '.join(cmd)
 
   def trim_detail(self):
@@ -112,18 +99,17 @@ DEFAULTS = {
 
 def create_descriptor(klass):
   assert current_section
+  options = Options()
   kwargs = {
     'name': '',
     'brief': '',
     'synopsis': '',
     'aliases': [],
     'detail': [],
-    'args': {},
-    'opts': {},
-    'opt_aliases': {},
     'examples': [],
   } | DEFAULTS | {
     'section': current_section,
     "klass": klass,
+    'options': options,
   }
   return dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__)

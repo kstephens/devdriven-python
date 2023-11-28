@@ -21,8 +21,8 @@ class Option():
   def parse_doc(self, arg):
     self.style = 'doc'
     self.aliases = []
-    if m := re.match(r'Default: +(.+)\.? *$', self.description):
-      self.default = m[1].strip()
+    if m := re.match(r'^(.+)  Default: +(.+?)\.$', arg):
+      self.default = m[2].strip()
     if m := re.match(r'^([^\|]+?)  \|  (.*)', arg):
       opts = re.split(r', ', m[1].strip())
       arg, self.description = opts.pop(0), m[2].strip()
@@ -72,3 +72,8 @@ class Option():
       return matched_flags('flag', m[1], False)
     return None
 
+  def synopsis(self):
+    return ', '.join([self.full] + [opt.full for opt in self.aliases])
+
+  def table_row(self):
+    return [self.synopsis(), self.description]
