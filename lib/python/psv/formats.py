@@ -129,6 +129,7 @@ def generate_columns(column_format, width):
 class TableOut(FormatOut):
   '''
   table- - Generate table.
+  alias: table-out
 
   NOT IMPLEMENTED
 
