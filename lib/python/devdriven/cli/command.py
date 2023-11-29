@@ -17,7 +17,7 @@ class Command:
     self.rtn = None
 
   def log(self, level, fmt, *args):
-    getattr(logging, level)(f'%s : ' + fmt, self.name, *args)
+    getattr(logging, level)('%s : ' + fmt, self.name, *args)
 
   def run(self, argv):
     self.parse_argv(argv)
