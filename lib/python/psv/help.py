@@ -8,8 +8,6 @@ from .command import Command, begin_section, descriptors_by_sections, command
 from .formats import MarkdownOut, JsonOut
 from icecream import ic
 
-tabulate.PRESERVE_WHITESPACE = True
-
 begin_section('Documentation')
 
 @command
@@ -22,6 +20,7 @@ class Help(Command):
   --raw, -r       |  Raw detail.
   '''
   def xform(self, _inp, env):
+    tabulate.PRESERVE_WHITESPACE = True
     commands = all_commands = descriptors_by_sections()
     if self.args:
       pattern = '|'.join([f'\\b{arg}\\b' for arg in self.args])

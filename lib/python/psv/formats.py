@@ -3,6 +3,7 @@ import re
 import json
 import mimetypes
 from devdriven.util import not_implemented
+import tabulate
 import pandas as pd
 from .command import Command, begin_section, command
 from .content import Content
@@ -203,6 +204,7 @@ $ cat a.tsv | psv -tsv // md
   :preferred_suffix=.md
   '''
   def format_out(self, inp, _env, writeable):
+    tabulate.PRESERVE_WHITESPACE = True
     inp.to_markdown(writeable, index=False)
     # to_markdown doesn't terminate last line:
     writeable.write('\n')
