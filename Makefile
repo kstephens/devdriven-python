@@ -77,7 +77,7 @@ test: run-tests
 TESTS=
 run-tests:
 	rm -rf coverage/*
-	coverage run -m pytest --capture=fd --show-capture all $(TESTS) -vv -rpP
+	coverage run -m pytest --capture=fd --show-capture all $(wildcard $(TESTS)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json
