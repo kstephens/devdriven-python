@@ -281,8 +281,14 @@ class HtmlOut(FormatOut):
 
   Examples:
 
+$ psv in a.csv // html // o a.html
+$ w3m -dump a.html
+
+$ psv in users.txt // -table --fs=":" // html // o /tmp/users.html
+$ w3m -dump /tmp/users.html
+
 # html: Generate HTML:
-$ psv in users.txt // -table --header --fs=":" // html // o /tmp/users.html
+$ psv in users.txt // -table --fs=":" // html --no-header // o /tmp/users.html
 $ w3m -dump /tmp/users.html
 
   '''

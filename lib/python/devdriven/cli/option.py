@@ -62,9 +62,11 @@ class Option():
       return self
     if m := re.match(r'^--([a-zA-Z][-_a-zA-Z0-9]*)=(.*)$', arg):
       return matched_long('option', m[1], m[2])
-    elif m := re.match(r'^--([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
+    elif m := re.match(r'^--no-([a-zA-Z][-_a-zA-Z0-9]+)$', arg):
+      return matched_long('flag', m[1], False)
+    elif m := re.match(r'^--([a-zA-Z][-_a-zA-Z0-9]+)$', arg):
       return matched_long('flag', m[1], True)
-    elif m := re.match(r'^\+\+([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
+    elif m := re.match(r'^\+\+([a-zA-Z][-_a-zA-Z0-9]+)$', arg):
       return matched_long('flag', m[1], False)
     elif m := re.match(r'^-([a-zA-Z][-_a-zA-Z0-9]*)$', arg):
       return matched_flags('flag', m[1], True)
