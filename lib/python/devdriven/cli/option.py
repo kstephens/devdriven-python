@@ -21,8 +21,8 @@ class Option():
   def parse_doc(self, arg):
     self.style = 'doc'
     self.aliases = []
-    if m := re.match(r'^(.+)  Default: +(.+?)\.$', arg):
-      self.default = m[2].strip()
+    if m := re.match(r'^(?:.+  |)Default: +(.+?)\.$', arg):
+      self.default = m[1].strip()
     if m := re.match(r'^([^\|]+?)  \|  (.*)', arg):
       opts = re.split(r', ', m[1].strip())
       arg, self.description = opts.pop(0), m[2].strip()

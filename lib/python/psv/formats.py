@@ -278,7 +278,7 @@ class HtmlOut(FormatOut):
   alias: html
 
   --table-name=NAME  |  <title>
-  --header, -h       |  Generate header. Default: True.
+  --header, -h       |  Generate header.  Default: True.
 
   :preferred_suffix=.html
 
