@@ -23,12 +23,17 @@ class Help(Command):
     tabulate.PRESERVE_WHITESPACE = True
     commands = all_commands = descriptors_by_sections()
     if self.args:
-      pattern = '|'.join([f'\\b{arg}\\b' for arg in self.args])
-      rx = re.compile(f'(?i){pattern}')
-      def command_match(desc):
-        desc = ' '.join([desc.name, desc.brief] + desc.aliases)
-        return re.match(rx, desc)
-      commands = list(filter(command_match, all_commands))
+      pattern = '|'.join([r' %s ' % arg for arg in self.args])
+      rx = re.compile(f'(?i).*({pattern}).*')
+      def match_precise(desc):
+        slug = '  '.join(['', desc.name, desc.brief] + desc.aliases + [''])
+        return re.match(rx, slug)
+      def match_soft(desc):
+        slug = '  '.join(['', desc.brief, ''])
+        return re.match(rx, slug)
+      commands = list(filter(match_precise, all_commands))
+      if not commands:
+        commands = list(filter(match_soft, all_commands))
     return self.do_commands(commands, env)
 
   def do_commands(self, commands, env):
