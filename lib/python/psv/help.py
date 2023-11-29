@@ -1,12 +1,14 @@
 import re
 import pandas as pd
-from tabulate import tabulate
+import tabulate
 from devdriven.to_dict import to_dict
 from devdriven.cli.descriptor import DEFAULTS
 from devdriven.cli.command import descriptors
 from .command import Command, begin_section, descriptors_by_sections, command
 from .formats import MarkdownOut, JsonOut
 from icecream import ic
+
+tabulate.PRESERVE_WHITESPACE = True
 
 begin_section('Documentation')
 
@@ -31,10 +33,10 @@ class Help(Command):
     return self.do_commands(commands, env)
 
   def do_commands(self, commands, env):
-    if self.opt(('plain','p'), False) or len(self.args) == 1:
-      return self.do_commands_plain(commands, env)
     if self.opt(('raw', 'r'), False):
       return self.do_commands_raw(commands, env)
+    if self.opt(('plain','p'), False) or len(self.args) == 1:
+      return self.do_commands_plain(commands, env)
     return self.do_commands_table(commands, env)
 
   def do_commands_table(self, commands, env):
@@ -45,27 +47,31 @@ class Help(Command):
       if items:
         row('', '')
         row('', title)
-        for line in tabulate(list(items), tablefmt="presto").splitlines():
-          row('', line)
-
+        row('', '')
+        rows = self.items_to_rows(items)
+        for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
+          row('', '  ' + line)
     section = None
     for desc in commands:
       if section != desc.section:
         section = desc.section
-        row('', '')
-        row('', f'---- {section} ----')
+        row('  ---------', '')
+        row('   Section ', f'-------- {section} --------')
+        row('  ---------', '')
         row('', '')
       row(desc.name, desc.brief)
-      row('', desc.synopsis)
+      row('', '')
+      row('', '  ' + desc.synopsis)
       if desc.aliases:
+        row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))
       if self.opt(('verbose', 'v')):
-        row('', '')
-        for text in desc.detail:
-          row('', text)
-        emit_opts('Arguments:', desc.options.arg_by_name.items())
-        emit_opts('Options:', [opt.table_row() for opt in desc.options.opts])
-        row('', '')
+        if desc.detail:
+          row('', '')
+          for text in desc.detail:
+            row('', text)
+        emit_opts('Arguments:', self.args_table(desc))
+        emit_opts('Options:', self.opts_table(desc))
       row('', '')
     return MarkdownOut().xform(tab, env)
 
@@ -81,7 +87,8 @@ class Help(Command):
         row('', '')
         row('', title)
         row('', '')
-        for line in tabulate(list(items), tablefmt="presto").splitlines():
+        rows = self.items_to_rows(items)
+        for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
           line = line[1:]
           row('  ', line)
     attrs = list(DEFAULTS.keys())
@@ -93,10 +100,12 @@ class Help(Command):
       if desc.aliases:
         row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))
-      for text in desc.detail:
-        row('', text)
-      emit_opts('Arguments:', desc.options.arg_by_name.items())
-      emit_opts('Options:', [opt.table_row() for opt in desc.options.opts])
+      if desc.detail:
+        row('', '')
+        for text in desc.detail:
+          row('', text)
+      emit_opts('Arguments:', self.args_table(desc))
+      emit_opts('Options:', self.opts_table(desc))
       if desc.examples:
         row('', '')
         row('', 'Examples:')
@@ -114,6 +123,27 @@ class Help(Command):
           if val:
             row(f':{attr}={val}')
       if len(commands) > 1:
-        row('', '                    ==========================================================')
+        row('', '')
+        row('==========================================================')
         row('', '')
     return '\n'.join(lines + [''])
+
+  def items_to_rows(self, items):
+    rows = []
+    for name, desc in list(items):
+      item_rows = []
+      for desc_line in desc.split('.  '):
+        if desc_line:
+          desc_line = re.sub(r'\.\. *$', '.', desc_line + '.')
+          item_rows.append([name, desc_line])
+          name = ''
+      if len(item_rows) > 1 and rows:
+        rows.append(['', ''])
+      rows.extend(item_rows)
+    return rows
+
+  def args_table(self, desc):
+    return desc.options.arg_by_name.items()
+
+  def opts_table(self, desc):
+    return [opt.table_row() for opt in desc.options.opts]
