@@ -18,18 +18,18 @@ class Eval(Command):
   Aliases: each
 
   Variable Bindings:
-  * Columns are bound to variables.
-  * `inp` : input table.
-  * `out` : output table.
-  * `row` : current row.
-  * `ind` : row index.
-  * `offset` : row offset (zero origin).
+  Columns are bound to variables:
+    * `inp`    : input table.
+    * `out`    : output table.
+    * `row`    : current row.
+    * `ind`    : row index.
+    * `offset` : row offset (zero origin).
 
   When expression returns:
-    * "FINISH":  all remaining rows are dropped.
-    * "BREAK":   all remaining rows (inclusive) are dropped.
-    * False:     the row is removed.
-    * Dict:      the row is updated and new columns are added.
+    * "FINISH" : all remaining rows are dropped.
+    * "BREAK"  : all remaining rows (inclusive) are dropped.
+    * False    : the row is removed.
+    * Dict     : the row is updated and new columns are added.
 
   STATEMENT ...        |  Statements.  Final statement may return a value.
 
