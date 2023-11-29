@@ -22,9 +22,9 @@ class Example(Command):
   '''
   def xform(self, _inp, _env):
     examples = list(flat_map(ddc.descriptors(), lambda cmd: cmd.examples))
-    comment_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
+    match_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
     def match(x):
-      return re.match(comment_rx, x)
+      return re.match(match_rx, x)
     def command_matches(cmd):
       return match(cmd.command) or any(map(match, cmd.comments[0:]))
     examples = list(filter(command_matches, examples))
@@ -40,6 +40,8 @@ class Example(Command):
         sys.stderr.flush()
         self.run_example(ex)
       print('')
+      sys.stdout.flush()
+      sys.stderr.flush()
 
   def run_example(self, ex):
     with cwd(f'{self.main.root_dir}/example'):
