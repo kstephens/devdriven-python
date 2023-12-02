@@ -1,6 +1,6 @@
 import subprocess
 import time
-from devdriven import util
+import devdriven.util as util
 
 def test_maybe_decode_bytes():
   assert util.maybe_decode_bytes(b'A') == 'A'

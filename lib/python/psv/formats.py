@@ -1,8 +1,8 @@
 from io import StringIO, BytesIO
 import re
 import json
-import mimetypes
 from devdriven.util import not_implemented
+from devdriven.mime import content_type_for_suffixes
 import tabulate
 import pandas as pd
 from .command import Command, begin_section, command
@@ -43,7 +43,7 @@ class FormatOut(Command):
     return out.getvalue()
   def setup_env(self, _inp, env):
     desc = self.command_descriptor()
-    (env['Content-Type'], env['Content-Encoding']) = mimetypes.guess_type('anything' + desc.preferred_suffix)
+    (env['Content-Type'], env['Content-Encoding']) = content_type_for_suffixes(desc.suffix_list)
   def default_encoding(self):
     return 'utf-8'
   def format_out(self, _inp, _env, _writable):
@@ -76,7 +76,7 @@ $ psv in users.txt // -table --fs=':' --column='col%02d'
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 
-  :preferred_suffix='.txt'
+  :suffix: .txt
   '''
   def format_in(self, readable, _env):
     fs_rx = re.compile(self.opt('fs', r'\s+'))
@@ -133,7 +133,7 @@ class TableOut(FormatOut):
 
   NOT IMPLEMENTED
 
-  :preferred_suffix: .txt
+  :suffixes: .txt
   '''
   def format_out(self, inp, _env, writeable):
     not_implemented()
@@ -152,7 +152,7 @@ $ psv in a.tsv // md
 # -tsv: Convert HTTP TSV content to Markdown.
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 
-  :preferred_suffix=.tsv
+  :suffixes: .tsv
   '''
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep='\t', header=0)
@@ -162,7 +162,7 @@ class TsvOut(FormatOut):
   '''
   tsv- - Generate TSV.
 
-  :preferred_suffix=.tsv
+  :suffixes: .tsv
   '''
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, sep='\t', header=True, index=False, date_format='iso')
@@ -175,7 +175,7 @@ class CsvIn(FormatIn):
 # csv, json: Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 
-  :preferred_suffix=.csv
+  :suffixes: .csv
   '''
   def format_in(self, readable, _env):
     return pd.read_table(readable, sep=',', header=0)
@@ -188,7 +188,7 @@ class CsvOut(FormatOut):
 # tsv, csv: Convert TSV to CSV:
 $ psv in a.tsv // -tsv // csv-
 
-  :preferred_suffix=.csv
+  :suffixes: .csv
   '''
   def format_out(self, inp, _env, writeable):
     inp.to_csv(writeable, header=True, index=False, date_format='iso')
@@ -202,7 +202,7 @@ class MarkdownOut(FormatOut):
 # md: Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
 
-  :preferred_suffix=.md
+  :suffixes: .md,.markdown
   '''
   def format_out(self, inp, _env, writeable):
     tabulate.PRESERVE_WHITESPACE = True
@@ -217,7 +217,7 @@ class JsonIn(FormatIn):
 
   --orient=ORIENT  |  Orientation: see pandas read_json.
 
-  :preferred_suffix=.json
+  :suffixes: .json
   '''
   def format_in(self, readable, _env):
     orient = self.opt('orient', 'records')
@@ -232,7 +232,7 @@ class JsonOut(FormatOut):
 # csv, json: Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 
-  :preferred_suffix: .tsv
+  :suffixes: .tsv
   '''
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):
@@ -248,7 +248,7 @@ class PickleIn(FormatIn):
   -pickle - Read Pandas Dataframe pickle.
   alias: -dataframe
 
-  :preferred_suffix=.pickle.xz
+  :suffixes: .pickle.xz
   '''
   def default_encoding(self):
     return None
@@ -261,7 +261,7 @@ class PickleOut(FormatOut):
   pickle- - Write Pandas DataFrame pickle.
   alias: dataframe-
 
-  :preferred_suffix=.pickle.xz
+  :suffixes: .pickle.xz
   '''
   def default_encoding(self):
     return None
@@ -280,7 +280,7 @@ class HtmlOut(FormatOut):
   --table-name=NAME  |  <title>
   --header, -h       |  Generate header.  Default: True.
 
-  :preferred_suffix=.html
+  :suffixes: .html,.htm
 
   Examples:
 
@@ -316,7 +316,7 @@ class SQLOut(FormatOut):
 # sql: Convert TSV to SQL schema:
 $ psv in a.tsv // sql
 
-  :preferred_suffix=.sql
+  :suffixes: .sql
   '''
   def format_out(self, inp, _env, writeable):
     # https://stackoverflow.com/a/31075679/1141958

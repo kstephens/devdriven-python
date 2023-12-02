@@ -29,7 +29,8 @@ class Descriptor():
   section: str
   content_type: str      # = None
   content_encoding: str  # = None
-  preferred_suffix: str  # = None
+  suffixes: str          # ".csv,.txt,...""
+  suffix_list: list
   data: object
 
   def parse_docstring(self, docstr):
@@ -42,8 +43,6 @@ class Descriptor():
       if debug:
         ic(line)
       m = None
-      # if doc_option := Option().parse_doc(line):
-      #   ic(doc_option)
       if m := re.match(r'^:(?P<name>[a-z_]+)[:=] *(?P<value>.*)', line):
         setattr(self, m.group('name'), m.group('value').strip())
       elif m := not self.name and re.match(r'^(?P<name>[-a-z]+) +- +(?P<brief>.+)', line):
@@ -65,9 +64,14 @@ class Descriptor():
         self.detail.append(line)
       if debug:
         ic(m and m.groupdict())
+    if self.suffixes:
+      self.suffix_list = [x.strip() for x in re.split(r'\s*,\s*', self.suffixes)]
     self.build_synopsis()
     self.trim_detail()
     return self
+
+  def preferred_suffix(self):
+    return self.suffix_list and self.suffix_list[0]
 
   def x_opt_by_name(self, name, aliases=False):
     return self.options.opt_by_name(name, aliases)
@@ -94,7 +98,7 @@ DEFAULTS = {
   'section': '',
   'content_type': None,
   'content_encoding': None,
-  'preferred_suffix': '',
+  'suffixies': '',
 }
 
 def create_descriptor(klass):
@@ -107,9 +111,11 @@ def create_descriptor(klass):
     'aliases': [],
     'detail': [],
     'examples': [],
+    'suffixes': '',
+    'suffix_list': [],
   } | DEFAULTS | {
     'section': current_section,
-    "klass": klass,
+    'klass': klass,
     'options': options,
   }
   return dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__)

@@ -1,7 +1,6 @@
-import re
 import logging
-from pathlib import Path
 from devdriven.util import get_safe
+from devdriven.mime import short_and_long_suffix
 import devdriven.cli.descriptor as desc
 from devdriven.cli.option import Option
 
@@ -102,14 +101,13 @@ def descriptors_for_section(name):
   return [desc for desc in descriptors() if desc.section == name]
 
 def find_format(path, klass):
-  short_suffix = long_suffix = Path(path).suffix
-  if m := re.match(r'(?:^|/)[^.]+(\.[^/]+)$', str(path)):
-    long_suffix = m[1]
-  for dsc in descriptors():
-    if issubclass(dsc.klass, klass) and dsc.preferred_suffix == long_suffix:
+  short_suffix, long_suffix = short_and_long_suffix(path)
+  valid_descs = [dsc for dsc in descriptors() if issubclass(dsc.klass, klass)]
+  for dsc in valid_descs:
+    if long_suffix in dsc.suffix_list:
       return dsc.klass
-  for dsc in descriptors():
-    if issubclass(dsc.klass, klass) and dsc.preferred_suffix == short_suffix:
+  for dsc in valid_descs:
+    if short_suffix in dsc.suffix_list:
       return dsc.klass
   return None
 
