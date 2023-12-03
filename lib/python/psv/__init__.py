@@ -3,6 +3,7 @@ from . import command
 from . import pipeline
 from . import io
 from . import formats
+from . import spreadsheet
 from . import process
 from . import summary
 from . import metadata
