@@ -94,3 +94,19 @@ def test_parse_range():
   assert util.parse_range("-5:-2", n) == range(18, 21, 1)
   assert util.parse_range("-2:-5", n) == range(21, 18, -1)
   assert util.parse_range("2:10:3", n) == range(2, 10, 3)
+
+def test_wrap_word():
+  def fut(words):
+    return util.wrap_words(words, 20)
+  assert fut('a b c d') == ['a b c d']
+  assert fut(' a  b c d ') == [' a  b c d ']
+  assert fut('some very long sentence with punctuation.  And more. ') == [
+    'some very long sentence ',
+    'with punctuation.  And ',
+    'more. '
+  ]
+  assert fut('some-very-long-word-with-punctuation.  And more.') == [
+    'some-very-long-word-with-punctuation.',
+    '  And more.'
+  ]
+

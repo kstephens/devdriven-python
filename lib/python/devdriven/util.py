@@ -260,6 +260,24 @@ def unpad_lines(lines):
       break
   return [re.sub(pad, '', line) for line in lines]
 
+def wrap_words(words, width, punctuation=r'[.,?;:]'):
+  result = []
+  current = ''
+  rx = re.compile(r'^(?P<left>.*?)(?P<sep>\s+|\n|[.,?;:])(?P<rest>.*)')
+  while words:
+    if m := re.match(rx, words):
+      words = m['rest']
+      current += m['left'] + m['sep']
+    else:
+      break
+    if not 0 < len(current) <= width:
+      result.append(current)
+      current = ''
+  if current:
+    current += words
+    result.append(current)
+  return result
+
 def module_fullname(o):
   '''
   Does not work as expected.
