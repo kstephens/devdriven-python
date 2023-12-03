@@ -18,12 +18,14 @@ class Command(cmd.Command):
 
 def main_make_xform(main, klass_or_name, argv):
   assert main
-  d = cmd.descriptor(klass_or_name)
-  xform = d.klass()
-  xform.set_main(main)
-  xform.set_name(d.name)
-  xform.parse_argv(argv)
-  return xform
+  if d := cmd.descriptor(klass_or_name):
+    xform = d.klass()
+    xform.set_main(main)
+    xform.set_name(d.name)
+    xform.parse_argv(argv)
+    return xform
+  else:
+    raise Exception(f'unknown command {klass_or_name!r}')
 
 def find_format(*args):
   return cmd.find_format(*args)
