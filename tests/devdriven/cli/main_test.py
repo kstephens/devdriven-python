@@ -24,20 +24,10 @@ def test_results():
   main = MainTest().run(argv)
   # print(repr(main.output))
   expected = {
-    'errors': [
-      ['cmd3', {'class': 'Exception', 'message': 'ERROR'}]
-    ],
-    'result': [
-      ['cmd1',
-        ['OK',
-          ['2', '3', '-5', 'arg1', 'arg2', '--foo=bar'],
-          {'f': True,
-           'l': True,
-           'a': True,
-           'g': True,
-           's': True,
-           'a': '1', 'b': True}]],
-      ['cmd2', ['OK', ['a', 'b'], {}]]
-    ]
-  }
+    'errors': [['cmd3', {'class': 'Exception', 'message': 'ERROR'}]],
+    'result': [['cmd1',
+                ['OK',
+                 ['--b', '2', '3', '-5', 'arg1', 'arg2', '--foo=bar'],
+                 {'a': '1', 'f': True, 'g': True, 'l': True, 's': True}]],
+               ['cmd2', ['OK', ['a', 'b'], {}]]]}
   assert main.output == expected
