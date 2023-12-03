@@ -20,9 +20,11 @@ $ psv in a.csv // yaml
   def format_out(self, inp, _env, writeable):
     import yaml
     if isinstance(inp, pd.DataFrame):
-      rows = inp.reset_index(drop=True).to_dict(orient='records')
-      yaml.dump(rows, writeable,
+      for _ind, row in inp.reset_index(drop=True).iterrows():
+        yaml.dump([row.to_dict()], writeable,
                 sort_keys=False,
                 default_flow_style=False, allow_unicode=True)
     else:
-      raise Exception("yaml-: cannot format {type(inp)}")
+      yaml.dump(inp, writeable,
+              sort_keys=False,
+              default_flow_style=False, allow_unicode=True)
