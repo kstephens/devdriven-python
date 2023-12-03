@@ -1,18 +1,17 @@
 import os
-from io import BytesIO, TextIOBase, TextIOWrapper
+from io import StringIO, BytesIO, TextIOBase, TextIOWrapper
 import sys
 import hashlib
 import json
 import mimetypes
-import logging
 from datetime import datetime
 from email.utils import formatdate
 from http.client import responses
 from urllib3 import HTTPHeaderDict
 from devdriven.util import not_implemented
-# from icecream import ic
 
-TEXT_IO_CLASSES = (TextIOBase, TextIOWrapper)
+TEXT_IO_CLASSES = (TextIOBase, TextIOWrapper, StringIO)
+DEFAULT_ENCODING = 'utf-8'
 
 # Partially compatable with urllib3.response.HTTPResponse:
 class FileResponse():
@@ -30,6 +29,7 @@ class FileResponse():
     self.connection = '<<FileResponse.connection : NOT-IMPLEMENTED>>'
     self.retries = '<<FileResponse.retries : NOT-IMPLEMENTED>>'
     self._headers = self._body = None
+    self._body_loaded = False
     self.preload_content = None
 
   # https://stackoverflow.com/questions/865115/how-do-i-correctly-clean-up-a-python-object
@@ -37,6 +37,7 @@ class FileResponse():
     self.close()
 
   def request(self, method, url, headers, body, **kwargs):
+    assert self.status is None
     self.request_method = method.upper()
     self.url = url
     headers = (headers or {}).copy()
@@ -49,24 +50,29 @@ class FileResponse():
       self.file_path = url.path
     self.status = 599
     self.headers = HTTPHeaderDict({})
-    self.preload_content = kwargs.get('preload_content', True)
+    if self.preload_content is None:
+      self.preload_content = kwargs.get('preload_content', True)
+    self._body_loaded = False
     getattr(self, f"_request_method_{method.lower()}")(body)
     return self
 
   def close(self):
     if not self.closed:
-      self.flush()
       if not self.is_stream:
         if self.read_io:
           self.read_io.close()
+          self.read_io = None
         if self.write_io:
           self.write_io.close()
+          self._etag()
+          self.write_io = None
       self.closed = True
       self.release_conn()
     return None
   @property
   def data(self):
-    if not self._body:
+    if not self._body_loaded and self._body is None:
+      self._body_loaded = True
       self._body = self.read()
       self.close()
     return self._body
@@ -77,7 +83,7 @@ class FileResponse():
   def fileno(self):
     return not_implemented()
   def flush(self):
-    if self.write_io:
+    if self.write_io and not self.closed:
       self.write_io.flush()
     self._etag()
   def get_redirect_location(self):
@@ -95,16 +101,19 @@ class FileResponse():
   def isclosed(self):
     return self.closed
   def json(self):
-    return json.load(self.read().decode(self.encoding or 'utf-8'))
+    return json.load(self.read().decode(self.encoding or DEFAULT_ENCODING))
   def read(self, amt=None, decode_content=None, cache_content=False):
     assert not decode_content
     assert not cache_content
-    if not self.read_io:
+    if self.read_io is None:
       return b''
-    b = self.read_io.read(amt)
-    if encoding := self._needs_encoding(self.read_io):
-      b = b.encode(encoding)
-    return b
+    read_buf = self.read_io.read(amt)
+    encoding = getattr(self.read_io, 'encoding', None) or self.encoding
+    if not encoding and self._needs_encoding(self.read_io):
+      encoding = DEFAULT_ENCODING
+    if encoding:
+      read_buf = read_buf.encode(encoding)
+    return read_buf
   def read_chunked(self, amt=None, decode_content=None):
     assert not decode_content
     return self.read_io.read_chunked(amt=amt)
@@ -138,15 +147,22 @@ class FileResponse():
   def writable(self):
     return not not self.write_io
   def write(self, b):
-    if encoding := isinstance(b, bytes) and self._needs_encoding(self.write_io):
-      b = b.decode(encoding)
+    if isinstance(b, bytes):
+      encoding = getattr(self.write_io, 'encoding', None) or self.encoding
+      if self._needs_encoding(self.write_io) and not encoding:
+        encoding = DEFAULT_ENCODING
+      if encoding:
+        b = b.decode(encoding)
     return self.write_io.write(b)
   def writelines(self, lines, /):
     for line in lines:
       self.write(line)
 
   def _needs_encoding(self, io):
-    return isinstance(io, TEXT_IO_CLASSES) and (self.encoding or io.encoding)
+    return isinstance(io, TEXT_IO_CLASSES)
+
+  def _encoding(self, io):
+    return self.encoding or io.encoding
 
   ###############################
 
@@ -156,7 +172,7 @@ class FileResponse():
       self._start(200)
     else:
       self.open_with_error_handling("rb")
-      self._preload()
+    self._preload()
     return self
 
   def _request_method_put(self, body):
@@ -165,13 +181,14 @@ class FileResponse():
       self._status_body(201)
     else:
       self.open_with_error_handling("wb")
-    self._preload()
     if body:
       self.write(body)
+    self._preload()
     return self
 
   def _preload(self):
-    if self.preload_content and self.read_io:
+    if self.preload_content and (not self._body_loaded) and self.read_io:
+      self._body_loaded = True
       self._body = self.read()
       self.read_io.close()
       self.read_io = None
@@ -201,7 +218,6 @@ class FileResponse():
       ## OSError [Errno 30] Read-only file system
       error_status, err = 403, exc
     if err:
-      self._start(error_status)
       self._status_body(error_status)
       self.headers['X-Error'] = str(err)
     return self
@@ -212,6 +228,8 @@ class FileResponse():
   def _text_body(self, status, body):
     body = body.encode('utf-8')
     self.read_io = BytesIO(body)
+    self._body = body
+    self._body_loaded = True
     self._start(status)
     self.headers.update({'Content-Type': 'text/plain',
                          'Content-Length': str(len(body))})
@@ -231,13 +249,17 @@ class FileResponse():
   def _etag(self):
     if not self.file_path:
       return
-    stat = os.stat(self.file_path)
-    self.headers.update({
-      'Content-Length': str(stat.st_size),
-      'ETag': file_etag(self.file_path, stat),
-    })
-    time = datetime.fromtimestamp(stat.st_mtime)
-    self._last_modified(time)
+    try:
+      stat = os.stat(self.file_path)
+      self.headers.update({
+        'Content-Length': str(stat.st_size),
+        'ETag': file_etag(self.file_path, stat),
+      })
+      time = datetime.fromtimestamp(stat.st_mtime)
+      self._last_modified(time)
+    except FileNotFoundError:
+      return
+
   def _last_modified(self, time):
     self.headers['Last-Modified'] = rfc_1123(time)
 
