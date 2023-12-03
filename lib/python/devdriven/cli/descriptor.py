@@ -98,7 +98,7 @@ DEFAULTS = {
   'section': '',
   'content_type': None,
   'content_encoding': None,
-  'suffixies': '',
+  'suffixes': '',
 }
 
 def create_descriptor(klass):
