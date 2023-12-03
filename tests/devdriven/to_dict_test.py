@@ -22,7 +22,7 @@ def test_walk():
   assert fut(datetime.fromtimestamp(1699571701.203033)) == "2023-11-09 17:15:01.203033+0000"
   assert fut(Exception("E")) == {'class': 'Exception', 'message': 'E'}
   other = devdriven.to_dict.ToDict()
-  assert fut(other) == other
+  assert fut(other)['class'] == 'ToDict'
   fut = devdriven.to_dict.ToDict()
   assert fut(None) is None
 
