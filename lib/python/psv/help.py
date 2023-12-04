@@ -2,9 +2,8 @@ import re
 import pandas as pd
 import tabulate
 from devdriven.to_dict import to_dict
-from devdriven.cli.descriptor import DEFAULTS
-from devdriven.cli.command import descriptors
-from .command import Command, begin_section, descriptors_by_sections, command
+from devdriven.cli.application import app, DEFAULTS
+from .command import Command, begin_section, command
 from .formats import MarkdownOut, JsonOut
 from icecream import ic
 
@@ -21,7 +20,7 @@ class Help(Command):
   '''
   def xform(self, _inp, env):
     tabulate.PRESERVE_WHITESPACE = True
-    commands = all_commands = descriptors_by_sections()
+    commands = all_commands = app.descriptors_by_sections()
     if self.args:
       pattern = '|'.join([r' %s ' % arg for arg in self.args])
       rx = re.compile(f'(?i).*({pattern}).*')

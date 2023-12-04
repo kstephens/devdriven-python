@@ -1,8 +1,9 @@
 import json
 import pandas as pd
 from devdriven.to_dict import to_dict
+from devdriven.cli.application import app
 from .content import Content
-from .command import Command, command, begin_section, find_format
+from .command import Command, command, begin_section
 from .formats import FormatIn
 
 begin_section('I/O')
@@ -41,7 +42,7 @@ $ psv in https://tinyurl.com/4sscj338
       self.args.append('-')
     env['input.paths'] = [self.args[0]]
     content = Content(url=self.args[0])
-    format_for_suffix = find_format(self.args[0], FormatIn)
+    format_for_suffix = app.find_format(self.args[0], FormatIn)
     if not self.opt(('raw', 'r'), False) and format_for_suffix:
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content

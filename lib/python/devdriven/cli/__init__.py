@@ -1,5 +1,6 @@
-from .main import Main
-from .command import Command
-from .descriptor import Descriptor
 from .option import Option
+from .descriptor import Descriptor
+from .application import Application
+from .command import Command
+from .main import Main
 

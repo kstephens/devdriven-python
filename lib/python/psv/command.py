@@ -1,6 +1,5 @@
 import devdriven.cli.command as cmd
-import devdriven.cli.descriptor as desc
-from itertools import chain
+from devdriven.cli.application import app
 
 class Command(cmd.Command):
 #  def parse_argv(self, argv):
@@ -18,7 +17,7 @@ class Command(cmd.Command):
 
 def main_make_xform(main, klass_or_name, argv):
   assert main
-  if d := cmd.descriptor(klass_or_name):
+  if d := app.descriptor(klass_or_name):
     xform = d.klass()
     xform.set_main(main)
     xform.set_name(d.name)
@@ -27,22 +26,10 @@ def main_make_xform(main, klass_or_name, argv):
   else:
     raise Exception(f'unknown command {klass_or_name!r}')
 
-def find_format(*args):
-  return cmd.find_format(*args)
-
 def begin_section(name):
-  return desc.begin_section(name)
-
-def sections():
-  return desc.sections()
-
-def descriptors_for_section(name):
-  return cmd.descriptors_for_section(name)
-
-def descriptors_by_sections(secs=None):
-  return list(chain.from_iterable([descriptors_for_section(sec) for sec in sections()]))
+  return app.begin_section(name)
 
 # Decorator
 def command(klass):
-  return cmd.command(klass)
+  return app.command(klass)
 

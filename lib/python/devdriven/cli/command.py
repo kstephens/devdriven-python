@@ -1,8 +1,8 @@
 import logging
 from devdriven.util import get_safe
-from devdriven.mime import short_and_long_suffix
-import devdriven.cli.descriptor as desc
-from devdriven.cli.option import Option
+from .option import Option
+# import devdriven.cli.descriptor as desc
+from .application import app
 
 class Command:
   def __init__(self):
@@ -67,7 +67,7 @@ class Command:
     return get_safe(self.args, i, get_safe(self.opts, k, default))
 
   def command_descriptor(self):
-    return descriptor(self.__class__)
+    return app.descriptor(self.__class__)
 
   def to_dict(self):
     return [self.name, *self.argv]
@@ -86,44 +86,8 @@ class Command:
   def exec(self):
     return self.rtn
 
-DESCRIPTORS = []
-DESCRIPTOR_BY_ANY = {}
-DESCRIPTOR_BY_NAME = {}
-DESCRIPTOR_BY_KLASS = {}
-
-def descriptors():
-  return DESCRIPTORS
-
-def descriptor(name_or_klass, default=None):
-  return DESCRIPTOR_BY_ANY.get(name_or_klass, default)
-
-def descriptors_for_section(name):
-  return [desc for desc in descriptors() if desc.section == name]
-
-def find_format(path, klass):
-  short_suffix, long_suffix = short_and_long_suffix(path)
-  valid_descs = [dsc for dsc in descriptors() if issubclass(dsc.klass, klass)]
-  for dsc in valid_descs:
-    if long_suffix in dsc.suffix_list:
-      return dsc.klass
-  for dsc in valid_descs:
-    if short_suffix in dsc.suffix_list:
-      return dsc.klass
-  return None
-
-def register(self):
-  for name in [self.name, *self.aliases]:
-    if not name:
-      raise Exception(f"Command: {self.klass!r} : invalid name or alias")
-    if assigned := descriptor(name):
-      raise Exception(f"Command: {self.klass!r} : {name!r} : is already assigned to {assigned!r}")
-    DESCRIPTOR_BY_NAME[name] = DESCRIPTOR_BY_ANY[name] = self
-  DESCRIPTOR_BY_KLASS[self.klass] = DESCRIPTOR_BY_ANY[self.klass] = self
-  DESCRIPTORS.append(self)
-  return self
-
 # Decorator
 def command(klass):
   assert issubclass(klass, Command)
-  register(desc.create_descriptor(klass))
+  app.command(klass)
   return klass

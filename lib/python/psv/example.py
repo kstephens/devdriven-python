@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 import shlex
-import devdriven.cli.command as ddc
+from devdriven.cli.application import app
 from devdriven.util import cwd, flat_map
 from .command import Command, begin_section, command
 
@@ -21,7 +21,7 @@ class Example(Command):
   --run, -r     | Run examples.
   '''
   def xform(self, _inp, _env):
-    examples = list(flat_map(ddc.descriptors(), lambda cmd: cmd.examples))
+    examples = list(flat_map(app.descriptors, lambda cmd: cmd.examples))
     match_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
     def match(x):
       return re.match(match_rx, x)
