@@ -260,7 +260,7 @@ def unpad_lines(lines):
       break
   return [re.sub(pad, '', line) for line in lines]
 
-def wrap_words(words, width, punctuation=r'[.,?;:]'):
+def wrap_words(words, width, _punctuation=r'[.,?;:]'):
   result = []
   current = ''
   rx = re.compile(r'^(?P<left>.*?)(?P<sep>\s+|\n|[.,?;:])(?P<rest>.*)')

@@ -66,7 +66,7 @@ class Eval(Command):
 
   def create_expr(self):
     return ';'.join(self.args + ['return None'])
-  def process_row(self, inp, row, out, result):
+  def process_row(self, _inp, row, out, result):
     if result is True or result is None:
       out.loc[len(out)] = row
     # elif isinstance(result, tuple):

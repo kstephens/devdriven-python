@@ -18,11 +18,11 @@ class ToDict:
     if callable(getattr(obj, 'to_dict', None)):  # https://stackoverflow.com/a/54625079
       try:
         return self.walk(obj.to_dict())
-      except Exception as exc:
+      except Exception as _exc:
         # print(repr(type(obj)))
         # print(repr(obj))
         return f'<< {repr(obj)} >>'
-        # raise exc
+        # raise _exc
     obj_type = type(obj)
     if issubclass(obj_type, int) or issubclass(obj_type, float) or issubclass(obj_type, str):
       return obj
