@@ -297,15 +297,12 @@ $ w3m -dump /tmp/users.html
   '''
   def format_out(self, inp, _env, writeable):
     from devdriven.pandas import format_html
-    if isinstance(inp, pd.DataFrame):
-      opts = {
-        'table_name': self.opt('table_name', None),
-        'header': bool(self.opt('header', True)),
-      }
-      format_html(inp, writeable, **opts)
-      writeable.write('\n')
-    else:
-      raise Exception("html-: cannot format {type(inp)}")
+    opts = {
+      'table_name': self.opt('table_name', None),
+      'header': bool(self.opt('header', True)),
+    }
+    format_html(inp, writeable, **opts)
+    writeable.write('\n')
 
 @command
 class SQLOut(FormatOut):
