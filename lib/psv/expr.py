@@ -57,7 +57,7 @@ class Eval(Command):
       result = fun(inp, env, out, ind, row, offset)
       if result == 'BREAK':
         break
-      elif result == 'FINISH':
+      if result == 'FINISH':
         self.process_row(inp, row, out, result)
         break
       self.process_row(inp, row, out, result)
@@ -131,5 +131,4 @@ class RewriteName(ast.NodeTransformer):
         slice=ast.Constant(value=col),
         ctx=node.ctx
       )
-    else:
-      return node
+    return node

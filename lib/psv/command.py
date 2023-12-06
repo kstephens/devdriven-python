@@ -19,8 +19,7 @@ def main_make_xform(main, klass_or_name, argv):
     xform.set_name(d.name)
     xform.parse_argv(argv)
     return xform
-  else:
-    raise Exception(f'unknown command {klass_or_name!r}')
+  raise Exception(f'unknown command {klass_or_name!r}')
 
 def section(name):
   return app.begin_section(name)
