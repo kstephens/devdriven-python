@@ -111,6 +111,7 @@ def make_expr_fun(expr: str, ident_to_column : dict):
   expr = f'def {name}(inp, env, out, ind, row, offset):\n  {expr}\n'
   expr = rewrite(expr, ident_to_column)
   bindings = globals()
+  # pylint: disable-next=exec-used
   exec(expr, bindings)
   return bindings[name]
 
