@@ -237,12 +237,12 @@ def glob_to_rx(glob, glob_terminator=None):
   rx = rx.replace('?', r'.')
   return re.compile(r'^' + rx + r'$')
 
-def set_from_match(object, match : re.Match):
-  setattr_from_dict(object, match.groupdict())
+def set_from_match(obj, match : re.Match):
+  setattr_from_dict(obj, match.groupdict())
 
-def setattr_from_dict(object, attrs):
+def setattr_from_dict(obj, attrs):
   for name, val in attrs.items():
-    setattr(object, name, val)
+    setattr(obj, name, val)
 
 def dataclass_from_dict(klass, opts, defaults=None):
   defaults = defaults or {}
