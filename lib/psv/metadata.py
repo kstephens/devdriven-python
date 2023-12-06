@@ -2,7 +2,7 @@ from devdriven.util import chunks, split_flat
 from devdriven.to_dict import to_dict
 import pandas as pd
 from .command import Command, section, command
-from .util import *
+from .util import parse_column_and_opt
 
 section('Metadata')
 

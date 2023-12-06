@@ -5,7 +5,6 @@ from devdriven.to_dict import to_dict
 from devdriven.cli.application import app, DEFAULTS
 from .command import Command, section, command
 from .formats import MarkdownOut, JsonOut
-from icecream import ic
 
 section('Documentation')
 

@@ -1,10 +1,6 @@
-from datetime import datetime
-from email.utils import formatdate
-from http.client import responses
-import urllib3
-from devdriven.util import not_implemented
-from devdriven.file_response import FileResponse
 import json
+import urllib3
+from devdriven.file_response import FileResponse
 import yurl
 
 class UserAgent():

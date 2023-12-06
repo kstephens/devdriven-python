@@ -1,11 +1,8 @@
 import re
-import pandas as pd
-from devdriven.util import chunks, split_flat, parse_range, make_range
-from devdriven.pandas import count_by, summarize
+from devdriven.util import get_safe, chunks, split_flat, parse_range, make_range
 from .command import Command, section, command
 from .metadata import Coerce
-from .util import *
-from icecream import ic
+from .util import select_columns, parse_col_or_index
 
 section('Manipulation')
 

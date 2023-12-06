@@ -1,6 +1,6 @@
 import pandas as pd
 from .command import section, command
-from .formats import FormatIn, FormatOut
+from .formats import FormatOut
 
 section('Formats')
 
