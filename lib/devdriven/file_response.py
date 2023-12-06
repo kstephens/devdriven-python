@@ -191,7 +191,7 @@ class FileResponse():
       self.read_io.close()
       self.read_io = None
 
-  def open_with_error_handling(self, mode, *args):
+  def open_with_error_handling(self, mode, *_args):
     self.status, err = 599, None
     error_status = None
     try:
