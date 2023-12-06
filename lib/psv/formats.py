@@ -135,7 +135,7 @@ class TableOut(FormatOut):
 
   :suffixes: .txt
   '''
-  def format_out(self, inp, _env, writeable):
+  def format_out(self, _inp, _env, _writeable):
     not_implemented()
 
 @command
