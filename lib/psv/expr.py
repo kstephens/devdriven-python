@@ -1,3 +1,4 @@
+# pylint: disable=unused-import,wildcard-import,redefined-builtin,unused-wildcard-import
 import re
 import os
 import ast
@@ -6,6 +7,7 @@ from dataclasses import dataclass
 import pandas as pd
 from devdriven.pandas import new_empty_df_like, normalize_column_name
 from .command import Command, section, command
+# pylint: enable=unused-import,wildcard-import,redefined-builtin,unused-wildcard-import
 
 
 section('Expression Evaluation')
@@ -57,10 +59,9 @@ class Eval(Command):
       result = fun(inp, env, out, ind, row, offset)
       if result == 'BREAK':
         break
-      if result == 'FINISH':
-        self.process_row(inp, row, out, result)
-        break
       self.process_row(inp, row, out, result)
+      if result == 'FINISH':
+        break
       offset += 1
     return out
 

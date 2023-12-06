@@ -118,8 +118,8 @@ class FileResponse():
     return self.read_io.read_chunked(amt=amt)
   def readable(self):
     return not not self.read_io
-  def readinto(self, b):
-    return self.read_io.readinto(b)
+  def readinto(self, buf):
+    return self.read_io.readinto(buf)
   def readline(self, size=-1):
     return self.read_io.readline(size=size)
   def release_conn(self):
@@ -144,14 +144,14 @@ class FileResponse():
 
   def writable(self):
     return not not self.write_io
-  def write(self, b):
-    if isinstance(b, bytes):
+  def write(self, buf):
+    if isinstance(buf, bytes):
       encoding = getattr(self.write_io, 'encoding', None) or self.encoding
       if self._needs_encoding(self.write_io) and not encoding:
         encoding = DEFAULT_ENCODING
       if encoding:
-        b = b.decode(encoding)
-    return self.write_io.write(b)
+        buf = buf.decode(encoding)
+    return self.write_io.write(buf)
   def writelines(self, lines, /):
     for line in lines:
       self.write(line)

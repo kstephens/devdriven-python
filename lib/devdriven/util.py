@@ -39,13 +39,16 @@ def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optiona
 # See: https://en.wikipedia.org/wiki/ISO_8601
 DATETIME_ISO8601_FMT = '%Y-%m-%d %H:%M:%S.%f%z'
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
-def datetime_iso8601(time: Any, tz=None) -> Union[str, Any]:
+# pylint: disable-next=invalid-name
+def datetime_iso8601(dt: Any, tz=None) -> Union[str, Any]:
   if not tz:
     tz = timezone.utc
-  return (time and time.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT))
+  return (dt and dt.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT))
 
 def convert_windows_timestamp_to_iso8601(ts_str):
+# pylint: disable-next=invalid-name
   ts = int(ts_str) / 1000
+# pylint: disable-next=invalid-name
   dt = datetime.fromtimestamp(ts)
   return datetime_iso8601(dt)
 
@@ -278,11 +281,11 @@ def wrap_words(words, width, _punctuation=r'[.,?;:]'):
     result.append(current)
   return result
 
-def module_fullname(o):
+def module_fullname(obj):
   '''
   Does not work as expected.
   '''
-  klass = o.__class__
+  klass = obj.__class__
   module = klass.__module__
   if module == 'builtins':
     return klass.__qualname__ # avoid outputs like 'builtins.str'

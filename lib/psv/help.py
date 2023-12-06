@@ -21,7 +21,7 @@ class Help(Command):
     tabulate.PRESERVE_WHITESPACE = True
     commands = all_commands = app.descriptors_by_sections()
     if self.args:
-      pattern = '|'.join([r' %s ' % arg for arg in self.args])
+      pattern = '|'.join([f' {arg} ' for arg in self.args])
       rx = re.compile(f'(?i).*({pattern}).*')
       def match_precise(desc):
         slug = '  '.join(['', desc.name, desc.brief] + desc.aliases + [''])
@@ -53,12 +53,12 @@ class Help(Command):
         rows = self.items_to_rows(items)
         for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
           row('', '  ' + line)
-    section = None
+    sec = None
     for desc in commands:
-      if section != desc.section:
-        section = desc.section
+      if sec != desc.section:
+        sec = desc.section
         row('  ---------', '')
-        row('   Section ', f'-------- {section} --------')
+        row('   Section ', f'-------- {sec} --------')
         row('  ---------', '')
         row('', '')
       row(desc.name, desc.brief)

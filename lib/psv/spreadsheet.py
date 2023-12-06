@@ -25,7 +25,9 @@ $ file a.xls
 
   '''
   def format_out(self, inp, _env, writeable):
+    # pylint: disable-next=import-outside-toplevel
     from openpyxl import Workbook
+    # pylint: disable-next=import-outside-toplevel
     from openpyxl.utils.dataframe import dataframe_to_rows
     header = bool(self.opt('header', True))
     index = bool(self.opt('index', False))

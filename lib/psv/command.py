@@ -13,10 +13,10 @@ class Command(cmd.Command):
 
 def main_make_xform(main, klass_or_name, argv):
   assert main
-  if d := app.descriptor(klass_or_name):
-    xform = d.klass()
+  if desc := app.descriptor(klass_or_name):
+    xform = desc.klass()
     xform.set_main(main)
-    xform.set_name(d.name)
+    xform.set_name(desc.name)
     xform.parse_argv(argv)
     return xform
   raise Exception(f'unknown command {klass_or_name!r}')

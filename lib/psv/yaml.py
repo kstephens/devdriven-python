@@ -18,6 +18,7 @@ $ psv in a.csv // yaml
 
   '''
   def format_out(self, inp, _env, writeable):
+    # pylint: disable-next=import-outside-toplevel
     import yaml
     if isinstance(inp, pd.DataFrame):
       for _ind, row in inp.reset_index(drop=True).iterrows():

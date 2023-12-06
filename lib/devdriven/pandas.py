@@ -66,6 +66,7 @@ agg_fun_aliases = {
 def count_by(df, by, name='count', sort_by=None, sort_ascending=None):
   return summary_by(df, by, None, 'size', name, sort_by, sort_ascending)
 
+# pylint: disable-next=too-many-arguments
 def summary_by(df, by, val_col, fun, name, sort_by=None, sort_ascending=None):
   group = df.groupby(by)
   if val_col:

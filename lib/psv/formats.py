@@ -296,6 +296,7 @@ $ w3m -dump /tmp/users.html
 
   '''
   def format_out(self, inp, _env, writeable):
+    # pylint: disable-next=import-outside-toplevel
     from devdriven.pandas import format_html
     opts = {
       'table_name': self.opt('table_name', None),

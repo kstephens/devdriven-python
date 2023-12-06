@@ -27,9 +27,11 @@ class UserAgent():
         del headers[key]
     return getattr(self, f'_request_scheme_{scheme}')(method, url, headers, body, kwargs)
 
+  # pylint: disable-next=too-many-arguments
   def _request_scheme_http(self, method, url, headers, body, kwargs):
     return self.http_pool_manager.request(method, str(url), headers=headers, body=body, **kwargs)
 
+  # pylint: disable-next=too-many-arguments
   def _request_scheme_file(self, method, url, headers, body, kwargs):
     if json_body := kwargs.get('json'):
       assert not body

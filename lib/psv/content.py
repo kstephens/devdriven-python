@@ -15,7 +15,7 @@ class Content():
   def __str__(self):
     return self.content()
   def to_dict(self):
-    return __repr__
+    return repr(self)
 
   def set_encoding(self, encoding):
     self._content = None
@@ -51,7 +51,7 @@ class Content():
     def do_put(url, body):
       return UserAgent().request('put', url, body=body, headers=headers)
     self._response = with_http_redirects(do_put, self.url, body)
-    if not (200 <= self._response.status <= 299):
+    if not 200 <= self._response.status <= 299:
       raise Exception("{url} : unexpected status : {self._response.status}")
     return self
 

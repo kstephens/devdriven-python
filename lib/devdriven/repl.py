@@ -2,13 +2,13 @@ import code
 import readline
 import rlcompleter
 import sys
+# pylint: disable-next=unused-import
 from pprint import pprint
 
 # https://stackoverflow.com/questions/50917938/enabling-console-features-with-code-interact
 # https://stackoverflow.com/questions/17248383/pretty-print-by-default-in-python-repl
 
 def start_repl(bindings):
-  _reference = pprint
   readline_completer_save = readline.get_completer()
   sys_displayhook_save = sys.displayhook
   try:

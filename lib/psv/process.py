@@ -196,9 +196,15 @@ $ psv in a.tsv // grep d 'x.+p' // md
 $ psv in a.tsv // grep d 'x' b '3$' // md
 
   '''
+  def __init__(self, *args):
+    Command.__init__(self, *args)
+    self.has_filter = None
+    self.filter_expr = 0
+
   def xform(self, inp, _env):
     imp_cols = list(inp.columns)
-    self.filter_expr = self.has_filter = None
+    self.has_filter = None
+    self.filter_expr = 0  # mock for: E1130: bad operand type for unary ~
     if len(self.args) == 1:
       for col in imp_cols:
         self.add_match(inp, col, self.args[0], 'any')
