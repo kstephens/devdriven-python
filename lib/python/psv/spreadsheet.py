@@ -1,11 +1,11 @@
 from devdriven.util import not_implemented
 import pandas as pd
-from .command import begin_section, command
+from .command import section, command
 from .formats import FormatIn, FormatOut
 from .content import Content
 from tempfile import NamedTemporaryFile
 
-begin_section('Formats')
+section('Formats')
 
 @command
 class XlsOut(FormatOut):

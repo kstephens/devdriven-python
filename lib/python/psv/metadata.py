@@ -1,10 +1,10 @@
 from devdriven.util import chunks, split_flat
 from devdriven.to_dict import to_dict
 import pandas as pd
-from .command import Command, begin_section, command
+from .command import Command, section, command
 from .util import *
 
-begin_section('Metadata')
+section('Metadata')
 
 @command
 class AddSequence(Command):

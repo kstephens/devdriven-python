@@ -1,8 +1,8 @@
 import pandas as pd
-from .command import begin_section, command
+from .command import section, command
 from .formats import FormatIn, FormatOut
 
-begin_section('Formats')
+section('Formats')
 
 @command
 class YamlOut(FormatOut):

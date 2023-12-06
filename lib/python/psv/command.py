@@ -26,10 +26,9 @@ def main_make_xform(main, klass_or_name, argv):
   else:
     raise Exception(f'unknown command {klass_or_name!r}')
 
-def begin_section(name):
+def section(name):
   return app.begin_section(name)
 
 # Decorator
 def command(klass):
   return app.command(klass)
-

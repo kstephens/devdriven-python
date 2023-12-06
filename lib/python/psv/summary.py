@@ -1,9 +1,9 @@
 from devdriven.util import split_flat
 from devdriven.pandas import count_by, summarize
-from .command import Command, begin_section, command
+from .command import Command, section, command
 from .util import get_safe, select_columns
 
-begin_section('Summaries')
+section('Summaries')
 
 @command
 class Count(Command):

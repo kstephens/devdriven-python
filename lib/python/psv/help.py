@@ -3,11 +3,11 @@ import pandas as pd
 import tabulate
 from devdriven.to_dict import to_dict
 from devdriven.cli.application import app, DEFAULTS
-from .command import Command, begin_section, command
+from .command import Command, section, command
 from .formats import MarkdownOut, JsonOut
 from icecream import ic
 
-begin_section('Documentation')
+section('Documentation')
 
 @command
 class Help(Command):

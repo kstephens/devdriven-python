@@ -5,10 +5,10 @@ from devdriven.util import not_implemented
 from devdriven.mime import content_type_for_suffixes
 import tabulate
 import pandas as pd
-from .command import Command, begin_section, command
+from .command import Command, section, command
 from .content import Content
 
-begin_section('Formats')
+section('Formats')
 
 class FormatIn(Command):
   def xform(self, inp, env):

@@ -3,10 +3,10 @@ import pandas as pd
 from devdriven.to_dict import to_dict
 from devdriven.cli.application import app
 from .content import Content
-from .command import Command, command, begin_section
+from .command import Command, command, section
 from .formats import FormatIn
 
-begin_section('I/O')
+section('I/O')
 
 class IoBase(Command):
   def user_agent_headers(self, env):
