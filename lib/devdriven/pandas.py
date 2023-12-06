@@ -138,9 +138,9 @@ def read_tsv(file, **_kwargs):
 def read_json(file, **_kwargs):
   return pd.read_json(file, orient='records', convert_dates=True)
 
-def write_df(dframe, report, dir=None, **_kwargs):
+def write_df(dframe, report, dirpath=None, **_kwargs):
   remove_index(dframe)
-  file = f'{(dir or gen)}/{report}'
+  file = f'{(dirpath or gen)}/{report}'
   msg = f'write_df : {file}.* : {len(dframe)} rows'
   logging.info('###########################################')
   logging.info('%s', f'{msg} : ...')
