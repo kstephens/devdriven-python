@@ -249,7 +249,7 @@ $ psv in a.tsv // grep d 'x' b '3$' // md
 
 @command
 class Translate(Command):
-  '''
+  r'''
   translate - Translate characters.
   aliases: tr
 

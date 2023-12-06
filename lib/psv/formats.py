@@ -53,7 +53,7 @@ class FormatOut(Command):
 
 @command
 class TableIn(FormatIn):
-  '''
+  r'''
   -table - Parse table.
   alias: table-in
 
