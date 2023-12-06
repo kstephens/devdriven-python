@@ -60,24 +60,24 @@ check: test lint mypy
 lint: pylint pycodestyle
 
 pylint:
-	pylint --rcfile ./.pylintrc --recursive=y $(LINT_FILES)
+	pylint --rcfile ./.pylintrc --recursive=y $(wildcard $(LINT_FILES))
 
 pycodestyle:
-	pycodestyle --config=.pycodestyle --show-source --statistics $(LINT_FILES)
+	pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard $(LINT_FILES))
 
 mypy:
 	mkdir -p mypy-report
-	mypy --config-file ./.mypy.ini --strict --txt-report mypy-report $(or $(MYPY_FILES), /dev/null)
+	mypy --config-file ./.mypy.ini --strict --txt-report mypy-report $(wildcard $(or $(MYPY_FILES), /dev/null))
 	cat mypy-report/index.txt
 
 # Unit Test:
 
 test: run-tests
 
-TESTS=
+TEST_FILES=
 run-tests:
 	rm -rf coverage/*
-	coverage run -m pytest --capture=fd --show-capture all $(wildcard $(TESTS)) -vv -rpP
+	coverage run -m pytest --capture=fd --show-capture all $(wildcard $(TEST_FILES)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json
