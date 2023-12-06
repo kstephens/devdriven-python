@@ -133,4 +133,3 @@ class RewriteName(ast.NodeTransformer):
       )
     else:
       return node
-

@@ -323,4 +323,3 @@ $ psv in a.tsv // sql
     if action == 'create-table':
       sql = pd.io.sql.get_schema(inp.reset_index(), table_name)
     writeable.write(sql)
-

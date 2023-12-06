@@ -70,4 +70,3 @@ def with_http_redirects(fun, url, *args, **kwargs):
   if not completed:
     raise Exception("PUT {self.url} : status {response and response.status} : Too many redirects : {max_redirects}")
   return response
-

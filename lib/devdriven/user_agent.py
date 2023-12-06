@@ -49,4 +49,3 @@ class UserAgent():
     if url.scheme in ('', 'file') and not url.host:
       return 'file'
     raise Exception(f"cannot process {url}")
-
