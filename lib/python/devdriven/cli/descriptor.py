@@ -62,9 +62,6 @@ class Descriptor():
   def preferred_suffix(self):
     return self.suffix_list and self.suffix_list[0]
 
-  def x_opt_by_name(self, name, aliases=False):
-    return self.options.opt_by_name(name, aliases)
-
   def get_opt_aliases(self, opt):
     return self.options.get_opt_aliases(opt)
 

@@ -2,10 +2,6 @@ import devdriven.cli.command as cmd
 from devdriven.cli.application import app
 
 class Command(cmd.Command):
-#  def parse_argv(self, argv):
-#    super().parse_argv(argv)
-#    return self
-
   def __call__(self, *args):
     return self.xform(*args)
 

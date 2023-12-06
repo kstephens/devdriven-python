@@ -34,7 +34,6 @@ class Option():
     return result
 
   def parse_alias(self, opt, target):
-    # ic(opt)
     alias = Option().parse_simple(opt)
     alias.style = target.style
     alias.kind = target.kind
