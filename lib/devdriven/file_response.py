@@ -68,7 +68,6 @@ class FileResponse():
           self.write_io = None
       self.closed = True
       self.release_conn()
-    return None
   @property
   def data(self):
     if not self._body_loaded and self._body is None:
@@ -126,7 +125,6 @@ class FileResponse():
   def release_conn(self):
     self.read_io = self.write_io = None
     self.stdin = self.stdout = None
-    return None
   def seek(self, offset, whence=0):
     return self.read_io.seek(offset, whence)
   def stream(self, amt=65536, decode_content=None):
