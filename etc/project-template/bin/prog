@@ -4,7 +4,7 @@ prog_name="$(basename "$0")"
 prog_base="$(readlink -f "$(dirname "$0")/..")"
 PATH="$PATH:$prog_base/bin"
 [[ -f "$prog_base/venv/bin/activate" ]] && . "$prog_base/venv/bin/activate"
-export PYTHONPATH="$prog_base/lib/python:$PYTHONPATH"
+export PYTHONPATH="$prog_base/lib:$PYTHONPATH"
 if [[ "$1" == 'help' ]]
 then
   cat <<EOF

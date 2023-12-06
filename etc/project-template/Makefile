@@ -4,7 +4,7 @@ endif
 base_dir:=$(shell readlink -f .)
 
 PYTHONPATH_ORIG:=$(PYTHONPATH)
-export PYTHONPATH=lib/python:$(PYTHONPATH_ORIG)
+export PYTHONPATH=lib:$(PYTHONPATH_ORIG)
 PYTHON=python3.10
 PYTHON_BIN:=$(shell which $(PYTHON) | head -1)
 VENV_OPTS=--clear
@@ -12,7 +12,7 @@ VENV_OPTS=--clear
 #VENV_OPTS+=--copies
 
 BIN_FILES=$(shell grep -Erl '^\#!.+python' bin)
-LIB_FILES=$(wildcard lib/python/**/*.py)
+LIB_FILES=$(wildcard lib/**/*.py)
 TEST_FILES=$(wildcard tests/**/*.py)
 LINT_FILES=$(BIN_FILES) $(LIB_FILES) $(TEST_FILES)
 MYPY_FILES=$(shell grep -Elr '^ *from typing import ' $(LINT_FILES))
