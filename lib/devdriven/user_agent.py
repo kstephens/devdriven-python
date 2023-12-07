@@ -1,5 +1,6 @@
 import json
 import urllib3
+from devdriven.url import url_normalize, url_scheme
 from devdriven.file_response import FileResponse
 import yurl
 
@@ -16,11 +17,10 @@ class UserAgent():
 
   def request(self, method, url, headers=None, body=None, **kwargs):
     method = method.upper()
-    if isinstance(url, str):
-      url = yurl.URL(url)
-    if self.base_url:
-      url = self.base_url + url
-    scheme = self.url_flavor(url)
+    url = url_normalize(url, self.base_url)
+    scheme = url_scheme(url)
+    if not scheme:
+      raise Exception(f"cannot process {url}")
     headers = (self.headers or {}) | (headers or {})
     for key, val in list(headers.items()):
       if val is None:
@@ -39,11 +39,3 @@ class UserAgent():
       headers = {'Content-Type': 'application/json'} | headers
     return FileResponse().request(method, url, headers, body, **kwargs)
 
-  def url_flavor(self, url):
-    if url.scheme in ('http', 'https'):
-      return 'http'
-    if url.userinfo or url.port or url.query or url.fragment:
-      raise Exception(f"cannot process {url}")
-    if url.scheme in ('', 'file') and not url.host:
-      return 'file'
-    raise Exception(f"cannot process {url}")
