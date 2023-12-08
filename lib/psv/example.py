@@ -21,13 +21,29 @@ class Example(Command):
   --run, -r     | Run examples.
   '''
   def xform(self, _inp, _env):
-    examples = list(flat_map(app.descriptors, lambda cmd: cmd.examples))
+    # ???: move this to cli.application
+    all_descriptors = app.descriptors
+    all_examples = list(flat_map(all_descriptors, lambda cmd: cmd.examples))
+    examples = None
+
     match_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
     def match(x):
       return re.match(match_rx, x)
     def command_matches(cmd):
       return match(cmd.command) or any(map(match, cmd.comments[0:]))
-    examples = list(filter(command_matches, examples))
+    def desc_matches_exactly(desc):
+      if len(self.args) != 1:
+        return False
+      return desc.name == self.args[0] or self.args[0] in desc.aliases
+
+    # Match descriptor exactly?
+    descriptors = list(filter(desc_matches_exactly, all_descriptors))
+    if len(descriptors) == 1:
+      examples = list(flat_map(descriptors, lambda cmd: cmd.examples))
+    else:
+      examples = list(filter(command_matches, all_examples))
+    if not examples:
+      examples = all_examples
     self.run_examples(examples)
 
   def run_examples(self, examples):
