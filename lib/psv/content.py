@@ -1,4 +1,4 @@
-import yurl
+from devdriven.url import url_parse
 from devdriven.user_agent import UserAgent
 
 class Content():
@@ -57,7 +57,7 @@ class Content():
 
 # ???: UserAgent already handle redirects:
 def with_http_redirects(fun, url, *args, **kwargs):
-  next_url = yurl.URL(url)
+  next_url = url_parse(url)
   max_redirects = kwargs.pop('max_redirects', 10)
   redirects = 0
   while completed := redirects <= max_redirects:

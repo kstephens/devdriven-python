@@ -1,7 +1,6 @@
 from io import StringIO
 import os
 import contextlib
-import yurl
 import sys
 from devdriven.user_agent import UserAgent
 from devdriven.file_response import FileResponse
@@ -109,7 +108,7 @@ def file_fut(method, url, headers=None, body=None, **kwargs):
   sys.stderr.flush()
   kwargs['preload_content'] = kwargs.get('preload_content', False)
   fun = FileResponse().request
-  response = assert_response(fun, method, yurl.URL(url), headers, body, **kwargs)
+  response = assert_response(fun, method, url, headers, body, **kwargs)
   # pprint(response)
   if url != '-':
     response = user_agent_fut(method, url, headers, body, **kwargs)

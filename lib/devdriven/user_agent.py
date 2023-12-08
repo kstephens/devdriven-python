@@ -1,15 +1,14 @@
 import json
 import urllib3
-from devdriven.url import url_normalize, url_scheme
+from devdriven.url import url_normalize, url_scheme, url_to_str
 from devdriven.file_response import FileResponse
-import yurl
 
 class UserAgent():
   http_pool_manager = None
 
   def __init__(self, headers=None, base_url=None, http_pool_manager=None):
     self.headers = (headers or {})
-    self.base_url = (base_url and yurl.URL(base_url))
+    self.base_url = url_normalize(base_url)
     self.http_pool_manager = (http_pool_manager or urllib3.PoolManager())
 
   def __call__(self, *args, **kwargs):
@@ -29,7 +28,7 @@ class UserAgent():
 
   # pylint: disable-next=too-many-arguments
   def _request_scheme_http(self, method, url, headers, body, kwargs):
-    return self.http_pool_manager.request(method, str(url), headers=headers, body=body, **kwargs)
+    return self.http_pool_manager.request(method, url_to_str(url), headers=headers, body=body, **kwargs)
 
   # pylint: disable-next=too-many-arguments
   def _request_scheme_file(self, method, url, headers, body, kwargs):

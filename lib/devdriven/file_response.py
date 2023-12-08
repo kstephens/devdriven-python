@@ -8,6 +8,7 @@ from datetime import datetime
 from email.utils import formatdate
 from http.client import responses
 from urllib3 import HTTPHeaderDict
+from devdriven.url import url_normalize
 from devdriven.util import not_implemented
 
 TEXT_IO_CLASSES = (TextIOBase, TextIOWrapper, StringIO)
@@ -39,7 +40,7 @@ class FileResponse():
   def request(self, method, url, headers, body, **kwargs):
     assert self.status is None
     self.request_method = method.upper()
-    self.url = url
+    self.url = url = url_normalize(url)
     headers = (headers or {}).copy()
     self.stdin = headers.pop("X-STDIN", (FileResponse.default_stdin or sys.stdin))
     self.stdout = headers.pop("X-STDOUT", (FileResponse.default_stdout or sys.stdout))
@@ -147,7 +148,7 @@ class FileResponse():
   def write(self, buf):
     if isinstance(buf, bytes):
       encoding = getattr(self.write_io, 'encoding', None) or self.encoding
-      if self._needs_encoding(self.write_io) and not encoding:
+      if not encoding and self._needs_encoding(self.write_io):
         encoding = DEFAULT_ENCODING
       if encoding:
         buf = buf.decode(encoding)

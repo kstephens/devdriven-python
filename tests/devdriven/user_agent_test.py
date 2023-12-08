@@ -1,9 +1,9 @@
 from io import StringIO
 import os
 import contextlib
-import yurl
 from devdriven.user_agent import UserAgent
 from devdriven.file_response import FileResponse
+from devdriven.url import url_parse
 from icecream import ic
 
 TEST_FILE = 'tmp/user-agent-test.csv'
@@ -106,7 +106,7 @@ def test_http_get_200_read():
 
 def file_fut(method, url, headers=None, body=None, **kwargs):
   fun = FileResponse().request
-  response = assert_response(fun, method, yurl.URL(url), headers, body, **kwargs)
+  response = assert_response(fun, method, url, headers, body, **kwargs)
   # pprint(response)
   if url == '-':
     return response
