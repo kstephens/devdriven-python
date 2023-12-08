@@ -1,4 +1,5 @@
 import re
+from tempfile import NamedTemporaryFile
 from devdriven.util import get_safe, glob_to_rx
 import pandas as pd
 
@@ -50,3 +51,25 @@ def parse_col_or_index(cols, arg, check=False):
   if check and not col:
     raise Exception(f"unknown column: {col!r} : available {cols!r}")
   return col
+
+BUF_SIZE = 8192 * 2
+
+def tmp_file_to_writeable(writeable, suffix, fun):
+  with NamedTemporaryFile(suffix=suffix) as tmp:
+    try:
+      fun(tmp.name)
+      with open(tmp.name, "rb") as tmp_io:
+        while buf := tmp_io.read(BUF_SIZE):
+          writeable.write(buf)
+    finally:
+      tmp.close()
+
+def tmp_file_from_readable(readable, suffix, fun):
+  with NamedTemporaryFile(suffix=suffix) as tmp:
+    try:
+      with open(tmp.name, "wb") as tmp_io:
+        while buf := readable.read(BUF_SIZE):
+          tmp_io.write(buf)
+      return fun(tmp.name)
+    finally:
+      tmp.close()
