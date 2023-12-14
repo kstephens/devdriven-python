@@ -1,0 +1,703 @@
+# -table: Parse generic table:
+$ psv in users.txt // -table --fs=':'
+       c1 c2     c3     c4      c5              c6                 c7
+0    root  x      0      0    root           /root          /bin/bash
+1  daemon  x      1      1  daemon       /usr/sbin  /usr/sbin/nologin
+2     bin  x      2      2     bin            /bin  /usr/sbin/nologin
+3     sys  x      3      3     sys            /dev  /usr/sbin/nologin
+4   games  x      5     60   games      /usr/games  /usr/sbin/nologin
+5     man  x      6     12     man  /var/cache/man  /usr/sbin/nologin
+6    mail  x      8      8    mail       /var/mail  /usr/sbin/nologin
+7  backup  x     34     34  backup    /var/backups  /usr/sbin/nologin
+8  nobody  x  65534  65534  nobody    /nonexistent  /usr/sbin/nologin
+9    sshd  x    122  65534               /run/sshd  /usr/sbin/nologin
+
+# -table: Skip users w/o login:
+$ psv in users.txt // -table --fs=':' --skip='.*nologin'
+     c1 c2 c3 c4    c5     c6         c7
+0  root  x  0  0  root  /root  /bin/bash
+
+# -table: Columns named col01, col02, ...:
+$ psv in users.txt // -table --fs=':' --column='col%02d'
+    col01 col02  col03  col04   col05           col06              col07
+0    root     x      0      0    root           /root          /bin/bash
+1  daemon     x      1      1  daemon       /usr/sbin  /usr/sbin/nologin
+2     bin     x      2      2     bin            /bin  /usr/sbin/nologin
+3     sys     x      3      3     sys            /dev  /usr/sbin/nologin
+4   games     x      5     60   games      /usr/games  /usr/sbin/nologin
+5     man     x      6     12     man  /var/cache/man  /usr/sbin/nologin
+6    mail     x      8      8    mail       /var/mail  /usr/sbin/nologin
+7  backup     x     34     34  backup    /var/backups  /usr/sbin/nologin
+8  nobody     x  65534  65534  nobody    /nonexistent  /usr/sbin/nologin
+9    sshd     x    122  65534               /run/sshd  /usr/sbin/nologin
+
+# -table: Split fields by 2 or more whitespace chars:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
+|   Rank | State        |   FIPS Code | Population   |
+|-------:|:-------------|------------:|:-------------|
+|      1 | California   |       06000 | 39,029,342   |
+|      2 | Texas        |       48000 | 30,029,572   |
+|      3 | Florida      |       12000 | 22,244,823   |
+|      4 | New York     |       36000 | 19,677,151   |
+|      5 | Pennsylvania |       42000 | 12,972,008   |
+
+# -tsv, csv: Convert TSV to CSV:
+$ cat a.tsv | psv -tsv // csv-
+a,b,c,d
+1,b1,23.763,xspdf
+2,b2,-98.73,qwer
+3,b3,3451.0,bixop
+1,b4,1.234,zxy
+
+# -tsv, md: Convert TSV to Markdown:
+$ psv in a.tsv // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |
+
+# -tsv: Convert HTTP TSV content to Markdown.
+$ psv in https://tinyurl.com/4sscj338 // -tsv // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |
+
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+[
+  {
+    "a":1,
+    "b":"b1",
+    "c":23.763,
+    "d":"xspdf"
+  },
+  {
+    "a":2,
+    "b":"b2",
+    "c":-98.73,
+    "d":"qwer"
+  },
+  {
+    "a":3,
+    "b":"b3",
+    "c":3451.0,
+    "d":"bixop"
+  },
+  {
+    "a":1,
+    "b":"b4",
+    "c":1.234,
+    "d":"zxy"
+  }
+]
+
+# tsv, csv: Convert TSV to CSV:
+$ psv in a.tsv // -tsv // csv-
+a,b,c,d
+1,b1,23.763,xspdf
+2,b2,-98.73,qwer
+3,b3,3451.0,bixop
+1,b4,1.234,zxy
+
+# md: Convert TSV on STDIN to Markdown:
+$ cat a.tsv | psv -tsv // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |
+
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+[
+  {
+    "a":1,
+    "b":"b1",
+    "c":23.763,
+    "d":"xspdf"
+  },
+  {
+    "a":2,
+    "b":"b2",
+    "c":-98.73,
+    "d":"qwer"
+  },
+  {
+    "a":3,
+    "b":"b3",
+    "c":3451.0,
+    "d":"bixop"
+  },
+  {
+    "a":1,
+    "b":"b4",
+    "c":1.234,
+    "d":"zxy"
+  }
+]
+
+$ psv in a.csv // html // o a.html
+
+$ w3m -dump a.html
+None
+┌─┬──┬─────────┬─────┐
+│a│b │    c    │  d  │
+├─┼──┼─────────┼─────┤
+│1│b1│23.763   │xspdf│
+├─┼──┼─────────┼─────┤
+│2│b2│-98.730  │qwer │
+├─┼──┼─────────┼─────┤
+│3│b3│3451.000 │bixop│
+├─┼──┼─────────┼─────┤
+│1│b4│1.234    │zxy  │
+└─┴──┴─────────┴─────┘
+
+$ psv in users.txt // -table --fs=":" // html // o /tmp/users.html
+
+$ w3m -dump /tmp/users.html
+None
+┌──────┬──┬─────┬─────┬──────┬──────────────┬─────────────────┐
+│  c1  │c2│ c3  │ c4  │  c5  │      c6      │       c7        │
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│root  │x │0    │0    │root  │/root         │/bin/bash        │
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│daemon│x │1    │1    │daemon│/usr/sbin     │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│bin   │x │2    │2    │bin   │/bin          │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sys   │x │3    │3    │sys   │/dev          │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│games │x │5    │60   │games │/usr/games    │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│man   │x │6    │12   │man   │/var/cache/man│/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│mail  │x │8    │8    │mail  │/var/mail     │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│backup│x │34   │34   │backup│/var/backups  │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│nobody│x │65534│65534│nobody│/nonexistent  │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sshd  │x │122  │65534│      │/run/sshd     │/usr/sbin/nologin│
+└──────┴──┴─────┴─────┴──────┴──────────────┴─────────────────┘
+
+# html: Generate HTML:
+$ psv in users.txt // -table --fs=":" // html --no-header // o /tmp/users.html
+
+$ w3m -dump /tmp/users.html
+None
+┌──────┬─┬─────┬─────┬──────┬──────────────┬─────────────────┐
+│root  │x│0    │0    │root  │/root         │/bin/bash        │
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│daemon│x│1    │1    │daemon│/usr/sbin     │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│bin   │x│2    │2    │bin   │/bin          │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sys   │x│3    │3    │sys   │/dev          │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│games │x│5    │60   │games │/usr/games    │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│man   │x│6    │12   │man   │/var/cache/man│/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│mail  │x│8    │8    │mail  │/var/mail     │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│backup│x│34   │34   │backup│/var/backups  │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│nobody│x│65534│65534│nobody│/nonexistent  │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sshd  │x│122  │65534│      │/run/sshd     │/usr/sbin/nologin│
+└──────┴─┴─────┴─────┴──────┴──────────────┴─────────────────┘
+
+# sql: Convert TSV to SQL schema:
+$ psv in a.tsv // sql
+CREATE TABLE "__table__" (
+"index" INTEGER,
+  "a" INTEGER,
+  "b" TEXT,
+  "c" REAL,
+  "d" TEXT
+)
+# in: read from STDIN:
+$ cat a.tsv | psv in -
+a	b	c	d
+1	b1	23.763	xspdf
+2	b2	-98.73	qwer
+3	b3	3451	bixop
+1	b4	1.234	zxy
+
+$ cat a.tsv | psv in
+a	b	c	d
+1	b1	23.763	xspdf
+2	b2	-98.73	qwer
+3	b3	3451	bixop
+1	b4	1.234	zxy
+
+# in: HTTP support:
+$ psv in https://tinyurl.com/4sscj338
+a	b	c	d
+1	b1	23.763	xspdf
+2	b2	-98.73	qwer
+3	b3	3451	bixop
+1	b4	1.234	zxy
+
+# out: Convert TSV to CSV and save to a file:
+$ psv in a.tsv // -tsv // csv- // out a.csv
+
+$ psv in a.csv // yaml
+- a: 1
+  b: b1
+  c: 23.763
+  d: xspdf
+- a: 2
+  b: b2
+  c: -98.73
+  d: qwer
+- a: 3
+  b: b3
+  c: 3451.0
+  d: bixop
+- a: 1
+  b: b4
+  c: 1.234
+  d: zxy
+
+$ psv in a.xlsx // -xls // csv-
+b,c,d
+b1,23.763,xspdf
+b2,-98.73,qwer
+b3,3451.0,bixop
+b4,1.234,zxy
+
+$ psv in a.csv // xls // o a.xlsx
+
+$ file a.xlsx; wc -l a.xlsx
+a.xlsx: Microsoft Excel 2007+
+      22 a.xlsx
+
+# add-sequence (seq): add a column with a sequence:
+$ psv in a.tsv // seq // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       1 |
+|   2 | b2  |  -98.73  | qwer  |       2 |
+|   3 | b3  | 3451     | bixop |       3 |
+|   1 | b4  |    1.234 | zxy   |       4 |
+
+# add-sequence (seq): start at 0:
+$ psv in a.tsv // seq --start=0 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       0 |
+|   2 | b2  |  -98.73  | qwer  |       1 |
+|   3 | b3  | 3451     | bixop |       2 |
+|   1 | b4  |    1.234 | zxy   |       3 |
+
+# add-sequence (seq): step by 2:
+$ psv in a.tsv // seq --step=2 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       1 |
+|   2 | b2  |  -98.73  | qwer  |       3 |
+|   3 | b3  | 3451     | bixop |       5 |
+|   1 | b4  |    1.234 | zxy   |       7 |
+
+# add-sequence (seq): start at 5, step by -2:
+$ psv in a.tsv // seq --start=5 --step=-2 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       5 |
+|   2 | b2  |  -98.73  | qwer  |       3 |
+|   3 | b3  | 3451     | bixop |       1 |
+|   1 | b4  |    1.234 | zxy   |      -1 |
+
+# rename-columns: rename column 'b' to 'B':
+$ psv in a.tsv // rename b B // md
+|   a | None   |        c | d     |
+|----:|:-------|---------:|:------|
+|   1 | b1     |   23.763 | xspdf |
+|   2 | b2     |  -98.73  | qwer  |
+|   3 | b3     | 3451     | bixop |
+|   1 | b4     |    1.234 | zxy   |
+
+# show-columns: show column metadata:
+$ psv in a.tsv // show-columns // md
+|   index | name   | types   |   non_null_counts |
+|--------:|:-------|:--------|------------------:|
+|       0 | a      | int64   |                 4 |
+|       1 | b      | object  |                 4 |
+|       2 | c      | float64 |                 4 |
+|       3 | d      | object  |                 4 |
+
+# env: display proccessing info:
+$ psv in a.tsv // show-columns // md // env-
+{
+  "now": "2023-12-13 23:05:11.303492+0000",
+  "history": [
+    [
+      "<< IoIn: in a.tsv >>",
+      "<< DataFrame: (4, 4) >>",
+      "application/x-pandas-dataframe",
+      null
+    ],
+    [
+      "<< ShowColumns: show-columns >>",
+      "<< DataFrame: (4, 4) >>",
+      "application/x-pandas-dataframe",
+      null
+    ],
+    [
+      "<< MarkdownOut: markdown >>",
+      "<< str: |   index | name   | types   |   non_n... >>",
+      null,
+      null
+    ],
+    [
+      "<< EnvOut: env- >>",
+      null,
+      null,
+      null
+    ]
+  ],
+  "xform": {
+    "first": [
+      "in",
+      "a.tsv"
+    ],
+    "last": [
+      null
+    ],
+    "prev": [
+      null
+    ],
+    "next": [
+      "show-columns"
+    ],
+    "current": [
+      "<< EnvOut: env- >>",
+      null,
+      null,
+      null
+    ]
+  },
+  "Content-Type": "application/x-psv-env",
+  "Content-Encoding": null,
+  "input.paths": [
+    "a.tsv"
+  ]
+}
+# range: select a range of rows:
+$ psv in a.tsv // seq --start=0 // range 1 3 // md
+|   a | b   |       c | d     |   __i__ |
+|----:|:----|--------:|:------|--------:|
+|   2 | b2  |  -98.73 | qwer  |       1 |
+|   3 | b3  | 3451    | bixop |       2 |
+
+# range: every even row:
+$ psv in a.tsv // seq --start=0 // range --step=2 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       0 |
+|   3 | b3  | 3451     | bixop |       2 |
+
+# head:
+$ psv in us-states.txt // -table // head 5 // md
+| c1   | c2         | c3    | c4         | c5         | c6   |
+|:-----|:-----------|:------|:-----------|:-----------|:-----|
+| Rank | State      | FIPS  | Code       | Population |      |
+| 1    | California | 06000 | 39,029,342 |            |      |
+| 2    | Texas      | 48000 | 30,029,572 |            |      |
+| 3    | Florida    | 12000 | 22,244,823 |            |      |
+| 4    | New        | York  | 36000      | 19,677,151 |      |
+
+# tail: last 3 rows:
+$ psv in us-states.txt // -table // tail 3 // md
+|   c1 | c2       | c3    | c4       | c5    | c6      |
+|-----:|:---------|:------|:---------|:------|:--------|
+|   49 | District | of    | Columbia | 11000 | 671,803 |
+|   50 | Vermont  | 50000 | 647,064  |       |         |
+|   51 | Wyoming  | 56000 | 581,381  |       |         |
+
+# reverse:
+$ psv in a.tsv // seq // tac // md
+| a   | b   | c   | d   | __i__   |
+|-----|-----|-----|-----|---------|
+
+# cut: select columns by index and name:
+# cut: remove c, put d before other columns,
+$ psv in a.tsv // cut d '*' c:- // md
+| d     |   a | b   |
+|:------|----:|:----|
+| xspdf |   1 | b1  |
+| qwer  |   2 | b2  |
+| bixop |   3 | b3  |
+| zxy   |   1 | b4  |
+
+# sort: decreasing:
+$ psv in a.tsv // sort -r a // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   3 | b3  | 3451     | bixop |
+|   2 | b2  |  -98.73  | qwer  |
+|   1 | b1  |   23.763 | xspdf |
+|   1 | b4  |    1.234 | zxy   |
+
+# sort: by a decreasing, c increasing,
+# remove c, put d before other columns,
+# create a column i with a seqence
+$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+| d     |   a | b   |   i |
+|:------|----:|:----|----:|
+| bixop |   3 | b3  |  10 |
+| qwer  |   2 | b2  |  15 |
+| zxy   |   1 | b4  |  20 |
+| xspdf |   1 | b1  |  25 |
+
+# grep: match columns by regex:
+$ psv in a.tsv // grep d 'x' // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |
+
+$ psv in a.tsv // grep d '^x' // md
+|   a | b   |      c | d     |
+|----:|:----|-------:|:------|
+|   1 | b1  | 23.763 | xspdf |
+
+$ psv in a.tsv // grep d 'x.+p' // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   3 | b3  | 3451     | bixop |
+
+# grep: match where d contains "x" and b ends with "3":
+$ psv in a.tsv // grep d 'x' b '3$' // md
+|   a | b   |    c | d     |
+|----:|:----|-----:|:------|
+|   3 | b3  | 3451 | bixop |
+
+# translate: change characters in specific field:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
+|   Rank | State          |   FIPS Code |   Population |
+|-------:|:---------------|------------:|-------------:|
+|      1 | California     |       06000 |   39_029_342 |
+|      2 | Texas          |       48000 |   30_029_572 |
+|      3 | Florida        |       12000 |   22_244_823 |
+|      4 | New York       |       36000 |   19_677_151 |
+|      5 | Pennsylvania   |       42000 |   12_972_008 |
+|      6 | Illinois       |       17000 |   12_582_032 |
+|      7 | Ohio           |       39000 |   11_756_058 |
+|      8 | Georgia        |       13000 |   10_912_876 |
+|      9 | North Carolina |       37000 |   10_698_973 |
+|     10 | Michigan       |       26000 |   10_034_113 |
+
+# translate: delete characters:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
+|   Rank | State         |   FIPS Code |   Population |
+|-------:|:--------------|------------:|-------------:|
+|      1 | California    |       06000 |     39029342 |
+|      2 | Texas         |       48000 |     30029572 |
+|      3 | Florida       |       12000 |     22244823 |
+|      4 | NewYork       |       36000 |     19677151 |
+|      5 | Pennsylvania  |       42000 |     12972008 |
+|      6 | Illinois      |       17000 |     12582032 |
+|      7 | Ohio          |       39000 |     11756058 |
+|      8 | Georgia       |       13000 |     10912876 |
+|      9 | NorthCarolina |       37000 |     10698973 |
+|     10 | Michigan      |       26000 |     10034113 |
+
+# stats: basic stats:
+$ psv in a.tsv // -tsv // stats // md
+|        a |         c | stat   |
+|---------:|----------:|:-------|
+| 4        |    4      | count  |
+| 1.75     |  844.317  | mean   |
+| 0.957427 | 1738.6    | std    |
+| 1        |  -98.73   | min    |
+| 1        |  -23.757  | 25%    |
+| 1.5      |   12.4985 | 50%    |
+| 2.25     |  880.572  | 75%    |
+| 3        | 3451      | max    |
+
+# null: does nothing:
+$ psv in a.tsv // null IGNORED --OPTION=VALUE // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |
+
+# Count the number of transfers by Payer:
+$ psv in transfers.csv // count Payer // md
+| Payer   |   count |
+|:--------|--------:|
+| Alice   |       2 |
+| Bob     |       4 |
+| William |       1 |
+
+# Count the number of transfers from Payer to Payee:
+$ psv in transfers.csv // count Payer,Payee // md
+| Payer   | Payee   |   count |
+|:--------|:--------|--------:|
+| Alice   | Frank   |       1 |
+| Alice   | Joe     |       1 |
+| Bob     | Alice   |       3 |
+| Bob     | Joe     |       1 |
+| William | Rich    |       1 |
+
+# Count the number of transfers from Payee:
+$ psv in transfers.csv // count --column=PayeeTransfers Payee // md
+| Payee   |   PayeeTransfers |
+|:--------|-----------------:|
+| Alice   |                3 |
+| Frank   |                1 |
+| Joe     |                2 |
+| Rich    |                1 |
+
+# Summary of transfers by Payer and Payee:
+$ psv in transfers.csv // summary Amount '*' Payer,Payee
+     Payer  Payee  Amount_count  ...  Amount_std  Amount_max  Amount_skew
+0    Alice  Frank             1  ...         NaN       10.99          NaN
+1    Alice    Joe             1  ...         NaN       45.23          NaN
+2      Bob  Alice             3  ...    53.84756      100.00      1.66034
+3      Bob    Joe             1  ...         NaN       30.25          NaN
+4  William   Rich             1  ...         NaN        9.33          NaN
+
+[5 rows x 10 columns]
+
+# Summary of transfers by Payer:
+$ psv in transfers.csv // summary Amount count,sum Payer
+     Payer  Amount_count  Amount_sum
+0    Alice             2       56.22
+1      Bob             4      144.58
+2  William             1        9.33
+
+# Sum of Fee by Payee:
+$ psv in transfers.csv // summary Fee sum Payee
+   Payee  Fee_sum
+0  Alice    15.70
+1  Frank     1.01
+2    Joe     3.75
+3   Rich     0.25
+
+# Summary of all transfer Ammount and Fee:
+$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+    index  Amount_count  Amount_sum  ...   Fee_std  Fee_max  Fee_skew
+0  Amount           7.0      210.13  ...       NaN      NaN       NaN
+1     Fee           NaN         NaN  ...  5.369561     15.0  2.527704
+
+[2 rows x 17 columns]
+
+# Extract by names:
+$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+| login   |
+|:--------|
+| root    |
+| daemon  |
+| bin     |
+| sys     |
+| games   |
+| man     |
+| mail    |
+| backup  |
+| nobody  |
+| sshd    |
+
+$ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
+| login   | rest                                                |
+|:--------|:----------------------------------------------------|
+| root    | x:0:0:root:/root:/bin/bash                          |
+| daemon  | x:1:1:daemon:/usr/sbin:/usr/sbin/nologin            |
+| bin     | x:2:2:bin:/bin:/usr/sbin/nologin                    |
+| sys     | x:3:3:sys:/dev:/usr/sbin/nologin                    |
+| games   | x:5:60:games:/usr/games:/usr/sbin/nologin           |
+| man     | x:6:12:man:/var/cache/man:/usr/sbin/nologin         |
+| mail    | x:8:8:mail:/var/mail:/usr/sbin/nologin              |
+| backup  | x:34:34:backup:/var/backups:/usr/sbin/nologin       |
+| nobody  | x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin |
+| sshd    | x:122:65534::/run/sshd:/usr/sbin/nologin            |
+
+# Extract unnamed group:
+$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+| login   | c2                                                   |
+|:--------|:-----------------------------------------------------|
+| root    | :x:0:0:root:/root:/bin/bash                          |
+| daemon  | :x:1:1:daemon:/usr/sbin:/usr/sbin/nologin            |
+| bin     | :x:2:2:bin:/bin:/usr/sbin/nologin                    |
+| sys     | :x:3:3:sys:/dev:/usr/sbin/nologin                    |
+| games   | :x:5:60:games:/usr/games:/usr/sbin/nologin           |
+| man     | :x:6:12:man:/var/cache/man:/usr/sbin/nologin         |
+| mail    | :x:8:8:mail:/var/mail:/usr/sbin/nologin              |
+| backup  | :x:34:34:backup:/var/backups:/usr/sbin/nologin       |
+| nobody  | :x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin |
+| sshd    | :x:122:65534::/run/sshd:/usr/sbin/nologin            |
+
+# Extract unnamed groups using a template:
+$ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+| login   | group-2                                              |
+|:--------|:-----------------------------------------------------|
+| root    | :x:0:0:root:/root:/bin/bash                          |
+| daemon  | :x:1:1:daemon:/usr/sbin:/usr/sbin/nologin            |
+| bin     | :x:2:2:bin:/bin:/usr/sbin/nologin                    |
+| sys     | :x:3:3:sys:/dev:/usr/sbin/nologin                    |
+| games   | :x:5:60:games:/usr/games:/usr/sbin/nologin           |
+| man     | :x:6:12:man:/var/cache/man:/usr/sbin/nologin         |
+| mail    | :x:8:8:mail:/var/mail:/usr/sbin/nologin              |
+| backup  | :x:34:34:backup:/var/backups:/usr/sbin/nologin       |
+| nobody  | :x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin |
+| sshd    | :x:122:65534::/run/sshd:/usr/sbin/nologin            |
+
+$ psv in a.tsv // eval "c *= 2"
+   a   b       c      d
+0  1  b1  47.526  xspdf
+1  2  b2 -197.46   qwer
+2  3  b3  6902.0  bixop
+3  1  b4   2.468    zxy
+
+$ psv in a.tsv // eval "return c > 0"
+   a   b       c      d
+0  1  b1  23.763  xspdf
+1  3  b3  3451.0  bixop
+2  1  b4   1.234    zxy
+
+$ psv in a.tsv // eval "return {'i': offset, 'd_length': 2}"
+   a   b         c      d  i  d_length
+0  1  b1    23.763  xspdf  0         2
+1  2  b2   -98.730   qwer  1         2
+2  3  b3  3451.000  bixop  2         2
+3  1  b4     1.234    zxy  3         2
+
+$ psv in a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
+   a   b         c      d  f
+0  1  b1    47.526  xspdf  5
+1  2  b2  -197.460   qwer  4
+2  3  b3  6902.000  bixop  5
+3  1  b4     2.468    zxy  3
+
+$ psv in a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
+   a   b       c  dCamelCase
+0  1  b1  23.763  xspdfxspdf
+1  2  b2  -98.73    qwerqwer
+2  3  b3  3451.0  bixopbixop
+3  1  b4   1.234      zxyzxy
+
+$ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
+   a   b       c  dCamelCase
+0  1  b1  23.763  xspdfxspdf
+1  2  b2  -98.73    qwerqwer
+2  3  b3  3451.0  bixopbixop
+3  1  b4   1.234      zxyzxy
+
+$ psv in a.tsv // select "c > 0"
+   a   b       c      d
+0  1  b1  23.763  xspdf
+1  3  b3  3451.0  bixop
+2  1  b4   1.234    zxy
+
