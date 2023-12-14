@@ -1,9 +1,11 @@
-from devdriven.url import url_parse
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from devdriven.url import url_normalize, url_join, url_is_file, url_is_stdio
 from devdriven.user_agent import UserAgent
 
 class Content():
   def __init__(self, url=None, headers=None, encoding=None):
-    self.url = url
+    self.url = url_normalize(url)
     self.headers = headers or {}
     self.encoding = encoding
     self._body = None
@@ -57,14 +59,14 @@ class Content():
 
 # ???: UserAgent already handle redirects:
 def with_http_redirects(fun, url, *args, **kwargs):
-  next_url = url_parse(url)
+  next_url = url_normalize(url)
   max_redirects = kwargs.pop('max_redirects', 10)
   redirects = 0
   while completed := redirects <= max_redirects:
     response = fun(next_url, *args, **kwargs)
     if response.status == 301:
       redirects += 1
-      next_url = next_url + response.header['Location']
+      next_url = url_join(next_url, response.header['Location'])
     else:
       break
   if not completed:

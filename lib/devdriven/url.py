@@ -21,6 +21,9 @@ def url_is_file(url):
     return 'file'
   return False
 
+def url_is_stdio(url):
+  return not url_is_http(url) and url.path == '-' and '-'
+
 def url_scheme(url):
   return url_is_http(url) or url_is_file(url)
 
