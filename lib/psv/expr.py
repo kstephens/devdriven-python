@@ -78,7 +78,7 @@ class Eval(Command):
       row = row.to_dict()
       new_row = row | result
       if len(new_row) > len(out.columns):
-        for col in set(result.keys()).difference(set(out.columns)):
+        for col in [col for col in result.keys() if col not in out.columns]:
           # self.log('debug', 'inserting %s', repr(col))
           out.insert(len(out.columns), col, None)
       out.loc[len(out)] = new_row
