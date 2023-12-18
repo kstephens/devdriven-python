@@ -144,8 +144,7 @@ def file_size(path: str, default: Any = None) -> Any:
 
 def file_nlines(path: str, default: Any = None) -> Union[int, Any]:
   last_byte = None
-  byte_count = 0
-  count = 1
+  count = byte_count = 0
   try:
     with open(path, 'rb') as input_io:
       while buf := input_io.read(8192):
@@ -156,11 +155,9 @@ def file_nlines(path: str, default: Any = None) -> Union[int, Any]:
     return default
   if byte_count == 0:
     return 0
-  if byte_count == 1 and last_byte == b'\n'[0]:
-    return 1
   if last_byte and last_byte == b'\n'[0]:
-    return count - 1
-  return count
+    return count
+  return count + 1
 
 def first(iterable: Iterable[Any], condition: Predicate = lambda x: True, default: Any = None) -> Any:
   for elem in iterable:
