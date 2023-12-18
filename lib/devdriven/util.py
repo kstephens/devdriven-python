@@ -235,9 +235,9 @@ def printe(x):
 def glob_to_rx(glob, glob_terminator=None):
   assert not glob_terminator
   rx = glob
-  rx = rx.replace('.', r'\.')
-  rx = rx.replace('*', r'.*')
-  rx = rx.replace('?', r'.')
+  rx = rx.replace('.', r'[^/]')
+  rx = rx.replace('*', r'[^/]*')
+  rx = rx.replace('?', r'[^/][^/]?')
   return re.compile(r'^' + rx + r'$')
 
 def set_from_match(obj, match : re.Match):

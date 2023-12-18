@@ -1,5 +1,6 @@
 import subprocess
 import time
+import re
 import devdriven.util as util
 
 def test_maybe_decode_bytes():
@@ -94,6 +95,32 @@ def test_parse_range():
   assert util.parse_range("-5:-2", n) == range(18, 21, 1)
   assert util.parse_range("-2:-5", n) == range(21, 18, -1)
   assert util.parse_range("2:10:3", n) == range(2, 10, 3)
+
+def test_glob_to_rx():
+  def fut(glob, path, **args):
+    rx = util.glob_to_rx(glob, **args)
+    return re.match(rx, path) is not None
+  assert fut('', '') is True
+  assert fut('.', '') is False
+  assert fut('.', 'x') is True
+  assert fut('.', '.') is True
+  assert fut('.', '/') is False
+  assert fut('a.',  'a.') is True
+  assert fut('a.*', 'a.') is True
+  assert fut('a.*', 'a.b') is True
+  assert fut('a.*', 'a.bc') is True
+  assert fut('*.',  'a.') is True
+  assert fut('*.*', 'a.') is True
+  assert fut('*.*', 'a.b') is True
+  assert fut('*.*', 'a.bc') is True
+  assert fut('a/b.c', '*.c') is False
+  assert fut('a/b.c', 'a/b.c') is True
+  assert fut('*/b.c', 'a/b.c') is True
+  assert fut('a*/b.c', 'a/b.c') is True
+  assert fut('a*/b.c', 'x/b.c') is False
+  assert fut('a*/b.c', '/b.c') is False
+  assert fut('d/a*/b.c', 'ad/b.c') is False
+  assert fut('d/a*/b.c', 'd/a/b.c') is True
 
 def test_wrap_word():
   def fut(words):
