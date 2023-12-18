@@ -155,7 +155,7 @@ def file_nlines(path: str, default: Any = None) -> Union[int, Any]:
     return default
   if byte_count == 0:
     return 0
-  if last_byte and last_byte == b'\n'[0]:
+  if last_byte == b'\n'[0]:
     return count
   return count + 1
 
