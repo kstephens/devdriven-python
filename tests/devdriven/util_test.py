@@ -73,6 +73,7 @@ def test_file_nlines():
       tmp.write(buf)
       tmp.flush()
       actual = util.file_nlines(tmp.name, *args)
+      tmp.close()
     assert (buf, actual) == (buf, expected)
   fut(b'', 0)
   fut(b'\n', 1)
