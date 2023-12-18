@@ -29,10 +29,8 @@ def shorten_string(a_str, max_len, placeholder='...'):
   return a_str
 
 def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optional[str]:
-  if obj is None:
-    return None
   try:
-    return obj.decode(encoding)
+    return obj and obj.decode(encoding)
   except UnicodeDecodeError:
     return None
 
@@ -145,14 +143,24 @@ def file_size(path: str, default: Any = None) -> Any:
     return default
 
 def file_nlines(path: str, default: Any = None) -> Union[int, Any]:
-  lines = read_file(path)
-  if lines is None:
+  last_byte = None
+  byte_count = 0
+  count = 1
+  try:
+    with open(path, 'rb') as input_io:
+      while buf := input_io.read(8192):
+        last_byte = buf[-1]
+        count += buf.count(b'\n')
+        byte_count += len(buf)
+  except OSError:
     return default
-  if len(lines) == 0:
+  if byte_count == 0:
     return 0
-  if lines[-1] != b'\n'[0]:
-    lines += b'\n'
-  return lines.count(b'\n')
+  if byte_count == 1 and last_byte == b'\n'[0]:
+    return 1
+  elif last_byte and last_byte == b'\n'[0]:
+    return count - 1
+  return count
 
 def first(iterable: Iterable[Any], condition: Predicate = lambda x: True, default: Any = None) -> Any:
   for elem in iterable:

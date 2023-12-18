@@ -1,6 +1,7 @@
 import subprocess
 import time
 import re
+import tempfile
 import devdriven.util as util
 
 def test_maybe_decode_bytes():
@@ -67,6 +68,22 @@ def test_file_md5():
   assert util.file_md5('Does-Not-Exist') is None
 
 def test_file_nlines():
+  def fut(buf, expected, *args):
+    with tempfile.NamedTemporaryFile() as tmp:
+      tmp.write(buf)
+      tmp.flush()
+      actual = util.file_nlines(tmp.name, *args)
+    assert (buf, actual) == (buf, expected)
+  fut(b'', 0)
+  fut(b'\n', 1)
+  fut(b'\n\n', 2)
+  fut(b'1', 1)
+  fut(b'1\n', 1)
+  fut(b'1\n2', 2)
+  fut(b'1\n2\n', 2)
+  fut(b'1\n2\n\3', 3)
+  fut(b'1\n2\n\n', 3)
+  fut(b'1\n2\n\n ', 4)
   assert util.file_nlines('tests/devdriven/data/expected.txt', default=2) == 11
   assert util.file_nlines('/dev/null', default=3) == 0
   assert util.file_nlines('Does-Not-Exist', default=5) == 5
