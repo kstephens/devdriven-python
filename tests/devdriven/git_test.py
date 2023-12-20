@@ -59,6 +59,8 @@ def setup_module():
 rm -rf .git *.txt
 ls -la
 git init
+git config user.email "$USER@$(hostname).test.invalid"
+git config user.name  "$USER git_test.py"
 
 touch a.txt
 git add .
