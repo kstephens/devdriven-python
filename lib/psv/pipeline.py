@@ -12,12 +12,14 @@ class Pipeline(command.Command):
   def parse_argv(self, argv):
     self.xforms = []
     xform_argv = []
+
     def parse_xform(argv):
       if argv:
         xform = self.make_xform(argv)
         self.xforms.append(xform)
         return xform
       return None
+
     depth = 0
     for arg in argv:
       if arg == '{{':
@@ -41,15 +43,16 @@ class Pipeline(command.Command):
     xform_output = xform_input = inp
     i = 0
     for xform in self.xforms:
-      current = [ describe_datum(xform), None, None, None ]
+      current = [describe_datum(xform), None, None, None]
       history.append(current)
       xform_input = xform_output
       try:
-        env['xform'].update({'first': get_safe(self.xforms, 0),
-                             'last': get_safe(self.xforms, -1),
-                             'prev': get_safe(self.xforms, i - 1),
-                             'next': get_safe(self.xforms, i + 1),
-                             'current': current,
+        env['xform'].update({
+          'first': get_safe(self.xforms, 0),
+          'last': get_safe(self.xforms, -1),
+          'prev': get_safe(self.xforms, i - 1),
+          'next': get_safe(self.xforms, i + 1),
+          'current': current,
         })
         xform_output = xform.xform(xform_input, env)
       except Exception as exc:

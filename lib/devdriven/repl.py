@@ -15,7 +15,7 @@ def start_repl(bindings):
     readline.set_completer(rlcompleter.Completer(bindings).complete)
     readline.parse_and_bind("tab: complete")
     # pylint: disable-next=exec-used
-    sys.displayhook = lambda x: exec(['_=x; pprint(x)','pass'][x is None])
+    sys.displayhook = lambda x: exec(['_=x; pprint(x)', 'pass'][x is None])
     return code.InteractiveConsole(locals=bindings).interact()
   finally:
     sys.displayhook = sys_displayhook_save

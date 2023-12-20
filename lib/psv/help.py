@@ -23,12 +23,15 @@ class Help(Command):
     if self.args:
       pattern = '|'.join([f' {arg} ' for arg in self.args])
       rx = re.compile(f'(?i).*({pattern}).*')
+
       def match_precise(desc):
         slug = '  '.join(['', desc.name, desc.brief] + desc.aliases + [''])
         return re.match(rx, slug)
+
       def match_soft(desc):
         slug = '  '.join(['', desc.brief, ''])
         return re.match(rx, slug)
+
       commands = list(filter(match_precise, all_commands))
       if not commands:
         commands = list(filter(match_soft, all_commands))
@@ -37,14 +40,16 @@ class Help(Command):
   def do_commands(self, commands, env):
     if self.opt(('raw', 'r'), False):
       return self.do_commands_raw(commands, env)
-    if self.opt(('plain','p'), False) or len(self.args) == 1:
+    if self.opt(('plain', 'p'), False) or len(self.args) == 1:
       return self.do_commands_plain(commands, env)
     return self.do_commands_table(commands, env)
 
   def do_commands_table(self, commands, env):
     tab = pd.DataFrame(columns=['command', 'description'])
+
     def row(*cols):
       tab.loc[len(tab.index)] = cols
+
     def emit_opts(title, items):
       if items:
         row('', '')
@@ -53,6 +58,7 @@ class Help(Command):
         rows = self.items_to_rows(items)
         for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
           row('', '  ' + line)
+
     sec = None
     for desc in commands:
       if sec != desc.section:
@@ -82,8 +88,10 @@ class Help(Command):
 
   def do_commands_plain(self, commands, _env):
     lines = []
+
     def row(*cols):
       lines.append(''.join(cols))
+
     def emit_opts(title, items):
       if items:
         row('', '')
@@ -93,6 +101,7 @@ class Help(Command):
         for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
           line = line[1:]
           row('  ', line)
+
     attrs = list(DEFAULTS.keys())
     for desc in commands:
       # row('', "'''")

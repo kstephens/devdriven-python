@@ -11,6 +11,7 @@ from . import metadata
 from . import extract
 from . import expr
 from . import repl
+# pylint: disable-next=redefined-builtin
 from . import help
 from . import example
 install()

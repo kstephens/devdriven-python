@@ -41,10 +41,12 @@ class Extract(Command):
 
 def extract_rows(rx, cols, inds, recs):
   rows = []
+
   def parse_rec(rec):
     if m := re.match(rx, str(rec)):
-      row = [ m.group(i) for i in inds ]
+      row = [m.group(i) for i in inds]
       rows.append(row)
+
   for rec in recs:
     parse_rec(rec)
   return pd.DataFrame(columns=cols, data=rows)

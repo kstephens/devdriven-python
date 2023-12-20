@@ -31,9 +31,9 @@ $ psv in a.tsv // seq --start=5 --step=-2 // md
 
   '''
   def xform(self, inp, _env):
-    col   = str(self.arg_or_opt(0, 'column', '__i__'))
+    col = str(self.arg_or_opt(0, 'column', '__i__'))
     start = int(self.arg_or_opt(1, 'start', 1))
-    step  = int(self.arg_or_opt(2, 'step', 1))
+    step = int(self.arg_or_opt(2, 'step', 1))
     seq = range(start, start + len(inp) * step, step)
     out = inp.copy()
     out[col] = seq
@@ -97,16 +97,22 @@ class Coerce(Command):
     for col, typ in col_types:
       out[col] = self.coercer(typ)(out[col])
     return out
+
   def coercer(self, typ):
     return getattr(self, f'_convert_to_{typ}')
+
   def _convert_to_numeric(self, seq):
     return pd.to_numeric(seq, errors='ignore')
+
   def _convert_to_int(self, seq):
     return pd.to_numeric(seq, downcast='integer', errors='ignore')
+
   def _convert_to_float(self, seq):
     return pd.to_numeric(seq, downcast='float', errors='ignore')
+
   def _convert_to_str(self, seq):
     return map(str, seq.tolist())
+
   def _convert_to_datetime(self, seq):
     return pd.to_datetime(seq,
                           errors='ignore',
@@ -128,7 +134,7 @@ $ psv in a.tsv // show-columns // md
     out = get_dataframe_info(inp)
     out.reset_index(inplace=True)
     out['index'] = out.index
-    out = out.rename(columns={'features':'name'})
+    out = out.rename(columns={'features': 'name'})
     return out
 
 def get_dataframe_info(dframe):

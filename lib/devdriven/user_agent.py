@@ -37,4 +37,3 @@ class UserAgent():
       body = json.dumps(json_body).encode()
       headers = {'Content-Type': 'application/json'} | headers
     return FileResponse().request(method, url, headers, body, **kwargs)
-

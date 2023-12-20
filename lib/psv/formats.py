@@ -14,10 +14,10 @@ class FormatIn(Command):
   def xform(self, inp, env):
     if isinstance(inp, pd.DataFrame):
       return inp
-    # TODO: reduce(concat,map(FormatIn,map(read, inputs)))
+    # ???: reduce(concat,map(FormatIn,map(read, inputs)))
     env['Content-Type'] = 'application/x-pandas-dataframe'
     env['Content-Encoding'] = None
-    # TODO: handle streaming:
+    # ???: handle streaming:
     if isinstance(inp, str):
       if encoding := self.default_encoding():
         readable = StringIO(inp)
@@ -26,26 +26,31 @@ class FormatIn(Command):
     if isinstance(inp, Content):
       readable = inp.response()
     return self.format_in(readable, env)
+
   def default_encoding(self):
     return 'utf-8'
+
   def format_in(self, _io, _env):
     not_implemented()
 
 class FormatOut(Command):
   def xform(self, inp, env):
     self.setup_env(inp, env)
-    # TODO: handle streaming:
+    # ???: handle streaming:
     if self.default_encoding():
       out = StringIO()
     else:
       out = BytesIO()
     self.format_out(inp, env, out)
     return out.getvalue()
+
   def setup_env(self, _inp, env):
     desc = self.command_descriptor()
     (env['Content-Type'], env['Content-Encoding']) = content_type_for_suffixes(desc.suffix_list)
+
   def default_encoding(self):
     return 'utf-8'
+
   def format_out(self, _inp, _env, _writable):
     not_implemented()
 
@@ -252,6 +257,7 @@ class PickleIn(FormatIn):
   '''
   def default_encoding(self):
     return None
+
   def format_in(self, readable, _env):
     return pd.read_pickle(readable, compression='xz')
 
@@ -265,9 +271,11 @@ class PickleOut(FormatOut):
   '''
   def default_encoding(self):
     return None
+
   def setup_env(self, inp, env):
     super().setup_env(inp, env)
     env['Content-Type'] = 'application/x-pandas-dataframe-pickle'
+
   def format_out(self, inp, _env, writeable):
     inp.to_pickle(writeable, compression='xz')
 

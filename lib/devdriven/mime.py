@@ -2,7 +2,7 @@ import mimetypes
 import re
 from pathlib import Path
 
-SUFFIX_RX=re.compile(r'(?:^|/)[^.]+(\.[^/]+)$')
+SUFFIX_RX = re.compile(r'(?:^|/)[^.]+(\.[^/]+)$')
 def short_and_long_suffix(path):
   short_suffix = long_suffix = Path(path).suffix
   if m := re.match(SUFFIX_RX, str(path)):

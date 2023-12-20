@@ -24,8 +24,10 @@ $ psv in a.xlsx // -xls // csv-
   def format_in(self, readable, _env):
     # pylint: disable-next=import-outside-toplevel
     from openpyxl import load_workbook
+
     def read_workbook(filename):
       return load_workbook(filename=filename)
+
     workbook = tmp_file_from_readable(readable, '.xlsx', read_workbook)
     sheet_id = self.opt('sheet-name', 0)
     worksheet = workbook.worksheets[sheet_id]
@@ -39,6 +41,7 @@ $ psv in a.xlsx // -xls // csv-
     else:
       out = pd.DataFrame(worksheet.values)
     return out
+
   def default_encoding(self):
     return None
 
@@ -68,13 +71,16 @@ $ file a.xlsx; wc -l a.xlsx
     index = bool(self.opt('index', False))
     workbook = Workbook()
     worksheet = workbook.active
+
     def save_workbook(tmp_file):
       workbook.save(tmp_file)
+
     if isinstance(inp, pd.DataFrame):
       for row in dataframe_to_rows(inp, index=index, header=header):
         worksheet.append(row)
       tmp_file_to_writeable(writeable, '.xls', save_workbook)
     else:
       raise Exception("xls-out: cannot format {type(inp)}")
+
   def default_encoding(self):
     return None

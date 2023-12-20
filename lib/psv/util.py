@@ -52,6 +52,7 @@ def parse_col_or_index(cols, arg, check=False):
     raise Exception(f"unknown column: {col!r} : available {cols!r}")
   return col
 
+
 BUF_SIZE = 8192 * 2
 
 def tmp_file_to_writeable(writeable, suffix, fun):

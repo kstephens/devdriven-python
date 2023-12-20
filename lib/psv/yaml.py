@@ -23,9 +23,9 @@ $ psv in a.csv // yaml
     if isinstance(inp, pd.DataFrame):
       for _ind, row in inp.reset_index(drop=True).iterrows():
         yaml.dump([row.to_dict()], writeable,
-                sort_keys=False,
-                default_flow_style=False, allow_unicode=True)
+                  sort_keys=False,
+                  default_flow_style=False, allow_unicode=True)
     else:
       yaml.dump(inp, writeable,
-              sort_keys=False,
-              default_flow_style=False, allow_unicode=True)
+                sort_keys=False,
+                default_flow_style=False, allow_unicode=True)

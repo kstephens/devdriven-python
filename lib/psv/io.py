@@ -72,7 +72,7 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
       self.args.append('-')
     env['output.paths'] = list(map(str, self.args))
     headers = self.user_agent_headers(env)
-    # TODO: streaming:
+    # ???: implement streaming:
     if isinstance(inp, str):
       body = inp.encode('utf-8')
     elif isinstance(inp, bytes):

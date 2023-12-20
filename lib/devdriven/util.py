@@ -34,6 +34,7 @@ def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optiona
   except UnicodeDecodeError:
     return None
 
+
 # See: https://en.wikipedia.org/wiki/ISO_8601
 DATETIME_ISO8601_FMT = '%Y-%m-%d %H:%M:%S.%f%z'
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
@@ -44,9 +45,9 @@ def datetime_iso8601(dt: Any, tz=None) -> Union[str, Any]:
   return (dt and dt.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT))
 
 def convert_windows_timestamp_to_iso8601(ts_str):
-# pylint: disable-next=invalid-name
+  # pylint: disable-next=invalid-name
   ts = int(ts_str) / 1000
-# pylint: disable-next=invalid-name
+  # pylint: disable-next=invalid-name
   dt = datetime.fromtimestamp(ts)
   return datetime_iso8601(dt)
 
@@ -245,7 +246,7 @@ def glob_to_rx(glob, glob_terminator=None):
   rx = rx.replace('?', r'[^/][^/]?')
   return re.compile(r'^' + rx + r'$')
 
-def set_from_match(obj, match : re.Match):
+def set_from_match(obj, match: re.Match):
   setattr_from_dict(obj, match.groupdict())
 
 def setattr_from_dict(obj, attrs):
@@ -293,5 +294,5 @@ def module_fullname(obj):
   klass = obj.__class__
   module = klass.__module__
   if module == 'builtins':
-    return klass.__qualname__ # avoid outputs like 'builtins.str'
+    return klass.__qualname__  # avoid outputs like 'builtins.str'
   return module + '.' + klass.__qualname__

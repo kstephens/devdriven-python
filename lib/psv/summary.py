@@ -35,7 +35,8 @@ class Count(Command):
 
 @command
 class Summary(Command):
-  '''
+  # pylint: disable=line-too-long
+  r'''
   summary - Summary of column values.
 
   COL,... [STAT,...] [GROUP-BY,...]    |  COLs to summarize STATs grouped by GROUP-BY
@@ -57,6 +58,7 @@ class Summary(Command):
   $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
 
   '''
+  # pylint: enable=line-too-long
   def xform(self, inp, _env):
     cols = get_safe(self.args, 0, '').split(',')
     cols = select_columns(inp, cols, check=True)

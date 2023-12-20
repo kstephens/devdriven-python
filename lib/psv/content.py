@@ -1,6 +1,6 @@
-from pathlib import Path
-from tempfile import NamedTemporaryFile
-from devdriven.url import url_normalize, url_join, url_is_file, url_is_stdio
+# from pathlib import Path
+# from tempfile import NamedTemporaryFile
+from devdriven.url import url_normalize, url_join  # , url_is_file, url_is_stdio
 from devdriven.user_agent import UserAgent
 
 class Content():
@@ -14,8 +14,10 @@ class Content():
 
   def __repr__(self):
     return f'Content(url={self.url!r})'
+
   def __str__(self):
     return self.content()
+
   def to_dict(self):
     return repr(self)
 
@@ -38,8 +40,10 @@ class Content():
   def response(self):
     if self._response:
       return self._response
+
     def do_get(url):
       return UserAgent().request('get', url, headers=self.headers, preload_content=False)
+
     response = with_http_redirects(do_get, self.url)
     if not response.status == 200:
       raise Exception(f'GET {self.url} : status {response.status}')
@@ -50,8 +54,10 @@ class Content():
     if isinstance(body, str):
       body = body.encode(self.encoding or 'utf-8')
     headers = self.headers | (headers or {})
+
     def do_put(url, body):
       return UserAgent().request('put', url, body=body, headers=headers)
+
     self._response = with_http_redirects(do_put, self.url, body)
     if not 200 <= self._response.status <= 299:
       raise Exception("{url} : unexpected status : {self._response.status}")

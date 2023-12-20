@@ -4,7 +4,7 @@ import contextlib
 import sys
 from devdriven.user_agent import UserAgent
 from devdriven.file_response import FileResponse
-from icecream import ic
+# from icecream import ic
 
 TEST_FILE = 'tmp/user-agent-test.csv'
 
@@ -22,6 +22,7 @@ def test_file_put_201_create():
 def test_file_get_200_created():
   response = file_fut('get', TEST_FILE)
   assert response.status == 200
+  # pylint: disable-next=protected-access
   assert response._body is None
   body = response.read()
   assert body >= b'OK\n'
@@ -31,6 +32,7 @@ def test_file_get_200_created():
 def test_file_get_200_created_preload():
   response = file_fut('get', TEST_FILE, preload_content=True)
   assert response.status == 200
+  # pylint: disable-next=protected-access
   assert response._body >= b'OK\n'
   assert response.read() >= b''
   assert response.headers['Content-Type'] == 'text/csv'
@@ -48,6 +50,7 @@ def xtest_file_get_200_changed():
   assert response.status == 200
   assert 'ETag' in response.headers
   assert response.headers['Content-Type'] == 'text/csv'
+  # pylint: disable-next=protected-access
   assert response._body >= b'CHANGED\n'
 
 def test_file_get_403_unreadable():
@@ -95,6 +98,7 @@ def test_file_put_stdout():
 def test_http_get_200():
   response = user_agent_fut('get', 'https://github.com/')
   assert response.status == 200
+  # pylint: disable-next=protected-access
   assert len(response._body) >= 100
   body = response.read()
   assert len(body) == 0

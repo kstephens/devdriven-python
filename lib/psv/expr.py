@@ -67,6 +67,7 @@ class Eval(Command):
 
   def create_expr(self):
     return ';'.join(self.args + ['return None'])
+
   def process_row(self, _inp, row, out, result):
     if result is True or result is None:
       out.loc[len(out)] = row
@@ -100,13 +101,15 @@ class Select(Eval):
   '''
   def create_expr(self):
     return ';'.join(self.args[0:-2] + ['return ' + self.args[-1]])
+
   def process_row(self, _inp, row, out, result):
     if result:
       out.loc[len(out)] = row
 
-COUNTER=[0]
 
-def make_expr_fun(expr: str, ident_to_column : dict):
+COUNTER = [0]
+
+def make_expr_fun(expr: str, ident_to_column: dict):
   COUNTER[0] += 1
   name = f'_psv_Eval_eval_{os.getpid()}_{COUNTER[0]}'
   expr = f'def {name}(inp, env, out, ind, row, offset):\n  {expr}\n'
@@ -119,12 +122,13 @@ def make_expr_fun(expr: str, ident_to_column : dict):
 def rewrite(expr: str, ident_to_column: dict):
   parsed = ast.parse(expr, mode='exec')
   rewriter = RewriteName(ident_to_column)
-  rewritten= rewriter.visit(parsed)
+  rewritten = rewriter.visit(parsed)
   return ast.unparse(rewritten)
 
 @dataclass
 class RewriteName(ast.NodeTransformer):
   ident_to_column: dict
+
   # pylint: disable-next=invalid-name
   def visit_Name(self, node):
     if col := self.ident_to_column.get(node.id, None):

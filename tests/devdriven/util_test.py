@@ -2,7 +2,7 @@ import subprocess
 import time
 import re
 import tempfile
-import devdriven.util as util
+from devdriven import util
 
 def test_maybe_decode_bytes():
   assert util.maybe_decode_bytes(b'A') == 'A'
@@ -123,11 +123,11 @@ def test_glob_to_rx():
   assert fut('.', 'x') is True
   assert fut('.', '.') is True
   assert fut('.', '/') is False
-  assert fut('a.',  'a.') is True
+  assert fut('a.', 'a.') is True
   assert fut('a.*', 'a.') is True
   assert fut('a.*', 'a.b') is True
   assert fut('a.*', 'a.bc') is True
-  assert fut('*.',  'a.') is True
+  assert fut('*.', 'a.') is True
   assert fut('*.*', 'a.') is True
   assert fut('*.*', 'a.b') is True
   assert fut('*.*', 'a.bc') is True
@@ -154,4 +154,3 @@ def test_wrap_word():
     'some-very-long-word-with-punctuation.',
     '  And more.'
   ]
-

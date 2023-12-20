@@ -27,10 +27,13 @@ class Example(Command):
     examples = None
 
     match_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
+
     def match(x):
       return re.match(match_rx, x)
+
     def command_matches(cmd):
       return match(cmd.command) or any(map(match, cmd.comments[0:]))
+
     def desc_matches_exactly(desc):
       if len(self.args) != 1:
         return False

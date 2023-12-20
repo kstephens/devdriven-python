@@ -20,9 +20,9 @@ def initialize():
   processing_log = pd.DataFrame(columns=['report', 'file', 'mtime', 'lines', 'bytes', 'now', 'url'])
 
 def write_logs(basename):
-  # pylint: disable=global-statement,invalid-name
+  # pylint: disable=global-statement,invalid-name,global-variable-not-assigned
   global processing_log
-  # pylint: enable=global-statement,invalid-name
+  # pylint: enable=global-statement,invalid-name,global-variable-not-assigned
   if not processing_log.empty:
     processing_log.sort_values(by=['report'], ascending=True, inplace=True)
     write_df(processing_log, f'00-{basename}-log')
@@ -51,6 +51,7 @@ def normalize_column_name(name):
 def push_row(dframe, row):
   dframe.loc[len(dframe)] = row
   return dframe
+
 
 agg_fun_aliases = {
   'count': 'size',

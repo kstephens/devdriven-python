@@ -3,7 +3,7 @@ import os
 import contextlib
 from devdriven.user_agent import UserAgent
 from devdriven.file_response import FileResponse
-from devdriven.url import url_parse
+# from devdriven.url import url_parse
 from icecream import ic
 
 TEST_FILE = 'tmp/user-agent-test.csv'

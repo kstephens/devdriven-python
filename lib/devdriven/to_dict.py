@@ -18,6 +18,7 @@ class ToDict:
     if callable(getattr(obj, 'to_dict', None)):  # https://stackoverflow.com/a/54625079
       try:
         return self.walk(obj.to_dict())
+      # pylint: disable-next=broad-except
       except Exception as _exc:
         # print(repr(type(obj)))
         # print(repr(obj))

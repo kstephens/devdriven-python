@@ -69,6 +69,7 @@ class FileResponse():
           self.write_io = None
       self.closed = True
       self.release_conn()
+
   @property
   def data(self):
     if not self._body_loaded and self._body is None:
@@ -76,32 +77,44 @@ class FileResponse():
       self._body = self.read()
       self.close()
     return self._body
+
   def drain_conn(self):
     if self.read_io:
       self.read_io.read()
     return self.close()
+
   def fileno(self):
     return not_implemented()
+
   def flush(self):
     if self.write_io and not self.closed:
       self.write_io.flush()
     self._etag()
+
   def get_redirect_location(self):
     return not_implemented()
+
   def getheader(self, name, default=None):
     return self.headers.get(name, default)
+
   def getheaders(self):
     return self.headers
+
   def geturl(self):
     return str(self.url)
+
   def info(self):
     return self.headers  # ???
+
   def isatty(self):
     return not_implemented()
+
   def isclosed(self):
     return self.closed
+
   def json(self):
     return json.load(self.read().decode(self.encoding or DEFAULT_ENCODING))
+
   def read(self, amt=None, decode_content=None, cache_content=False):
     assert not decode_content
     assert not cache_content
@@ -114,37 +127,50 @@ class FileResponse():
     if encoding:
       read_buf = read_buf.encode(encoding)
     return read_buf
+
   def read_chunked(self, amt=None, decode_content=None):
     assert not decode_content
     return self.read_io.read_chunked(amt=amt)
+
   def readable(self):
+    # pylint: disable-next=unneeded-not
     return not not self.read_io
+
   def readinto(self, buf):
     return self.read_io.readinto(buf)
+
   def readline(self, size=-1):
     return self.read_io.readline(size=size)
+
   def release_conn(self):
     self.read_io = self.write_io = None
     self.stdin = self.stdout = None
+
   def seek(self, offset, whence=0):
     return self.read_io.seek(offset, whence)
+
   def stream(self, amt=65536, decode_content=None):
     assert not decode_content
     return self.read_io.stream(amt=amt)
+
   def supports_chunked_reads(self):
     return not_implemented()
+
   def tell(self):
     if self.read_io:
       return self.read_io.tell()
     if self.write_io:
       return self.write_io.tell()
     return None
+
   def truncate(self):
     # self.write_io.truncate()
     return not_implemented()
 
   def writable(self):
+    # pylint: disable-next=unneeded-not
     return not not self.write_io
+
   def write(self, buf):
     if isinstance(buf, bytes):
       encoding = getattr(self.write_io, 'encoding', None) or self.encoding
@@ -153,6 +179,7 @@ class FileResponse():
       if encoding:
         buf = buf.decode(encoding)
     return self.write_io.write(buf)
+
   def writelines(self, lines, /):
     for line in lines:
       self.write(line)
@@ -197,6 +224,7 @@ class FileResponse():
     error_status = None
     try:
       if mode == 'rb':
+        # pylint: disable-next=consider-using-with
         self.read_io = open(self.file_path, 'rb')
         # ???: Can return multiple shapes?
         # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
@@ -206,6 +234,7 @@ class FileResponse():
         self._start(200)
         self._etag()
       else:
+        # pylint: disable-next=consider-using-with
         self.write_io = open(self.file_path, 'wb')
         self._start(201)
         self._etag()
@@ -214,7 +243,7 @@ class FileResponse():
     except FileNotFoundError as exc:
       error_status, err = 404, exc
     except (PermissionError, OSError) as exc:
-      ## OSError [Errno 30] Read-only file system
+      # OSError [Errno 30] Read-only file system
       error_status, err = 403, exc
     if err:
       self._status_body(error_status)
@@ -245,6 +274,7 @@ class FileResponse():
       'Server': 'Local FileSystem',
       'X-XSS-Protection': '0',
     })
+
   def _etag(self):
     if not self.file_path:
       return

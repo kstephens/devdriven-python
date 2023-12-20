@@ -37,8 +37,8 @@ class Range(Command):
     rng = arg0 and parse_range(arg0, len(inp))
     if not rng:
       start = int(self.arg_or_opt(0, 'start', 0))
-      end  =  int(self.arg_or_opt(1, 'end', len(inp)))
-      step  = int(self.arg_or_opt(2, 'step', 1))
+      end = int(self.arg_or_opt(1, 'end', len(inp)))
+      step = int(self.arg_or_opt(2, 'step', 1))
       rng = make_range(start, end, step, len(inp))
     out = inp.iloc[rng]
     return out
@@ -213,6 +213,7 @@ $ psv in a.tsv // grep d 'x' b '3$' // md
         self.add_match(inp, col, pat, 'all')
     if self.has_filter:
       if self.opt(('invert-match', 'v'), False):
+        # pylint: disable-next=invalid-unary-operand-type
         self.filter_expr = ~ self.filter_expr
       return inp[self.filter_expr]
     return inp
@@ -280,6 +281,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
       trans = str.maketrans(*self.args[0:2])
       args = self.args[2:]
     cols = select_columns(inp, split_flat(args, ','), check=True, default_all=True)
+
     def xlate(x):
       return str(x).translate(trans)
     out = inp.copy()
