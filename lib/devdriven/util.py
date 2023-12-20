@@ -226,7 +226,7 @@ def not_implemented() -> None:
   raise NotImplementedError(inspect.stack()[1][3])
 
 @contextmanager
-def cwd(path):
+def cwd(path: str) -> Any:
   oldpwd = os.getcwd()
   os.chdir(path)
   try:
