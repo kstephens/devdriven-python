@@ -1,10 +1,11 @@
+import re
+from typing import Any, Optional, Tuple
 from urllib.parse import urlparse, urlunparse, urljoin
 
 def url_normalize(url, base_url=None):
-  url = url_parse(url)
-  if base_url := url_parse(base_url):
+  if base_url:
     url = url_join(base_url, url)
-  return url
+  return url_parse(url)
 
 def url_parse(url):
   if isinstance(url, str):
@@ -28,9 +29,18 @@ def url_scheme(url):
   return url_is_http(url) or url_is_file(url)
 
 def url_join(base, url):
-  return urljoin(url_parse(base), url_parse(url))
+  return urljoin(url_to_str(base), url_to_str(url))
 
 def url_to_str(url):
   if isinstance(url, str):
     return url
   return urlunparse(url)
+
+def url_and_method(maybe_method_and_url: str,
+                    context: Any = None) -> Tuple[str, Optional[str]]:
+    if context:
+        maybe_method_and_url = maybe_method_and_url.format(**context)
+    if match := re.match(r'^(GET|HEAD|POST|PUT|DELETE|PATCH) (.*)$', maybe_method_and_url):
+        return (match[2], match[1])
+    return (maybe_method_and_url, None)
+
