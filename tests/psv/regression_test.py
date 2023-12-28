@@ -23,8 +23,6 @@ def test_example_regression():
       if re.match(r'^\$ ', actual_line):
         cmd = actual_line
         log(cmd)
-      if re.match(r'  +\d+ a.xlsx$', actual_line):
-        continue
       if re.match(r'^  "now": "\d\d\d\d-\d\d-\d\d', actual_line):
         continue
       if actual_line != expect_line:

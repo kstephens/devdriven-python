@@ -145,7 +145,6 @@ $ psv in a.csv // -csv // json-
 $ psv in a.csv // html // o a.html
 
 $ w3m -dump a.html
-None
 ┌─┬──┬─────────┬─────┐
 │a│b │    c    │  d  │
 ├─┼──┼─────────┼─────┤
@@ -161,7 +160,6 @@ None
 $ psv in users.txt // -table --fs=":" // html // o /tmp/users.html
 
 $ w3m -dump /tmp/users.html
-None
 ┌──────┬──┬─────┬─────┬──────┬──────────────┬─────────────────┐
 │  c1  │c2│ c3  │ c4  │  c5  │      c6      │       c7        │
 ├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
@@ -190,7 +188,6 @@ None
 $ psv in users.txt // -table --fs=":" // html --no-header // o /tmp/users.html
 
 $ w3m -dump /tmp/users.html
-None
 ┌──────┬─┬─────┬─────┬──────┬──────────────┬─────────────────┐
 │root  │x│0    │0    │root  │/root         │/bin/bash        │
 ├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
@@ -275,9 +272,8 @@ b4,1.234,zxy
 
 $ psv in a.csv // xls // o a.xlsx
 
-$ file a.xlsx; wc -l a.xlsx
+$ file a.xlsx
 a.xlsx: Microsoft Excel 2007+
-      22 a.xlsx
 
 # add-sequence (seq): add a column with a sequence:
 $ psv in a.tsv // seq // md
@@ -336,7 +332,7 @@ $ psv in a.tsv // show-columns // md
 # env: display proccessing info:
 $ psv in a.tsv // show-columns // md // env-
 {
-  "now": "2023-12-13 23:05:11.303492+0000",
+  "now": "2023-12-28 14:44:34.159325+0000",
   "history": [
     [
       "<< IoIn: in a.tsv >>",

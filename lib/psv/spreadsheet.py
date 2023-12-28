@@ -59,7 +59,7 @@ class XlsOut(FormatOut):
   Examples:
 
 $ psv in a.csv // xls // o a.xlsx
-$ file a.xlsx; wc -l a.xlsx
+$ file a.xlsx
 
   '''
   def format_out(self, inp, _env, writeable):

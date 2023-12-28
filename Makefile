@@ -47,11 +47,14 @@ venv-upgrade-tools:
 
 venv-install-requirements: requirements.txt dev-requirements.txt
 	. venv/bin/activate ;\
-	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
+	$(MAKE) install-requirements
 
 venv-force:
 	rm -rf venv/
 	$(MAKE) venv
+
+install-requirements:
+	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
 
 check: test lint mypy
 
@@ -74,10 +77,12 @@ mypy:
 
 test: run-tests
 
-TEST_FILES=
+unit-test:
+	$(MAKE) run-tests FILES='$(TEST_FILES)'
+
 run-tests:
 	rm -rf coverage/*
-	coverage run -m pytest --capture=fd --show-capture all $(wildcard $(TEST_FILES)) -vv -rpP
+	coverage run -m pytest --capture=fd --show-capture all $(wildcard $(FILES)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json
