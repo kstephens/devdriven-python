@@ -310,6 +310,7 @@ $ w3m -dump /tmp/users.html
       'table_name': self.opt('table_name', None),
       'header': bool(self.opt('header', True)),
     }
+    opts = { k: v for k, v in opts.items() if v is not None }
     format_html(inp, writeable, **opts)
     writeable.write('\n')
 
