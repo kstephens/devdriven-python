@@ -364,8 +364,7 @@ $ psv in a.tsv // show-columns // md
 # env: display proccessing info:
 $ psv in a.tsv // show-columns // md // env-
 {
-  "now": "2023-12-18 11:04:58.017343+0000",
-  "history": [
+  "now": "...",  "history": [
     [
       "<< IoIn: in a.tsv >>",
       "<< DataFrame: (4, 4) >>",
