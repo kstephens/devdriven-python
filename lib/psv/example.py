@@ -6,6 +6,7 @@ import shlex
 from devdriven.cli.application import app
 from devdriven.util import cwd, flat_map
 from .command import Command, section, command
+from icecream import ic
 
 section('Documentation')
 

@@ -62,12 +62,14 @@ class TableIn(FormatIn):
   -table - Parse table.
   alias: table-in
 
-  --fs=REGEX       |  Field separator.  Default: "\\s+".
-  --rs=REGEX       |  Record separator.  Default: "\\n\\r?".
-  --header, -h     |  Column names are in first row.
-  --column=FMT     |  Column name printf template.  Default: "c%d".
-  --encoding=ENC   |  Encoding of input.  Default: "utf-8".
-  --skip=REGEX     |  Records matching REGEX are skipped.
+  --fs=REGEX          |  Field separator.  Default: "\\s+".
+  --rs=REGEX          |  Record separator.  Default: "\\n\\r?".
+  --max-cols=COUNT    |  Maximum columns.  Default: 0.
+  --columns=COL1,...  |
+  --header, -h        |  Column names are in first row.
+  --column=FMT        |  Column name printf template.  Default: "c%d".
+  --encoding=ENC      |  Encoding of input.  Default: "utf-8".
+  --skip=REGEX        |  Records matching REGEX are skipped.
 
 # -table: Parse generic table:
 $ psv in users.txt // -table --fs=':'
@@ -75,20 +77,29 @@ $ psv in users.txt // -table --fs=':'
 # -table: Skip users w/o login:
 $ psv in users.txt // -table --fs=':' --skip='.*nologin'
 
-# -table: Columns named col01, col02, ...:
+# -table: Generate columns named col01, col02, ...:
 $ psv in users.txt // -table --fs=':' --column='col%02d'
+
+# -table: Set column names or generate them:
+$ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
 
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
+
+# -table: Split 3 fields:
+$ psv in users.txt // -table --fs=':' --max-cols=3
 
   :suffix: .txt
   '''
   def format_in(self, readable, _env):
     fs_rx = re.compile(self.opt('fs', r'\s+'))
     rs_rx = re.compile(self.opt('rs', r'\n\r?'))
-    column = self.opt('column', 'c')
-    if '%' not in column:
-      column += '%d'
+    columns = self.opt('columns', '')
+    columns = re.split(r' *, *| +', columns) if columns else []
+    column_format = self.opt('column', 'c')
+    max_cols = int(self.opt('max-cols', 0))
+    if '%' not in column_format:
+      column_format += '%d'
     encoding = self.opt('encoding', self.default_encoding())
     header = self.opt(('header', 'h'))
     max_width = 0
@@ -111,7 +122,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
     # Split row by field separator:
     i = 0
     for row in rows:
-      fields = re.split(fs_rx, row)
+      fields = re.split(fs_rx, row, maxsplit=max_cols)
       max_width = max(max_width, len(fields))
       rows[i] = fields[:]
       i += 1
@@ -124,11 +135,13 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
     if header:
       cols = rows.pop(0)
     else:
-      cols = generate_columns(column, max_width)
+      cols = generate_columns(columns, column_format, max_width)
     return pd.DataFrame(columns=cols, data=rows)
 
-def generate_columns(column_format, width):
-  return map(lambda i: column_format % i, range(1, width + 1))
+def generate_columns(columns, column_format, width):
+  if width > len(columns):
+    columns = columns + [None] * (width - len(columns))
+  return map(lambda i: columns[i] or column_format % (i + 1), range(0, width))
 
 @command
 class TableOut(FormatOut):

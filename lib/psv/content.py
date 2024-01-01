@@ -4,6 +4,11 @@ from devdriven.url import url_normalize, url_join  # , url_is_file, url_is_stdio
 from devdriven.user_agent import UserAgent
 
 class Content():
+  '''
+  Encapsulates fetching HTTP body, file contents or STDIO.
+  content() - the decoded body, defaults to utf-8.
+  body() - the bytes of HTTP body or file contents.
+  '''
   def __init__(self, url=None, headers=None, encoding=None):
     self.url = url_normalize(url)
     self.headers = headers or {}
@@ -21,12 +26,20 @@ class Content():
   def to_dict(self):
     return repr(self)
 
+  def is_file(self):
+    return url_is_file(self.url)
+
+  def is_stdio(self):
+    return url_is_stdio(self.url)
+
   def set_encoding(self, encoding):
     self._content = None
     self.encoding = encoding
     return self
 
-  def content(self):
+  def content(self, encoding=None):
+    if encoding and self.encoding != encoding:
+      self.set_encoding(encoding)
     if not self._content:
       self._content = self.body().decode(self.encoding or 'utf-8')
     return self._content
@@ -36,6 +49,20 @@ class Content():
       self._body = self.response().read()
       self._response = None
     return self._body
+
+  def body_as_file(self, fun, suffix=None):
+    if self.is_file():
+      return fun(self.url.path)
+    else:
+      suffix = suffix or Path(self.url.path).suffix
+      with NamedTemporaryFile(suffix=suffix) as tmp:
+        try:
+          with open(tmp.name, "wb") as tmp_io:
+            while buf := self.response().read(16384):
+              tmp_io.write(buf)
+          return fun(tmp.name)
+        finally:
+          tmp.close()
 
   def response(self):
     if self._response:

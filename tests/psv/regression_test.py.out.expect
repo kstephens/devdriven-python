@@ -17,7 +17,7 @@ $ psv in users.txt // -table --fs=':' --skip='.*nologin'
      c1 c2 c3 c4    c5     c6         c7
 0  root  x  0  0  root  /root  /bin/bash
 
-# -table: Columns named col01, col02, ...:
+# -table: Generate columns named col01, col02, ...:
 $ psv in users.txt // -table --fs=':' --column='col%02d'
     col01 col02  col03  col04   col05           col06              col07
 0    root     x      0      0    root           /root          /bin/bash
@@ -31,6 +31,20 @@ $ psv in users.txt // -table --fs=':' --column='col%02d'
 8  nobody     x  65534  65534  nobody    /nonexistent  /usr/sbin/nologin
 9    sshd     x    122  65534               /run/sshd  /usr/sbin/nologin
 
+# -table: Set column names or generate them:
+$ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
+    login c2    uid    gid      c5            home              shell
+0    root  x      0      0    root           /root          /bin/bash
+1  daemon  x      1      1  daemon       /usr/sbin  /usr/sbin/nologin
+2     bin  x      2      2     bin            /bin  /usr/sbin/nologin
+3     sys  x      3      3     sys            /dev  /usr/sbin/nologin
+4   games  x      5     60   games      /usr/games  /usr/sbin/nologin
+5     man  x      6     12     man  /var/cache/man  /usr/sbin/nologin
+6    mail  x      8      8    mail       /var/mail  /usr/sbin/nologin
+7  backup  x     34     34  backup    /var/backups  /usr/sbin/nologin
+8  nobody  x  65534  65534  nobody    /nonexistent  /usr/sbin/nologin
+9    sshd  x    122  65534               /run/sshd  /usr/sbin/nologin
+
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 |   Rank | State        |   FIPS Code | Population   |
@@ -40,6 +54,20 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 |      3 | Florida      |       12000 | 22,244,823   |
 |      4 | New York     |       36000 | 19,677,151   |
 |      5 | Pennsylvania |       42000 | 12,972,008   |
+
+# -table: Split 3 fields:
+$ psv in users.txt // -table --fs=':' --max-cols=3
+       c1 c2     c3                                           c4
+0    root  x      0                       0:root:/root:/bin/bash
+1  daemon  x      1         1:daemon:/usr/sbin:/usr/sbin/nologin
+2     bin  x      2                 2:bin:/bin:/usr/sbin/nologin
+3     sys  x      3                 3:sys:/dev:/usr/sbin/nologin
+4   games  x      5        60:games:/usr/games:/usr/sbin/nologin
+5     man  x      6      12:man:/var/cache/man:/usr/sbin/nologin
+6    mail  x      8           8:mail:/var/mail:/usr/sbin/nologin
+7  backup  x     34     34:backup:/var/backups:/usr/sbin/nologin
+8  nobody  x  65534  65534:nobody:/nonexistent:/usr/sbin/nologin
+9    sshd  x    122           65534::/run/sshd:/usr/sbin/nologin
 
 # -tsv, csv: Convert TSV to CSV:
 $ cat a.tsv | psv -tsv // csv-
