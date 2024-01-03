@@ -1,7 +1,7 @@
 import re
-from devdriven.util import get_safe, set_from_match, dataclass_from_dict, dataclass_from_dict, unpad_lines
+import inspect
+from devdriven.util import get_safe
 from devdriven.cli.option import Option
-# from icecream import ic
 
 # ??? use @dataclass?
 class Options:
@@ -25,11 +25,14 @@ class Options:
       if self.args:
         self.args.append(arg)
       elif opt := Option().parse_arg(arg):
+        self.opts.append(opt)
         self.opt_by_name[opt.name] = opt
         self.set_opt(opt.name, opt.value)
         for alias in opt.aliases:
-          self.opt_by_name[alias.name] = opt
+          self.opts.append(alias)
+          self.opt_by_name[alias.name] = alias
           self.set_opt(alias.name, opt.value)
+        opt.aliases = None
       else:
         self.args.append(arg)
     return self
@@ -37,21 +40,21 @@ class Options:
   def set_opt(self, name, val):
     key = self.opt_name_key(name)
     if self.opt_valid(key, val):
-      self.opts[key] = val
+      self.opt_by_name[key].value = val
     else:
       raise Exception(f'Invalid option : {name!r}')
 
   def opt(self, key, *default):
     if isinstance(key, tuple) and key:
       return self.opt(key[0], self.opt(key[1:], *default))
-    if key in self.opts:
-      return self.opts[key]
+    if opt := self.opt_by_name.get(key):
+      return opt.value
     if default:
       return default[0]
     return self.opt_default(key)
 
   def arg_or_opt(self, i, k, default):
-    return get_safe(self.args, i, get_safe(self.opts, k, default))
+    return get_safe(self.args, i, get_safe(self.opt_by_name, k, default))
 
   # OVERRIDE: via delegate?
   def opt_valid(self, _key, _val):
