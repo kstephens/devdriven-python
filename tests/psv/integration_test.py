@@ -7,6 +7,9 @@ def test_example():
   run('psv example')
 
 def test_example_run():
+  run('psv example -r')
+
+def test_example_run_range():
   run('psv example --run range')
 
 def test_help():
