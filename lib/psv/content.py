@@ -33,11 +33,19 @@ class Content():
     return url_is_stdio(self.url)
 
   def set_encoding(self, encoding):
+    '''
+Sets the expected encoding.
+Resets any cached content.
+    '''
     self._content = None
     self.encoding = encoding
     return self
 
   def content(self, encoding=None):
+    '''
+The decoded body, defaults to utf-8.
+
+    '''
     if encoding and self.encoding != encoding:
       self.set_encoding(encoding)
     if not self._content:
