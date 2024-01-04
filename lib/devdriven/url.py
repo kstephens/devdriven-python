@@ -37,10 +37,9 @@ def url_to_str(url):
   return urlunparse(url)
 
 def url_and_method(maybe_method_and_url: str,
-                    context: Any = None) -> Tuple[str, Optional[str]]:
-    if context:
-        maybe_method_and_url = maybe_method_and_url.format(**context)
-    if match := re.match(r'^(GET|HEAD|POST|PUT|DELETE|PATCH) (.*)$', maybe_method_and_url):
-        return (match[2], match[1])
-    return (maybe_method_and_url, None)
-
+                   context: Any = None) -> Tuple[str, Optional[str]]:
+  if context:
+    maybe_method_and_url = maybe_method_and_url.format(**context)
+  if match := re.match(r'^(GET|HEAD|POST|PUT|DELETE|PATCH) (.*)$', maybe_method_and_url):
+    return (match[2], match[1])
+  return (maybe_method_and_url, None)

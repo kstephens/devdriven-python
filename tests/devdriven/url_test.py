@@ -1,11 +1,14 @@
 from urllib.parse import ParseResult
 import devdriven.url as sut
-from icecream import ic
+# from icecream import ic
 
 def test_url_normalize():
-  assert sut.url_normalize('http://test/path') == ParseResult(scheme='http', netloc='test', path='/path', params='', query='', fragment='')
-  assert sut.url_normalize('a') == ParseResult(scheme='', netloc='', path='a', params='', query='', fragment='')
-  assert sut.url_normalize('/c/d', 'http://a/b') == ParseResult(scheme='http', netloc='a', path='/c/d', params='', query='', fragment='')
+  assert sut.url_normalize('http://test/path') == \
+    ParseResult(scheme='http', netloc='test', path='/path', params='', query='', fragment='')
+  assert sut.url_normalize('a') == \
+    ParseResult(scheme='', netloc='', path='a', params='', query='', fragment='')
+  assert sut.url_normalize('/c/d', 'http://a/b') == \
+    ParseResult(scheme='http', netloc='a', path='/c/d', params='', query='', fragment='')
 
 def test_url_parse():
   result = ParseResult(scheme='http', netloc='test', path='/', params='', query='', fragment='')
@@ -15,8 +18,8 @@ def test_url_parse():
 def test_url_is_http():
   assert sut.url_is_http(sut.url_parse('http://test/path')) == 'http'
   assert sut.url_is_http(sut.url_parse('https://test/path')) == 'http'
-  assert sut.url_is_http(sut.url_parse('file:///test/path')) == False
-  assert sut.url_is_http(sut.url_parse('test/path')) == False
+  assert sut.url_is_http(sut.url_parse('file:///test/path')) is False
+  assert sut.url_is_http(sut.url_parse('test/path')) is False
 
 def test_url_is_file():
   assert_map(sut.url_is_file,
@@ -41,13 +44,14 @@ def test_url_and_method():
 
 ###################
 
-def assert_map(func, actual, expected):
+def assert_map(func, actual, expect):
   i = -1
-  for input, expected in zip_default(actual, expected):
+  for inp, exp in zip_default(actual, expect):
     i += 1
-    actual = func(input)
-    # ic((input, actual, expected))
-    assert actual == expected, f'at {i}: input: {input!r} actual: {actual!r} expected: {expected!r}'
+    actual = func(inp)
+    # ic((input, actual, exp))
+    assert actual == exp, f'at {i}: input: {inp!r} actual: {actual!r} expect: {exp!r}'
+
 
 URLS = [
   'http://a/b',
@@ -67,8 +71,8 @@ def zip_default(a, b, default=None):
   a = list(a)
   b = list(b)
   max_size = max(len(a), len(b))
-  a = expand_to_size(a, max_size)
-  b = expand_to_size(b, max_size)
+  a = expand_to_size(a, max_size, default)
+  b = expand_to_size(b, max_size, default)
   return zip(a, b)
 
 def expand_to_size(seq, size, default=None):

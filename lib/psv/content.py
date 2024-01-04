@@ -1,6 +1,6 @@
-# from pathlib import Path
-# from tempfile import NamedTemporaryFile
-from devdriven.url import url_normalize, url_join  # , url_is_file, url_is_stdio
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from devdriven.url import url_normalize, url_join, url_is_file, url_is_stdio
 from devdriven.user_agent import UserAgent
 
 class Content():
@@ -53,16 +53,15 @@ class Content():
   def body_as_file(self, fun, suffix=None):
     if self.is_file():
       return fun(self.url.path)
-    else:
-      suffix = suffix or Path(self.url.path).suffix
-      with NamedTemporaryFile(suffix=suffix) as tmp:
-        try:
-          with open(tmp.name, "wb") as tmp_io:
-            while buf := self.response().read(16384):
-              tmp_io.write(buf)
-          return fun(tmp.name)
-        finally:
-          tmp.close()
+    suffix = suffix or Path(self.url.path).suffix
+    with NamedTemporaryFile(suffix=suffix) as tmp:
+      try:
+        with open(tmp.name, "wb") as tmp_io:
+          while buf := self.response().read(16384):
+            tmp_io.write(buf)
+        return fun(tmp.name)
+      finally:
+        tmp.close()
 
   def response(self):
     if self._response:

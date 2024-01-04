@@ -74,11 +74,11 @@ class Main:
   def build_command(self, commands, argv):
     if argv:
       command = self.make_command(argv)
-      if not command:
-        return
-      command.main = self
-      commands.append(command)
+      if command:
+        command.main = self
+        commands.append(command)
       return command
+    return None
 
   def exec_commands(self, commands):
     results = [self.exec_command(command) for command in commands]
@@ -91,6 +91,7 @@ class Main:
     if self.capture_exceptions(command):
       try:
         return (command, True, command.exec())
+      # pylint: disable-next=broad-except
       except Exception as exc:
         log.error(exc)
         return (command, False, exc)

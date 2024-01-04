@@ -1,5 +1,5 @@
-from devdriven.cli import Command
 import shlex
+from devdriven.cli import Command
 
 def test_parse_argv():
   examples = [
@@ -15,7 +15,7 @@ def test_parse_argv():
   ]
   for cmdline, expected_args, expected_opts in examples:
     c = Command()
-    c.opt_char_map = { 'f': 'foo' }
+    c.opt_char_map = {'f': 'foo'}
     argv = shlex.split(cmdline)
     c.parse_argv(argv)
     assert c.args == expected_args

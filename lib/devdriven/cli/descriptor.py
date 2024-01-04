@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import List
 from devdriven.cli.options import Options
-from devdriven.util import set_from_match, dataclass_from_dict, unpad_lines
+from devdriven.util import set_from_match, unpad_lines
 from icecream import ic
 
 @dataclass
@@ -40,6 +40,7 @@ class Descriptor():
         self.aliases.extend(re.split(r'\s*,\s*|\s+', m[1].strip()))
         found_aliases = True
       elif m := re.match(r'(?i)^(Arguments|Options|Examples):\s*$', line):
+        # pylint: disable-next=pointless-statement
         None
       elif m := re.match(r'^[#] (.+)', line):
         comments.append(m[1])
@@ -79,4 +80,3 @@ class Descriptor():
 class Example():
   command: str
   comments: List[str]
-

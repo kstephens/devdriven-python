@@ -71,18 +71,20 @@ class Options:
   # See: Descriptor
   def parse_docstring(self, line):
     m = None
+
     def add_arg(m):
       name = m[1].strip()
       self.arg_by_name[name] = m[2].strip()
       self.args.append(name)
+
     if m := re.match(r'^(-) *[\|] *(.*)', line):
       add_arg(m)
       return self
-    elif option := Option().parse_doc(line):
+    if option := Option().parse_doc(line):
       self.opt_by_name[option.name] = option
       self.opts.append(option)
       return self
-    elif m := re.match(r'^([^\|]+)[\|] *(.*)', line):
+    if m := re.match(r'^([^\|]+)[\|] *(.*)', line):
       add_arg(m)
       return self
     return None

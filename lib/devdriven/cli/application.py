@@ -1,10 +1,8 @@
-from dataclasses import dataclass
 from itertools import chain
-from .options import Options
-from .descriptor import Descriptor
 from devdriven.util import dataclass_from_dict
 from devdriven.mime import short_and_long_suffix
-from icecream import ic
+from .options import Options
+from .descriptor import Descriptor
 
 
 # @dataclass
@@ -76,6 +74,7 @@ class Application:
     self.register(self.create_descriptor(klass))
     return klass
 
+
 DEFAULTS = {
   'section': '',
   'content_type': None,
@@ -84,4 +83,3 @@ DEFAULTS = {
 }
 
 app = Application()
-

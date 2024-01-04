@@ -91,6 +91,7 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
 
   :suffix: .txt
   '''
+  # pylint: disable-next=too-many-locals
   def format_in(self, readable, _env):
     fs_rx = re.compile(self.opt('fs', r'\s+'))
     rs_rx = re.compile(self.opt('rs', r'\n\r?'))
@@ -323,7 +324,7 @@ $ w3m -dump /tmp/users.html
       'table_name': self.opt('table_name', None),
       'header': bool(self.opt('header', True)),
     }
-    opts = { k: v for k, v in opts.items() if v is not None }
+    opts = {k: v for k, v in opts.items() if v is not None}
     format_html(inp, writeable, **opts)
     writeable.write('\n')
 
