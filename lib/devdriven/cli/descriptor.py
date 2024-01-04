@@ -25,7 +25,8 @@ class Descriptor():
   def parse_docstring(self, docstr):
     found_aliases = None
     debug = False
-    lines = unpad_lines(docstr.splitlines())
+
+    lines = unpad_lines(re.sub(r'\\\n', '', docstr).splitlines())
     comments = []
     while lines:
       line = lines.pop(0)

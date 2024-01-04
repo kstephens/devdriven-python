@@ -42,7 +42,8 @@ class Summary(Command):
   COL,... [STAT,...] [GROUP-BY,...]    |  COLs to summarize STATs grouped by GROUP-BY
 
   COL,...       |  Any numeric columns separated by ",".
-  STAT,...      |  One or more of: 'count,sum,min,max,mean,median,std,skew'.  See Pandas "DataFrameGroupBy" documentation.  Default: is all of them.
+  STAT,...      |  One or more of: 'count,sum,min,max,mean,median,std,skew'.\
+  See Pandas "DataFrameGroupBy" documentation.  Default: is all of them.
   GROUP-BY,...  |  Any column not in the COL list.  Default: is all of them.
 
   # Summary of transfers by Payer and Payee:
