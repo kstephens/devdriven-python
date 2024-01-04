@@ -1,0 +1,270 @@
+| command        | description                                                                                           |
+|:---------------|:------------------------------------------------------------------------------------------------------|
+|   ---------    |                                                                                                       |
+|    Section     | -------- Formats --------                                                                             |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| -table         | Parse table.                                                                                          |
+|                |                                                                                                       |
+|                |   psv -table [--fs] [--rs] [--max-cols] [--columns] [--header] [--column] [--encoding] [--skip]       |
+|                |                                                                                                       |
+|                | Aliases: table-in                                                                                     |
+|                |                                                                                                       |
+| table-         | Generate table.                                                                                       |
+|                |                                                                                                       |
+|                |   psv table-                                                                                          |
+|                |                                                                                                       |
+|                | Aliases: table-out                                                                                    |
+|                |                                                                                                       |
+| -tsv           | Parse TSV.                                                                                            |
+|                |                                                                                                       |
+|                |   psv -tsv                                                                                            |
+|                |                                                                                                       |
+| tsv-           | Generate TSV.                                                                                         |
+|                |                                                                                                       |
+|                |   psv tsv-                                                                                            |
+|                |                                                                                                       |
+| -csv           | Parse CSV.                                                                                            |
+|                |                                                                                                       |
+|                |   psv -csv                                                                                            |
+|                |                                                                                                       |
+| csv-           | Generate CSV.                                                                                         |
+|                |                                                                                                       |
+|                |   psv csv-                                                                                            |
+|                |                                                                                                       |
+| markdown       | Generate Markdown.                                                                                    |
+|                |                                                                                                       |
+|                |   psv markdown                                                                                        |
+|                |                                                                                                       |
+|                | Aliases: md, md-, markdown-                                                                           |
+|                |                                                                                                       |
+| -json          | Parse JSON.                                                                                           |
+|                |                                                                                                       |
+|                |   psv -json [--orient]                                                                                |
+|                |                                                                                                       |
+| json-          | Generate JSON array of objects.                                                                       |
+|                |                                                                                                       |
+|                |   psv json-                                                                                           |
+|                |                                                                                                       |
+|                | Aliases: json, js-                                                                                    |
+|                |                                                                                                       |
+| -pickle        | Read Pandas Dataframe pickle.                                                                         |
+|                |                                                                                                       |
+|                |   psv -pickle                                                                                         |
+|                |                                                                                                       |
+|                | Aliases: -dataframe                                                                                   |
+|                |                                                                                                       |
+| pickle-        | Write Pandas DataFrame pickle.                                                                        |
+|                |                                                                                                       |
+|                |   psv pickle-                                                                                         |
+|                |                                                                                                       |
+|                | Aliases: dataframe-                                                                                   |
+|                |                                                                                                       |
+| html-          | Generate HTML.                                                                                        |
+|                |                                                                                                       |
+|                |   psv html- [--table-name] [--header]                                                                 |
+|                |                                                                                                       |
+|                | Aliases: html                                                                                         |
+|                |                                                                                                       |
+| sql-           | Write SQL.                                                                                            |
+|                |                                                                                                       |
+|                |   psv sql-                                                                                            |
+|                |                                                                                                       |
+|                | Aliases: sql                                                                                          |
+|                |                                                                                                       |
+| yaml-          | Generate YAML.                                                                                        |
+|                |                                                                                                       |
+|                |   psv yaml-                                                                                           |
+|                |                                                                                                       |
+|                | Aliases: yaml, yml-, yml                                                                              |
+|                |                                                                                                       |
+| xls-in         | Read XLS Spreadsheet.                                                                                 |
+|                |                                                                                                       |
+|                |   psv xls-in [--sheet-name] [--header]                                                                |
+|                |                                                                                                       |
+|                | Aliases: -xls                                                                                         |
+|                |                                                                                                       |
+| xls-out        | Generate XLS Spreadsheet.                                                                             |
+|                |                                                                                                       |
+|                |   psv xls-out [--sheet-name] [--header]                                                               |
+|                |                                                                                                       |
+|                | Aliases: xls-, xls                                                                                    |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- I/O --------                                                                                 |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| in             | Read input.                                                                                           |
+|                |                                                                                                       |
+|                |   psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]                                             |
+|                |                                                                                                       |
+|                | Aliases: i, -i                                                                                        |
+|                |                                                                                                       |
+| out            | write output to URLs.                                                                                 |
+|                |                                                                                                       |
+|                |   psv out [FILE] [file///FILE] [https?://...] [-]                                                     |
+|                |                                                                                                       |
+|                | Aliases: o, o-                                                                                        |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- Metadata --------                                                                            |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| add-sequence   | Add a column with a sequence of numbers.                                                              |
+|                |                                                                                                       |
+|                |   psv add-sequence [--column] [--start] [--step]                                                      |
+|                |                                                                                                       |
+|                | Aliases: seq                                                                                          |
+|                |                                                                                                       |
+| rename-columns | Rename columns.                                                                                       |
+|                |                                                                                                       |
+|                |   psv rename-columns [OLD-COL:NEW-NAME ...]                                                           |
+|                |                                                                                                       |
+|                | Aliases: rename                                                                                       |
+|                |                                                                                                       |
+| infer-objects  | Infer column types.                                                                                   |
+|                |                                                                                                       |
+|                |   psv infer-objects                                                                                   |
+|                |                                                                                                       |
+|                | Aliases: infer                                                                                        |
+|                |                                                                                                       |
+| coerce         | Corece column types.                                                                                  |
+|                |                                                                                                       |
+|                |   psv coerce [COL:TYPE ...]                                                                           |
+|                |                                                                                                       |
+|                | Aliases: astype                                                                                       |
+|                |                                                                                                       |
+| show-columns   | Table of column names and attributes.                                                                 |
+|                |                                                                                                       |
+|                |   psv show-columns                                                                                    |
+|                |                                                                                                       |
+|                | Aliases: columns, cols                                                                                |
+|                |                                                                                                       |
+| env-           | Show env.                                                                                             |
+|                |                                                                                                       |
+|                |   psv env-                                                                                            |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- Manipulation --------                                                                        |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| range          | Subset of rows.                                                                                       |
+|                |                                                                                                       |
+|                |   psv range [--start] [--end] [--step] [start [end] [step]] [[start]:[end]:step]                      |
+|                |                                                                                                       |
+|                | Aliases: r                                                                                            |
+|                |                                                                                                       |
+| head           | First N rows                                                                                          |
+|                |                                                                                                       |
+|                |   psv head                                                                                            |
+|                |                                                                                                       |
+|                | Aliases: h                                                                                            |
+|                |                                                                                                       |
+| tail           | Last N rows                                                                                           |
+|                |                                                                                                       |
+|                |   psv tail                                                                                            |
+|                |                                                                                                       |
+|                | Aliases: t                                                                                            |
+|                |                                                                                                       |
+| reverse        | Reverse rows.  Same as "range --step=-1"                                                              |
+|                |                                                                                                       |
+|                |   psv reverse                                                                                         |
+|                |                                                                                                       |
+|                | Aliases: tac                                                                                          |
+|                |                                                                                                       |
+| cut            | Cut specified columns.                                                                                |
+|                |                                                                                                       |
+|                |   psv cut [NAME] [I] [COL:-] [*] [NAME*]                                                              |
+|                |                                                                                                       |
+|                | Aliases: c, x                                                                                         |
+|                |                                                                                                       |
+| uniq           | Return unique rows.                                                                                   |
+|                |                                                                                                       |
+|                |   psv uniq                                                                                            |
+|                |                                                                                                       |
+|                | Aliases: u                                                                                            |
+|                |                                                                                                       |
+| sort           | Sort rows by columns.                                                                                 |
+|                |                                                                                                       |
+|                |   psv sort [--reverse] [--numeric] [COL] [COL:-] [COL:+]                                              |
+|                |                                                                                                       |
+|                | Aliases: s                                                                                            |
+|                |                                                                                                       |
+| grep           | Search for rows where columns match a regex.                                                          |
+|                |                                                                                                       |
+|                |   psv grep [--all] [--any] [--fixed-strings] [--ignore-case] [--invert-match] [COL REGEX ...] [REGEX] |
+|                |                                                                                                       |
+|                | Aliases: g                                                                                            |
+|                |                                                                                                       |
+| translate      | Translate characters.                                                                                 |
+|                |                                                                                                       |
+|                |   psv translate [--delete] [SRC DST COL,...] [-d DEL COL,...]                                         |
+|                |                                                                                                       |
+|                | Aliases: tr                                                                                           |
+|                |                                                                                                       |
+| stats          | Basic stats of numeric columns.                                                                       |
+|                |                                                                                                       |
+|                |   psv stats                                                                                           |
+|                |                                                                                                       |
+|                | Aliases: describe                                                                                     |
+|                |                                                                                                       |
+| null           | Does nothing.                                                                                         |
+|                |                                                                                                       |
+|                |   psv null                                                                                            |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- Summaries --------                                                                           |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| count          | Count of unique column values.                                                                        |
+|                |                                                                                                       |
+|                |   psv count [--column] [COL ...]                                                                      |
+|                |                                                                                                       |
+| summary        | Summary of column values.                                                                             |
+|                |                                                                                                       |
+|                |   psv summary [COL,... [STAT,...] [GROUP-BY,...]] [COL,...] [STAT,...] [GROUP-BY,...]                 |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- Format --------                                                                              |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| extract        | Extract fields by Regexp.                                                                             |
+|                |                                                                                                       |
+|                |   psv extract                                                                                         |
+|                |                                                                                                       |
+|                | Aliases: rx, re                                                                                       |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- Expression Evaluation --------                                                               |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| eval           | Evaluate expression for each row.                                                                     |
+|                |                                                                                                       |
+|                |   psv eval [--columns] [--normalize] [STATEMENT ...]                                                  |
+|                |                                                                                                       |
+|                | Aliases: each                                                                                         |
+|                |                                                                                                       |
+| select         | Select rows.                                                                                          |
+|                |                                                                                                       |
+|                |   psv select [LOGICAL-EXPRESSION ...]                                                                 |
+|                |                                                                                                       |
+|                | Aliases: where                                                                                        |
+|                |                                                                                                       |
+| repl           | Start an interactive REPL.                                                                            |
+|                |                                                                                                       |
+|                |   psv repl [`inp`] [`out`]                                                                            |
+|                |                                                                                                       |
+|   ---------    |                                                                                                       |
+|    Section     | -------- Documentation --------                                                                       |
+|   ---------    |                                                                                                       |
+|                |                                                                                                       |
+| help           | This help document.                                                                                   |
+|                |                                                                                                       |
+|                |   psv help [--verbose] [--plain] [--raw]                                                              |
+|                |                                                                                                       |
+| examples       | Show examples.                                                                                        |
+|                |                                                                                                       |
+|                |   psv examples [SEARCH-STRING] [--run, -r]                                                            |
+|                |                                                                                                       |
+|                | Aliases: ex, example                                                                                  |
+|                |                                                                                                       |
