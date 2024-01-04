@@ -7,6 +7,9 @@ PROG = str(Path('bin/psv').absolute())
 def test_help():
   assert_command_output('tests/psv/output/help', f'{PROG} help')
 
+def test_help_plain():
+  assert_command_output('tests/psv/output/help-plain', f'{PROG} help --plain')
+
 def test_example_r():
   def context_line(line):
     if re.match(r'^\$ ', line):

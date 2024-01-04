@@ -1,0 +1,824 @@
+-table - Parse table.
+
+  psv -table [--fs] [--rs] [--max-cols] [--columns] [--header] [--column] [--encoding] [--skip]
+
+Aliases: table-in
+
+Options:
+
+  --fs         | Field separator.
+               | Default: "\\s+".
+               |
+  --rs         | Record separator.
+               | Default: "\\n\\r?".
+               |
+  --max-cols   | Maximum columns.
+               | Default: 0.
+  --header, -h | Column names are in first row.
+               |
+  --column     | Column name printf template.
+               | Default: "c%d".
+               |
+  --encoding   | Encoding of input.
+               | Default: "utf-8".
+  --skip       | Records matching REGEX are skipped.
+
+Examples:
+
+# -table: Parse generic table:
+$ psv in users.txt // -table --fs=':'
+
+# -table: Skip users w/o login:
+$ psv in users.txt // -table --fs=':' --skip='.*nologin'
+
+# -table: Generate columns named col01, col02, ...:
+$ psv in users.txt // -table --fs=':' --column='col%02d'
+
+# -table: Set column names or generate them:
+$ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
+
+# -table: Split fields by 2 or more whitespace chars:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
+
+# -table: Split 3 fields:
+$ psv in users.txt // -table --fs=':' --max-cols=3
+
+
+==========================================================
+
+table- - Generate table.
+
+  psv table-
+
+Aliases: table-out
+
+NOT IMPLEMENTED
+
+==========================================================
+
+-tsv - Parse TSV.
+
+  psv -tsv
+
+Examples:
+
+# -tsv, csv: Convert TSV to CSV:
+$ cat a.tsv | psv -tsv // csv-
+
+# -tsv, md: Convert TSV to Markdown:
+$ psv in a.tsv // md
+
+# -tsv: Convert HTTP TSV content to Markdown.
+$ psv in https://tinyurl.com/4sscj338 // -tsv // md
+
+
+==========================================================
+
+tsv- - Generate TSV.
+
+  psv tsv-
+
+==========================================================
+
+-csv - Parse CSV.
+
+  psv -csv
+
+Examples:
+
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+
+
+==========================================================
+
+csv- - Generate CSV.
+
+  psv csv-
+
+Examples:
+
+# tsv, csv: Convert TSV to CSV:
+$ psv in a.tsv // -tsv // csv-
+
+
+==========================================================
+
+markdown - Generate Markdown.
+
+  psv markdown
+
+Aliases: md, md-, markdown-
+
+Examples:
+
+# md: Convert TSV on STDIN to Markdown:
+$ cat a.tsv | psv -tsv // md
+
+
+==========================================================
+
+-json - Parse JSON.
+
+  psv -json [--orient]
+
+Options:
+
+  --orient | Orientation: see pandas read_json.
+
+==========================================================
+
+json- - Generate JSON array of objects.
+
+  psv json-
+
+Aliases: json, js-
+
+Examples:
+
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+
+
+==========================================================
+
+-pickle - Read Pandas Dataframe pickle.
+
+  psv -pickle
+
+Aliases: -dataframe
+
+==========================================================
+
+pickle- - Write Pandas DataFrame pickle.
+
+  psv pickle-
+
+Aliases: dataframe-
+
+==========================================================
+
+html- - Generate HTML.
+
+  psv html- [--table-name] [--header]
+
+Aliases: html
+
+Options:
+
+  --table-name | <title>.
+               |
+  --header, -h | Generate header.
+               | Default: True.
+
+Examples:
+
+$ psv in a.csv // html // o a.html
+
+$ w3m -dump a.html
+
+$ psv in users.txt // -table --fs=":" // html // o /tmp/users.html
+
+$ w3m -dump /tmp/users.html
+
+# html: Generate HTML:
+$ psv in users.txt // -table --fs=":" // html --no-header // o /tmp/users.html
+
+$ w3m -dump /tmp/users.html
+
+
+==========================================================
+
+sql- - Write SQL.
+
+  psv sql-
+
+Aliases: sql
+
+Examples:
+
+# sql: Convert TSV to SQL schema:
+$ psv in a.tsv // sql
+
+
+==========================================================
+
+yaml- - Generate YAML.
+
+  psv yaml-
+
+Aliases: yaml, yml-, yml
+
+Examples:
+
+$ psv in a.csv // yaml
+
+
+==========================================================
+
+xls-in - Read XLS Spreadsheet.
+
+  psv xls-in [--sheet-name] [--header]
+
+Aliases: -xls
+
+Options:
+
+  --sheet-name | Sheet name.
+               |
+  --header, -h | Generate header.
+               | Default: True.
+
+Examples:
+
+$ psv in a.xlsx // -xls // csv-
+
+
+==========================================================
+
+xls-out - Generate XLS Spreadsheet.
+
+  psv xls-out [--sheet-name] [--header]
+
+Aliases: xls-, xls
+
+Options:
+
+  --sheet-name | Sheet name.
+               |
+  --header, -h | Generate header.
+               | Default: True.
+
+Examples:
+
+$ psv in a.csv // xls // o a.xlsx
+
+$ file a.xlsx
+
+
+==========================================================
+
+in - Read input.
+
+  psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]
+
+Aliases: i, -i
+
+If no arguments are given, read from STDIN.
+
+Arguments:
+
+  FILE         | Read FILE.
+  file:///FILE | Read FILE.
+  https?://URL | GET URL.
+  -            | Read STDIN.
+
+Options:
+
+  --raw, -r | Do not infer format from suffix.
+
+Examples:
+
+# in: read from STDIN:
+$ cat a.tsv | psv in -
+
+$ cat a.tsv | psv in
+
+# in: HTTP support:
+$ psv in https://tinyurl.com/4sscj338
+
+
+==========================================================
+
+out - write output to URLs.
+
+  psv out [FILE] [file///FILE] [https?://...] [-]
+
+Aliases: o, o-
+
+If no arguments are given, write to STDOUT.
+
+Arguments:
+
+  FILE         | Write FILE.
+  file///FILE  | Write FILE.
+  https?://... | PUT URL.
+  -            | Write STDOUT.
+
+Examples:
+
+# out: Convert TSV to CSV and save to a file:
+$ psv in a.tsv // -tsv // csv- // out a.csv
+
+
+==========================================================
+
+add-sequence - Add a column with a sequence of numbers.
+
+  psv add-sequence [--column] [--start] [--step]
+
+Aliases: seq
+
+Options:
+
+  --column | Default: "__i__".
+  --start  | Default: 1.
+  --step   | Default: 1.
+
+Examples:
+
+# add-sequence (seq): add a column with a sequence:
+$ psv in a.tsv // seq // md
+
+# add-sequence (seq): start at 0:
+$ psv in a.tsv // seq --start=0 // md
+
+# add-sequence (seq): step by 2:
+$ psv in a.tsv // seq --step=2 // md
+
+# add-sequence (seq): start at 5, step by -2:
+$ psv in a.tsv // seq --start=5 --step=-2 // md
+
+
+==========================================================
+
+rename-columns - Rename columns.
+
+  psv rename-columns [OLD-COL:NEW-NAME ...]
+
+Aliases: rename
+
+Arguments:
+
+  OLD-COL:NEW-NAME ... | Columns to rename.
+
+Examples:
+
+# rename-columns: rename column 'b' to 'B':
+$ psv in a.tsv // rename b B // md
+
+
+==========================================================
+
+infer-objects - Infer column types.
+
+  psv infer-objects
+
+Aliases: infer
+
+==========================================================
+
+coerce - Corece column types.
+
+  psv coerce [COL:TYPE ...]
+
+Aliases: astype
+
+Arguments:
+
+  COL:TYPE ... | Columns to retype.
+
+==========================================================
+
+show-columns - Table of column names and attributes.
+
+  psv show-columns
+
+Aliases: columns, cols
+
+Examples:
+
+# show-columns: show column metadata:
+$ psv in a.tsv // show-columns // md
+
+
+==========================================================
+
+env- - Show env.
+
+  psv env-
+
+Examples:
+
+# env: display proccessing info:
+$ psv in a.tsv // show-columns // md // env-
+
+
+==========================================================
+
+range - Subset of rows.
+
+  psv range [--start] [--end] [--step] [start [end] [step]] [[start]:[end]:step]
+
+Aliases: r
+
+Arguments:
+
+  start [end] [step] | For 1 or more arguments.
+  [start]:[end]:step | Python-style range.
+
+Options:
+
+  --start | Inclusive.
+          | Default: 1.
+          |
+  --end   | Non-inclusive.
+          | Default: last row.
+  --step  | Default: 1.
+
+Examples:
+
+# range: select a range of rows:
+$ psv in a.tsv // seq --start=0 // range 1 3 // md
+
+# range: every even row:
+$ psv in a.tsv // seq --start=0 // range --step=2 // md
+
+
+==========================================================
+
+head - First N rows
+
+  psv head
+
+Aliases: h
+
+N : Default: 10
+
+Examples:
+
+# head:
+$ psv in us-states.txt // -table // head 5 // md
+
+
+==========================================================
+
+tail - Last N rows
+
+  psv tail
+
+Aliases: t
+
+N : Default: 10
+
+Examples:
+
+# tail: last 3 rows:
+$ psv in us-states.txt // -table // tail 3 // md
+
+
+==========================================================
+
+reverse - Reverse rows.  Same as "range --step=-1"
+
+  psv reverse
+
+Aliases: tac
+
+Examples:
+
+# reverse:
+$ psv in a.tsv // seq // tac // md
+
+
+==========================================================
+
+cut - Cut specified columns.
+
+  psv cut [NAME] [I] [COL:-] [*] [NAME*]
+
+Aliases: c, x
+
+psv in a.tsv // cut 2,d // md
+
+Arguments:
+
+  NAME  | Select name.
+  I     | Select index.
+  COL:- | Remove column.
+  *     | Add all columns.
+  NAME* | Any columns starting with "NAME".
+
+Examples:
+
+# cut: select columns by index and name:
+# cut: remove c, put d before other columns,
+$ psv in a.tsv // cut d '*' c:- // md
+
+
+==========================================================
+
+uniq - Return unique rows.
+
+  psv uniq
+
+Aliases: u
+
+==========================================================
+
+sort - Sort rows by columns.
+
+  psv sort [--reverse] [--numeric] [COL] [COL:-] [COL:+]
+
+Aliases: s
+
+Arguments:
+
+  COL   | Sort by COL ascending.
+  COL:- | Sort by COL descending.
+  COL:+ | Sort by COL ascending.
+
+Options:
+
+  --reverse, -r | Sort descending.
+  --numeric, -n | Coerce columns to numeric.
+
+Examples:
+
+# sort: decreasing:
+$ psv in a.tsv // sort -r a // md
+
+# sort: by a decreasing, c increasing,
+# remove c, put d before other columns,
+# create a column i with a seqence
+$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+
+
+==========================================================
+
+grep - Search for rows where columns match a regex.
+
+  psv grep [--all] [--any] [--fixed-strings] [--ignore-case] [--invert-match] [COL REGEX ...] [REGEX]
+
+Aliases: g
+
+Arguments:
+
+  COL REGEX ... | Select rows where COL REGEX pairs match.
+  REGEX         | Select rows where REGEX is applied to all columns.
+
+Options:
+
+  --all               | All patterns must match.
+  --any               | Any pattern must match.
+  --fixed-strings, -F | Match fixed string.
+  --ignore-case, -i   | Ignore case distinctions.
+  --invert-match, -v  | Invert the sense of matching, to select non-matching rows.
+
+Examples:
+
+# grep: match columns by regex:
+$ psv in a.tsv // grep d 'x' // md
+
+$ psv in a.tsv // grep d '^x' // md
+
+$ psv in a.tsv // grep d 'x.+p' // md
+
+# grep: match where d contains "x" and b ends with "3":
+$ psv in a.tsv // grep d 'x' b '3$' // md
+
+
+==========================================================
+
+translate - Translate characters.
+
+  psv translate [--delete] [SRC DST COL,...] [-d DEL COL,...]
+
+Aliases: tr
+
+Similar to Unix tr command.
+
+Arguments:
+
+  SRC DST COL,... | Map chars from SRC to DST in each COL.
+  -d DEL COL,...  | Delete chars in DEL in each COL.
+
+Options:
+
+  --delete, -d | Delete characters.
+
+Examples:
+
+# translate: change characters in specific field:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
+
+# translate: delete characters:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
+
+
+==========================================================
+
+stats - Basic stats of numeric columns.
+
+  psv stats
+
+Aliases: describe
+
+Examples:
+
+# stats: basic stats:
+$ psv in a.tsv // -tsv // stats // md
+
+
+==========================================================
+
+null - Does nothing.
+
+  psv null
+
+Examples:
+
+# null: does nothing:
+$ psv in a.tsv // null IGNORED --OPTION=VALUE // md
+
+
+==========================================================
+
+count - Count of unique column values.
+
+  psv count [--column] [COL ...]
+
+Arguments:
+
+  COL ... | Columns to group by.
+          | Default: ALL COLUMNS.
+
+Options:
+
+  --column | Default: "count".
+
+Examples:
+
+# Count the number of transfers by Payer:
+$ psv in transfers.csv // count Payer // md
+
+# Count the number of transfers from Payer to Payee:
+$ psv in transfers.csv // count Payer,Payee // md
+
+# Count the number of transfers from Payee:
+$ psv in transfers.csv // count --column=PayeeTransfers Payee // md
+
+
+==========================================================
+
+summary - Summary of column values.
+
+  psv summary [COL,... [STAT,...] [GROUP-BY,...]] [COL,...] [STAT,...] [GROUP-BY,...]
+
+Arguments:
+
+  COL,... [STAT,...] [GROUP-BY,...] | COLs to summarize STATs grouped by GROUP-BY.
+  COL,...                           | Any numeric columns separated by ",".
+                                    |
+  STAT,...                          | One or more of: 'count,sum,min,max,mean,median,std,skew'.
+                                    | See Pandas "DataFrameGroupBy" documentation.
+                                    | Default: is all of them.
+                                    |
+  GROUP-BY,...                      | Any column not in the COL list.
+                                    | Default: is all of them.
+
+Examples:
+
+# Summary of transfers by Payer and Payee:
+$ psv in transfers.csv // summary Amount '*' Payer,Payee
+
+# Summary of transfers by Payer:
+$ psv in transfers.csv // summary Amount count,sum Payer
+
+# Sum of Fee by Payee:
+$ psv in transfers.csv // summary Fee sum Payee
+
+# Summary of all transfer Ammount and Fee:
+$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+
+
+==========================================================
+
+extract - Extract fields by Regexp.
+
+  psv extract
+
+Aliases: rx, re
+
+Examples:
+
+# Extract by names:
+$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+
+$ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
+
+# Extract unnamed group:
+$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+
+# Extract unnamed groups using a template:
+$ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+
+
+==========================================================
+
+eval - Evaluate expression for each row.
+
+  psv eval [--columns] [--normalize] [STATEMENT ...]
+
+Aliases: each
+
+Variable Bindings:
+Columns are bound to variables:
+  * `inp`    : input table.
+  * `out`    : output table.
+  * `row`    : current row.
+  * `ind`    : row index.
+  * `offset` : row offset (zero origin).
+
+When expression returns:
+  * "FINISH" : all remaining rows are dropped.
+  * "BREAK"  : all remaining rows (inclusive) are dropped.
+  * False    : the row is removed.
+  * Dict     : the row is updated and new columns are added.
+
+Arguments:
+
+  STATEMENT ... | Statements.
+                | Final statement may return a value.
+
+Options:
+
+  --columns       | Columns bound within STATEMENT.
+                  | Default: input columns.
+                  |
+  --normalize, -n | Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.
+                  | Default: False.
+
+Examples:
+
+$ psv in a.tsv // eval "c *= 2"
+
+$ psv in a.tsv // eval "return c > 0"
+
+$ psv in a.tsv // eval "return {'i': offset, 'd_length': 2}"
+
+$ psv in a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
+
+$ psv in a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
+
+$ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
+
+
+==========================================================
+
+select - Select rows.
+
+  psv select [LOGICAL-EXPRESSION ...]
+
+Aliases: where
+
+When expression is True, the row is selected.
+"BREAK" and "FINISH" conditions in `eval` command also apply.
+
+Arguments:
+
+  LOGICAL-EXPRESSION ... | Logical expression.
+
+Examples:
+
+$ psv in a.tsv // select "c > 0"
+
+
+==========================================================
+
+repl - Start an interactive REPL.
+
+  psv repl [`inp`] [`out`]
+
+Arguments:
+
+  `inp` | Input table.
+  `out` | Output table; copy of `inp`.
+
+==========================================================
+
+help - This help document.
+
+  psv help [--verbose] [--plain] [--raw]
+
+Options:
+
+  --verbose, -v | Show more detail.
+  --plain, -p   | Show plain docs.
+  --raw, -r     | Raw detail.
+
+==========================================================
+
+examples - Show examples.
+
+  psv examples [SEARCH-STRING] [--run, -r]
+
+Aliases: ex, example
+
+Arguments:
+
+  SEARCH-STRING | Matches name, aliases, brief.
+  --run, -r     | Run examples.
+
+==========================================================
+
