@@ -11,11 +11,11 @@ VENV_OPTS=--clear
 # OSX HAS WRECKED brew python3.*:
 #VENV_OPTS+=--copies
 
-BIN_FILES=$(shell grep -Erl '^\#!.+python' bin)
-LIB_FILES=$(wildcard lib/**/*.py)
-TEST_FILES=$(wildcard tests/**/*.py)
-LINT_FILES=$(BIN_FILES) $(LIB_FILES) $(TEST_FILES)
-MYPY_FILES=$(shell grep -Elr '^ *from typing import ' $(LINT_FILES))
+BIN_FILES:=$(shell grep -Erl '^\#!.+python' bin)
+LIB_FILES:=$(shell find lib -name '*.py' | sort)
+TEST_FILES:=$(shell find tests -name '*.py' | sort)
+LINT_FILES:=$(BIN_FILES) $(LIB_FILES) $(TEST_FILES)
+MYPY_FILES:=$(shell grep -Elr '^ *from typing import ' $(LINT_FILES))
 
 default : all
 
@@ -80,9 +80,10 @@ test: run-tests
 unit-test:
 	$(MAKE) run-tests FILES='$(TEST_FILES)'
 
+PYTEST_OPTS= #--capture=fd --show-capture
 run-tests:
 	rm -rf coverage/*
-	coverage run -m pytest --capture=fd --show-capture all $(wildcard $(FILES)) -vv -rpP
+	coverage run -m pytest $(PYTEST_OPTS) $(wildcard $(FILES)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json
