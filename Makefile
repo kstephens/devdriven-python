@@ -23,9 +23,10 @@ all : venv check
 
 # Environment:
 
-venv: venv/bin/$(PYTHON) venv-upgrade-tools venv-install-requirements
-venv-create: venv/bin/$(PYTHON)
-venv/bin/$(PYTHON):
+venv: Makefile requirements.txt dev-requirements.txt
+	$(MAKE) venv-create venv-upgrade-tools venv-install-requirements
+
+venv-create:
 	which $(PYTHON) ;\
 	env | grep -E 'LD_|PATH' ;\
 	$(PYTHON) --version
@@ -36,6 +37,7 @@ venv/bin/$(PYTHON):
 	$(PYTHON) --version
 # pip+3.10: SO MANY BUGS...
 # https://stackoverflow.com/questions/72439001/there-was-an-error-checking-the-latest-version-of-pip
+
 venv-upgrade-tools:
 	- set -x ;\
 	$(PYTHON) -m pip install --upgrade pip ;\
