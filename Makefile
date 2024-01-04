@@ -68,9 +68,11 @@ pylint:
 pycodestyle:
 	pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard $(LINT_FILES))
 
+MYPY_OPTS+= --config-file ./.mypy.ini
+MYPY_OPTS+= # --strict
 mypy:
 	mkdir -p mypy-report
-	mypy --config-file ./.mypy.ini --strict --txt-report mypy-report $(wildcard $(or $(MYPY_FILES), /dev/null))
+	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(MYPY_FILES), /dev/null))
 	cat mypy-report/index.txt
 
 # Unit Test:

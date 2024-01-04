@@ -29,8 +29,10 @@ def shorten_string(a_str, max_len, placeholder='...'):
   return a_str
 
 def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optional[str]:
+  if not obj:
+    return None
   try:
-    return obj and obj.decode(encoding)
+    return obj.decode(encoding)
   except UnicodeDecodeError:
     return None
 
