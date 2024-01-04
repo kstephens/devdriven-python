@@ -14,6 +14,7 @@ class Options:
     self.opts_defaults = {}
     self.opt_char_map = {}
     self.opt_aliases = {}
+    self.delegate = None
 
   def parse_argv(self, argv):
     self.argv = argv.copy()
@@ -56,17 +57,14 @@ class Options:
   def arg_or_opt(self, i, k, default):
     return get_safe(self.args, i, get_safe(self.opt_by_name, k, default))
 
-  # OVERRIDE: via delegate?
-  def opt_valid(self, _key, _val):
-    return True
+  def opt_valid(self, key, val):
+    return self.maybe_delegate('opt_valid', True, key, val)
 
-  # OVERRIDE: via delegate?
   def opt_default(self, key):
-    return self.opts_defaults.get(key, None)
+    return self.maybe_delegate('opt_default', self.opts_defaults.get(key), key)
 
-  # OVERRIDE: via delegate?
   def opt_name_key(self, flag):
-    return self.opt_char_map.get(flag, flag)
+    return self.maybe_delegate('opt_name_key', self.opt_char_map.get(flag, flag), flag)
 
   # See: Descriptor
   def parse_docstring(self, line):
@@ -110,3 +108,10 @@ class Options:
 
   def get_opt_aliases(self, opt):
     return [k for k, v in self.opt_aliases.items() if v == opt]
+
+  def maybe_delegate(self, name, default, *args):
+    if self.delegate and hasattr(self.delegate, name):
+      attr = getattr(self, name)
+      if inspect.ismethod(attr):
+        return attr(*args)
+    return default
