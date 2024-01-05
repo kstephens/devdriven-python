@@ -3,8 +3,8 @@ import logging
 from typing import Any, Optional, Union, Dict, Tuple
 import urllib.request
 import urllib.parse
-from devdriven.to_dict import dump_json
-import devdriven.util
+from .to_dict import dump_json
+from .util import elapsed_ms
 
 Headers = Optional[Dict[str, str]]
 HttpResult = Dict[str, Any]
@@ -72,7 +72,7 @@ def http_post(url: str, body: Union[str, bytes],
       'response': {},
     }
   logging.info("%s", msg)
-  ((res, error), dt_ms) = devdriven.util.elapsed_ms(http_do_request, req, bytes(req_body), options)
+  ((res, error), dt_ms) = elapsed_ms(http_do_request, req, bytes(req_body), options)
   logging.info("%s : res : status %d : body %d bytes : elapsed %.3f ms",
                msg, res['status'], res['body_size'], dt_ms)
   return result | {
