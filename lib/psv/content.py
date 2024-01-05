@@ -1,6 +1,6 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from devdriven.url import url_normalize, url_join, url_is_file, url_is_stdio
+from devdriven.url import url_normalize, url_join, url_to_str, url_is_file, url_is_stdio
 from devdriven.user_agent import UserAgent
 
 class Content():
@@ -106,7 +106,7 @@ def with_http_redirects(fun, url, *args, **kwargs):
     response = fun(next_url, *args, **kwargs)
     if response.status == 301:
       redirects += 1
-      next_url = url_join(next_url, response.header['Location'])
+      next_url = url_to_str(url_join(next_url, response.header['Location']))
     else:
       break
   if not completed:
