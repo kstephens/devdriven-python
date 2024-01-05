@@ -1,9 +1,9 @@
 from itertools import chain
+from typing import List
 from devdriven.util import dataclass_from_dict
 from devdriven.mime import short_and_long_suffix
 from .options import Options
 from .descriptor import Descriptor
-
 
 # @dataclass
 class Application:
@@ -14,13 +14,13 @@ class Application:
   descriptor_by_name: dict = {}
   descriptor_by_klass: dict = {}
 
-  def begin_section(self, name):
+  def begin_section(self, name: str) -> None:
     assert name
     self.current_section = name
     if name not in self.sections:
       self.sections.append(name)
 
-  def create_descriptor(self, klass):
+  def create_descriptor(self, klass) -> Descriptor:
     options = Options()
     kwargs = {
       'name': '',
@@ -41,13 +41,13 @@ class Application:
   def descriptor(self, name_or_klass, default=None):
     return self.descriptor_by_any.get(name_or_klass, default)
 
-  def descriptors_for_section(self, name):
+  def descriptors_for_section(self, name: str) -> List[Descriptor]:
     return [desc for desc in self.descriptors if desc.section == name]
 
-  def descriptors_by_sections(self, secs=None):
+  def descriptors_by_sections(self, secs=None) -> List[Descriptor]:
     return list(chain.from_iterable([self.descriptors_for_section(sec) for sec in (secs or self.sections)]))
 
-  def find_format(self, path, klass):
+  def find_format(self, path: str, klass):
     short_suffix, long_suffix = short_and_long_suffix(path)
     valid_descs = [dsc for dsc in self.descriptors if issubclass(dsc.klass, klass)]
     for dsc in valid_descs:
@@ -58,7 +58,7 @@ class Application:
         return dsc.klass
     return None
 
-  def register(self, desc):
+  def register(self, desc: Descriptor) -> Descriptor:
     for name in [desc.name, *desc.aliases]:
       if not name:
         raise Exception(f"Command: {desc.klass!r} : invalid name or alias")
