@@ -5,7 +5,7 @@ base_dir:=$(shell readlink -f .)
 
 PYTHONPATH_ORIG:=$(PYTHONPATH)
 export PYTHONPATH=lib:$(PYTHONPATH_ORIG)
-PYTHON=python3.10
+PYTHON=python3.11
 PYTHON_BIN:=$(shell which $(PYTHON) | head -1)
 VENV_OPTS=--clear
 # OSX HAS WRECKED brew python3.*:
