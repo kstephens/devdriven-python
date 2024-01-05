@@ -10,6 +10,12 @@ def test_url_normalize():
   assert sut.url_normalize('/c/d', 'http://a/b') == \
     ParseResult(scheme='http', netloc='a', path='/c/d', params='', query='', fragment='')
 
+def test_url_join():
+  assert sut.url_join('http://test/a', 'b/c') == \
+    'http://test/b/c'
+  assert sut.url_join('http://test/a/b', '../c/d') == \
+    'http://test/c/d'
+
 def test_url_parse():
   result = ParseResult(scheme='http', netloc='test', path='/', params='', query='', fragment='')
   assert sut.url_parse('http://test/') == result
