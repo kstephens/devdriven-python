@@ -1,9 +1,9 @@
+from typing import Any, Optional
 import json
 import subprocess
 import re
 import dataclasses
 import inspect
-from typing import Any, Optional
 from datetime import datetime
 from pathlib import Path
 from devdriven.util import maybe_decode_bytes, datetime_iso8601
