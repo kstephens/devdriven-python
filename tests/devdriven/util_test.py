@@ -2,7 +2,7 @@ import subprocess
 import time
 import re
 import tempfile
-from devdriven import util
+from devdriven import util  # type: ignore
 
 def test_maybe_decode_bytes():
   assert util.maybe_decode_bytes(b'A') == 'A'
@@ -90,13 +90,39 @@ def test_file_nlines():
   assert util.file_nlines('Does-Not-Exist', default=5) == 5
   assert util.file_nlines('Does-Not-Exist') is None
 
+##########################################################
+
 def test_elapsed_ms():
   result, dt_ms = util.elapsed_ms(take_some_time, 2, arg2=3)
   assert result == 6
   assert dt_ms >= 50
-def take_some_time(arg1, arg2):
+
+def test_elapsed_ms_exception():
+  result, dt_ms, exc = util.elapsed_ms_exception(Exception, take_some_time, 2, arg2=3)
+  assert result == 6
+  assert dt_ms >= 50
+  assert exc is None
+
+  kwargs = {'arg3': 11}
+  result, dt_ms, exc = util.elapsed_ms_exception(Exception, take_some_time_and_raise, 5, arg2=7, **kwargs)
+  assert result is None
+  assert dt_ms >= 70
+  assert isinstance(exc, Exception)
+
+def take_some_time(arg1, arg2=9):
+  assert arg1 == 2
+  assert arg2 == 3
   time.sleep(0.050)
   return 1 + arg1 + arg2
+
+def take_some_time_and_raise(arg1, arg2=9, arg3=11):
+  assert arg1 == 5
+  assert arg2 == 7
+  assert arg3 == 11
+  time.sleep(0.070)
+  raise Exception()
+
+##########################################################
 
 def test_parse_range():
   n = 23

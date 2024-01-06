@@ -1,3 +1,4 @@
+from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
 import os
 import subprocess
 import logging
@@ -8,7 +9,6 @@ import sys
 import dataclasses
 from datetime import datetime, timezone
 from contextlib import contextmanager
-from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
 from collections import defaultdict
 
 Predicate = Callable[[Any], Any]
@@ -138,6 +138,18 @@ def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
   result = func(*args, **kwargs)
   time_1 = time.time()
   return (result, (time_1 - time_0) * 1000)
+
+def elapsed_ms_exception(exc_klass: Any, func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float, Exception]:
+  assert exc_klass is not None
+  time_0 = time.time()
+  try:
+    result = func(*args, **kwargs)
+    time_1 = time.time()
+    return (result, (time_1 - time_0) * 1000, None)
+  # pylint: disable-next=broad-except
+  except exc_klass as exc:
+    time_1 = time.time()
+    return (None, (time_1 - time_0) * 1000, exc)
 
 def file_size(path: str, default: Any = None) -> Any:
   try:
