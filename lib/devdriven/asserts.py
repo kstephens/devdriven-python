@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from .util import file_md5
 
 def assert_command_output(file, command, fix_line=None, context_line=None):
   expect_out = f'{file}.out.expect'
@@ -25,8 +26,8 @@ def compare_files(actual_out, expect_out, context_line=None):
     actual_lines = io.readlines()
   with open(expect_out, 'r', encoding='utf-8') as io:
     expect_lines = io.readlines()
-  log(f'Actual   : {actual_out!r} : {len(actual_lines)} lines')
-  log(f'Expected : {expect_out!r} : {len(expect_lines)} lines')
+  log(f'Actual   : {actual_out!r} : {len(actual_lines)} lines : md5 {file_md5(actual_out)!r}')
+  log(f'Expected : {expect_out!r} : {len(expect_lines)} lines : md5 {file_md5(expect_out)!r}')
   compare_lines(actual_lines, expect_lines, context_line=context_line)
 
 def compare_lines(actual_lines, expect_lines, context_line=None):
