@@ -58,34 +58,49 @@ venv-force:
 install-requirements:
 	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
 
+# Check:
+
 check: test lint mypy
+
+run-check: run-test run-lint run-mypy
 
 # Lint:
 
 lint: pylint pycodestyle
 
 pylint:
-	pylint --rcfile ./.pylintrc --recursive=y $(wildcard $(LINT_FILES))
+	$(MAKE) run-pylint FILES='$(or $(FILES), $(LINT_FILES))'
 
 pycodestyle:
-	pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard $(LINT_FILES))
+	$(MAKE) run-pycodestyle FILES='$(or $(FILES), $(LINT_FILES))'
+
+mypy:
+	$(MAKE) run-mypy FILES='$(or $(FILES), $(MYPY_FILES))'
+
+run-lint: run-pylint run-pycodestyle
+
+run-pylint:
+	pylint --rcfile ./.pylintrc --recursive=y $(wildcard $(FILES))
+
+run-pycodestyle:
+	pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard $(FILES))
 
 MYPY_OPTS+= --config-file ./.mypy.ini
 MYPY_OPTS+= # --strict
-mypy:
+run-mypy:
 	mkdir -p mypy-report
-	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(MYPY_FILES), /dev/null))
+	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(FILES), /dev/null))
 	cat mypy-report/index.txt
 
 # Unit Test:
 
-test: run-tests
+test: unit-test
 
 unit-test:
-	$(MAKE) run-tests FILES='$(TEST_FILES)'
+	$(MAKE) run-test FILES='$(or $(FILES), $(TEST_FILES))'
 
 PYTEST_OPTS= #--capture=fd --show-capture
-run-tests:
+run-test:
 	rm -rf coverage/*
 	coverage run -m pytest $(PYTEST_OPTS) $(wildcard $(FILES)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
@@ -100,7 +115,7 @@ watch-files:
 
 clean:
 	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/.coverage coverage/*.*
-	find lib tests -name '__pycache__' -a -type d | xargs rm -rf {}
+	find lib tests -name '__pycache__' -a -type d | sort -r | xargs rm -rf {}
 
 very-clean: clean
 	rm -rf ./venv
