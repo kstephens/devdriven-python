@@ -62,6 +62,10 @@ def test_parse_commands():
     [['cmd1', 'a']]
   assert util.parse_commands(['cmd1', 'a', 'b', ',', 'cmd2', 'c']) == \
     [['cmd1', 'a', 'b'], ['cmd2', 'c']]
+  assert util.parse_commands(['cmd1', 'a', 'b,', 'cmd2', 'c']) == \
+    [['cmd1', 'a', 'b'], ['cmd2', 'c']]
+  assert util.parse_commands(['cmd1', 'a', 'b;;', 'cmd2', 'c'], r'^(.*);$') == \
+    [['cmd1', 'a', 'b;'], ['cmd2', 'c']]
 
 def test_file_md5():
   assert util.file_md5('/dev/null') == 'd41d8cd98f00b204e9800998ecf8427e'
