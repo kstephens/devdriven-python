@@ -1,22 +1,24 @@
+from __future__ import annotations
+from typing import Any, Optional, List, Dict
 import re
 import inspect
+from dataclasses import dataclass, field
 from devdriven.util import get_safe
 from devdriven.cli.option import Option
 
-# ??? use @dataclass?
+@dataclass
 class Options:
-  def __init__(self):
-    self.argv = []
-    self.args = []
-    self.arg_by_name = {}
-    self.opts = []
-    self.opt_by_name = {}
-    self.opts_defaults = {}
-    self.opt_char_map = {}
-    self.opt_aliases = {}
-    self.delegate = None
+  argv: List[str] = field(default_factory=list)
+  args: List[str] = field(default_factory=list)
+  arg_by_name: Dict[str, str] = field(default_factory=dict)
+  opts: List[Option] = field(default_factory=list)
+  opt_by_name: Dict[str, Option] = field(default_factory=dict)
+  opts_defaults: Dict[str, Any] = field(default_factory=dict)
+  opt_char_map: Dict[str, str] = field(default_factory=dict)
+  opt_aliases: Dict[str, Option] = field(default_factory=dict)
+  delegate: Any = None
 
-  def parse_argv(self, argv):
+  def parse_argv(self, argv: List[str]) -> Options:
     self.argv = argv.copy()
     while argv:
       arg = argv.pop(0)
@@ -33,41 +35,42 @@ class Options:
           self.opts.append(alias)
           self.opt_by_name[alias.name] = alias
           self.set_opt(alias.name, opt.value)
-        opt.aliases = None
+        opt.aliases = []
       else:
         self.args.append(arg)
     return self
 
-  def set_opt(self, name, val):
+  def set_opt(self, name: str, val: Any) -> None:
     key = self.opt_name_key(name)
-    if self.opt_valid(key, val):
+    if key and self.opt_valid(key, val):
       self.opt_by_name[key].value = val
     else:
       raise Exception(f'Invalid option : {name!r}')
 
-  def opt(self, key, *default):
+  def opt(self, key, *default) -> Any:
     if isinstance(key, tuple) and key:
       return self.opt(key[0], self.opt(key[1:], *default))
+    assert isinstance(key, str)
     if opt := self.opt_by_name.get(key):
       return opt.value
     if default:
       return default[0]
     return self.opt_default(key)
 
-  def arg_or_opt(self, i, k, default):
+  def arg_or_opt(self, i: int, k: str, default: Any) -> Any:
     return get_safe(self.args, i, get_safe(self.opt_by_name, k, default))
 
-  def opt_valid(self, key, val):
+  def opt_valid(self, key: str, val: Any) -> Any:
     return self.maybe_delegate('opt_valid', True, key, val)
 
-  def opt_default(self, key):
+  def opt_default(self, key: str) -> Any:
     return self.maybe_delegate('opt_default', self.opts_defaults.get(key), key)
 
-  def opt_name_key(self, flag):
+  def opt_name_key(self, flag: str) -> Optional[str]:
     return self.maybe_delegate('opt_name_key', self.opt_char_map.get(flag, flag), flag)
 
   # See: Descriptor
-  def parse_docstring(self, line):
+  def parse_docstring(self, line: str) -> Optional[Options]:
     m = None
 
     def add_arg(m):
@@ -87,7 +90,7 @@ class Options:
       return self
     return None
 
-  def command_synopsis(self):
+  def command_synopsis(self) -> List[str]:
     cmd = []
     for opt in self.opts:
       opts = [opt.full]  # + [alias.full for alias in opt.aliases]
@@ -98,7 +101,7 @@ class Options:
       cmd.append(arg)
     return cmd
 
-  def get_opt(self, name, aliases=False):
+  def get_opt(self, name: str, aliases=False) -> Optional[Option]:
     for opt in self.opts:
       if opt.name == name:
         return opt
@@ -106,10 +109,10 @@ class Options:
         return opt
     return None
 
-  def get_opt_aliases(self, opt):
+  def get_opt_aliases(self, opt) -> List[Any]:
     return [k for k, v in self.opt_aliases.items() if v == opt]
 
-  def maybe_delegate(self, name, default, *args):
+  def maybe_delegate(self, name: str, default: Any, *args) -> Any:
     if self.delegate and hasattr(self.delegate, name):
       attr = getattr(self, name)
       if inspect.ismethod(attr):

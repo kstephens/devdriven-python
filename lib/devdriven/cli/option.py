@@ -1,24 +1,26 @@
+from __future__ import annotations
+from typing import Any, Optional, List
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
-class Option():
+class Option:
   style: str = ''
   kind: str = ''
   arg: str = ''
   full: str = ''
   name: str = ''
-  value: str = None
+  value: Optional[Any] = None
   description: str = ''
-  default: str = None
-  aliases: list = None
+  default: Optional[str] = None
+  aliases: List[Any] = field(default_factory=list)
 
-  def parse_arg(self, arg):
+  def parse_arg(self, arg: str) -> Optional[Option]:
     self.style = 'arg'
     self.aliases = []
     return self.parse_simple(arg)
 
-  def parse_doc(self, arg):
+  def parse_doc(self, arg: str) -> Optional[Option]:
     self.style = 'doc'
     self.aliases = []
     if m := re.match(r'^(?:.+  |)Default: +(.+?)\.$', arg):
@@ -33,8 +35,9 @@ class Option():
         other.kind = self.kind
     return result
 
-  def parse_alias(self, opt, target):
+  def parse_alias(self, opt: str, target: Option) -> Option:
     alias = Option().parse_simple(opt)
+    assert alias is not None
     alias.style = target.style
     alias.kind = target.kind
     alias.aliases = []
@@ -42,7 +45,7 @@ class Option():
     alias.default = target.default
     return alias
 
-  def parse_simple(self, arg):
+  def parse_simple(self, arg: str) -> Optional[Option]:
     def matched_long(kind, name, val):
       self.arg = arg
       self.kind, self.full, self.name, self.value = \
@@ -76,8 +79,9 @@ class Option():
       return matched_flags('flag', m[1], False)
     return None
 
-  def synopsis(self):
+  def synopsis(self) -> str:
+    assert self.aliases is not None
     return ', '.join([self.full] + [opt.full for opt in self.aliases])
 
-  def table_row(self):
+  def table_row(self) -> List[str]:
     return [self.synopsis(), self.description]
