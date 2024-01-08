@@ -569,18 +569,15 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=i,
-           j,
-           k,
-           m,
-           n,
-           a,
-           b,
-           c,
-           x,
-           y,
-           z,
+good-names=i,j,k,m,n,
+           a,b,c,
+           # Function names:
+           f,g,h,
+           # Numbers:
+           x,y,z,
+           # I/O:
            io,
+           # Pandas:
            df,
            ex,
            Run,
