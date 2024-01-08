@@ -76,12 +76,14 @@ def wrap_words(words, width, _punctuation=r'[.,?;:]'):
     result.append(current)
   return result
 
+
 #####################################################################
 # Time
 
 # See: https://en.wikipedia.org/wiki/ISO_8601
 DATETIME_ISO8601_FMT = '%Y-%m-%d %H:%M:%S.%f%z'
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
+
 # pylint: disable-next=invalid-name
 def datetime_iso8601(dt: Any, tz=None) -> Union[str, Any]:
   if not tz:
@@ -101,7 +103,12 @@ def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
   time_1 = time.time()
   return (result, (time_1 - time_0) * 1000)
 
-def elapsed_ms_exception(exc_klass: Any, func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float, Exception]:
+def elapsed_ms_exception(
+  exc_klass: Any,
+  func: FuncAny,
+  *args: Any,
+  **kwargs: Any
+) -> Tuple[Any, float, Optional[Exception]]:
   assert exc_klass is not None
   time_0 = time.time()
   try:
