@@ -1,8 +1,8 @@
 from itertools import islice
 import pandas as pd
+from devdriven.tempfile import tempfile_to_writeable, tempfile_from_readable
 from .command import section, command
 from .formats import FormatIn, FormatOut
-from .util import tmp_file_to_writeable, tmp_file_from_readable
 
 section('Formats')
 
@@ -28,7 +28,7 @@ $ psv in a.xlsx // -xls // csv-
     def read_workbook(filename):
       return load_workbook(filename=filename)
 
-    workbook = tmp_file_from_readable(readable, '.xlsx', read_workbook)
+    workbook = tempfile_from_readable(readable, '.xlsx', read_workbook)
     sheet_id = self.opt('sheet-name', 0)
     worksheet = workbook.worksheets[sheet_id]
     if self.opt(('header', 'h'), True):
@@ -78,7 +78,7 @@ $ file a.xlsx
     if isinstance(inp, pd.DataFrame):
       for row in dataframe_to_rows(inp, index=index, header=header):
         worksheet.append(row)
-      tmp_file_to_writeable(writeable, '.xls', save_workbook)
+      tempfile_to_writeable(writeable, '.xls', save_workbook)
     else:
       raise Exception("xls-out: cannot format {type(inp)}")
 
