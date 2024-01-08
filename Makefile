@@ -88,6 +88,7 @@ run-pycodestyle:
 MYPY_OPTS+= --config-file ./.mypy.ini
 MYPY_OPTS+= # --strict
 run-mypy:
+	rm -rf mypy-report/
 	mkdir -p mypy-report
 	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(FILES), /dev/null))
 	cat mypy-report/index.txt
@@ -101,7 +102,8 @@ unit-test:
 
 PYTEST_OPTS= #--capture=fd --show-capture
 run-test:
-	rm -rf coverage/*
+	rm -rf coverage/
+	mkdir -p coverage
 	coverage run -m pytest $(PYTEST_OPTS) $(wildcard $(FILES)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
@@ -114,7 +116,7 @@ watch-files:
 	tool/bin/watch-files
 
 clean:
-	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/.coverage coverage/*.*
+	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/
 	find lib tests -name '__pycache__' -a -type d | sort -r | xargs rm -rf {}
 
 very-clean: clean
