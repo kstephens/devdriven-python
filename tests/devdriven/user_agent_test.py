@@ -124,8 +124,8 @@ def assert_response(fun, method, url, headers=None, body=None, **kwargs):
   # ic(response.status)
   # ic(response.headers)
   if not 200 <= response.status <= 299:
-    ic(response.status)
-    ic(response.headers)
+    # ic(response.status)
+    # ic(response.headers)
     assert 'ETag' not in response.headers
     assert 'X-Error' in response.headers
   return response

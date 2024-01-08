@@ -1,6 +1,18 @@
 from urllib.parse import ParseResult
 import devdriven.url as sut
+# from devdriven.combinator import compose
 # from icecream import ic
+
+URLS = [
+  'http://a/b',
+  'https://a/b',
+  'file://a/b',
+  'file:///a/b',
+  '/a/b',
+  '/a',
+  '-',
+  '',
+]
 
 def test_url_normalize():
   assert sut.url_normalize('http://test/path') == \
@@ -26,24 +38,23 @@ def test_url_parse():
   assert sut.url_parse(result) == result
 
 def test_url_is_http():
-  assert sut.url_is_http(sut.url_parse('http://test/path')) == 'http'
-  assert sut.url_is_http(sut.url_parse('https://test/path')) == 'http'
-  assert sut.url_is_http(sut.url_parse('file:///test/path')) is False
-  assert sut.url_is_http(sut.url_parse('test/path')) is False
+  assert_map(sut.url_is_http,
+             URLS,
+             ['http', 'http', False, False, False, False, False, False])
 
 def test_url_is_file():
   assert_map(sut.url_is_file,
-             parse_urls(),
+             URLS,
              [False, False, False, 'file', 'file', 'file', 'file', 'file'])
 
 def test_url_is_stdio():
   assert_map(sut.url_is_stdio,
-             parse_urls(),
+             URLS,
              [False, False, False, False, False, False, '-', False])
 
 def test_url_scheme():
   assert_map(sut.url_scheme,
-             parse_urls(),
+             URLS,
              ['http', 'http', False, 'file', 'file', 'file', 'file', 'file'])
 
 def test_url_and_method():
@@ -54,25 +65,17 @@ def test_url_and_method():
 
 ###################
 
-def assert_map(func, actual, expect):
+def assert_map(func, actual, expected):
+  func = comp(func, sut.url_parse)
   i = -1
-  for inp, exp in zip_default(actual, expect):
+  for inp, exp in zip_default(actual, expected):
     i += 1
     actual = func(inp)
     # ic((input, actual, exp))
     assert actual == exp, f'at {i}: input: {inp!r} actual: {actual!r} expect: {exp!r}'
 
-
-URLS = [
-  'http://a/b',
-  'https://a/b',
-  'file://a/b',
-  'file:///a/b',
-  '/a/b',
-  '/a',
-  '-',
-  '',
-]
+def comp(f, g):
+  return lambda *args: f(g(*args))
 
 def parse_urls():
   return list(map(sut.url_parse, URLS))
