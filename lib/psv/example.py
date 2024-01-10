@@ -26,6 +26,11 @@ class Example(Command):
     all_examples = list(flat_map(all_descriptors, lambda cmd: cmd.examples))
     examples = None
 
+    def desc_matches_exactly(desc):
+      if len(self.args) != 1:
+        return False
+      return desc.name == self.args[0] or self.args[0] in desc.aliases
+
     match_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
 
     def match(x):
@@ -33,11 +38,6 @@ class Example(Command):
 
     def command_matches(cmd):
       return match(cmd.command) or any(map(match, cmd.comments[0:]))
-
-    def desc_matches_exactly(desc):
-      if len(self.args) != 1:
-        return False
-      return desc.name == self.args[0] or self.args[0] in desc.aliases
 
     # Match descriptor exactly?
     descriptors = list(filter(desc_matches_exactly, all_descriptors))
