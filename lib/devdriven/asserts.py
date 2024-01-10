@@ -16,7 +16,16 @@ def assert_files(actual_out, expect_out, fix_line=None, context_line=None):
   if fix_line:
     fix_file(actual_out, fix_line)
   if os.path.isfile(expect_out):
-    compare_files(actual_out, expect_out, context_line=context_line)
+    differences = compare_files(actual_out, expect_out, context_line=context_line)
+    if differences:
+      for lineno, actual_line, expect_line, context in differences:
+        log(f'FAILED       : for {context}')
+        log(f'  Line       : {lineno!r}')
+        log(f'    Actual   : {actual_line!r}')
+        log(f'    Expected : {expect_line!r}')
+      log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
+      log(f'To accept  : cp {actual_out!r} {expect_out!r}')
+      assert actual_out == 'expected'
   else:
     log(f'Initialize {expect_out!r} with {actual_out!r}')
     os.system(f'cp {actual_out} {expect_out}')
@@ -28,11 +37,12 @@ def compare_files(actual_out, expect_out, context_line=None):
     expect_lines = io.readlines()
   log(f'Actual   : {actual_out!r} : {len(actual_lines)} lines : md5 {file_md5(actual_out)!r}')
   log(f'Expected : {expect_out!r} : {len(expect_lines)} lines : md5 {file_md5(expect_out)!r}')
-  compare_lines(actual_lines, expect_lines, context_line=context_line)
+  return compare_lines(actual_lines, expect_lines, context_line=context_line)
 
 def compare_lines(actual_lines, expect_lines, context_line=None):
   i = 0
   context = None
+  differences = []
   for actual_line, expect_line in zip(actual_lines, expect_lines):
     actual_line, expect_line = actual_line[:-1], expect_line[:-1]
     i += 1
@@ -40,10 +50,8 @@ def compare_lines(actual_lines, expect_lines, context_line=None):
       if new_context := context_line(actual_line):
         context = new_context
     if actual_line != expect_line:
-      log(f'FAILED   : Context: {context}')
-      log(f'Actual   : {actual_line!r}')
-      log(f'Expected : {expect_line!r}')
-      assert (i, actual_line) == (i, expect_line)
+      differences.append((i, actual_line, expect_line, context))
+  return differences
 
 def fix_file(file, fix_line):
   # log(f'fix_file: {file!r}')
