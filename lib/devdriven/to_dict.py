@@ -37,7 +37,7 @@ class ToDict:
       for key, val in obj.items():
         walked[self.walk(key)] = self.walk(val)
       return walked
-    if dataclasses.is_dataclass(obj_type):
+    if is_dataclass_instance(obj):
       rep = {
         'class': obj_type,
         'fields': dataclasses.asdict(obj),
@@ -88,3 +88,6 @@ def to_dict(data: Any) -> Any:
 
 def dump_json(obj: Any, indent: Optional[int] = None) -> str:
   return json.dumps(to_dict(obj), indent=indent)
+
+def is_dataclass_instance(obj: Any) -> bool:
+  return dataclasses.is_dataclass(obj) and not isinstance(obj, type)

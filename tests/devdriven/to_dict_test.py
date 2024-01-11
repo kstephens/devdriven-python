@@ -1,6 +1,7 @@
 import re
 import subprocess
 from datetime import datetime
+from dataclasses import dataclass
 import pytest
 import devdriven.to_dict
 
@@ -69,3 +70,18 @@ def test_walk_subprocess_error():
     'stdout': None,
     'stderr': None,
   }
+
+def test_walk_dataclass():
+  fut = devdriven.to_dict.to_dict
+  assert fut(ExampleDataclass('foo', 123)) == {
+    'class': "<class 'to_dict_test.ExampleDataclass'>",
+    'fields': {
+      'name': 'foo',
+      'value': 123,
+    }
+  }
+
+@dataclass
+class ExampleDataclass:
+  name: str
+  value: int
