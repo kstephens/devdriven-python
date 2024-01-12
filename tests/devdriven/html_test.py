@@ -11,9 +11,16 @@ def test_table():
   ]
   opts = {
     'raw_columns': ['b'],
+    'styled': True,
     'sorting': True,
     'filtering': True,
   }
-  sut = Table(title=title, columns=columns, rows=rows, opts=opts)
+  sut = Table(title=title,
+              columns=columns,
+              rows=rows,
+              opts=opts)
   sut.render()
-  print(sut.output.getvalue())
+  result = sut.output.getvalue()
+  # print(result)
+  print(len(result))
+  assert len(result) > 8192
