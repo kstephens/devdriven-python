@@ -118,19 +118,26 @@ watch-files:
 clean:
 	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/
 	find lib tests -name '__pycache__' -a -type d | sort -r | xargs rm -rf {}
+	rm -f $(MIN_JS_FILES)
 
 very-clean: clean
 	rm -rf ./venv
 
-minify: lib/devdriven/resources/html/parser_combinator.min.js lib/devdriven/resources/html/filter.min.js
-
+HTML_DIR=lib/devdriven/resources/html
+JS_FILES:=$(shell find $(HTML_DIR)/*.js $(HTML_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js')
+MIN_JS_FILES:=$(JS_FILES:%.js=%.min.js)
+minify: $(MIN_JS_FILES)
 %.min.js: %.js
 	python -mrjsmin < $< > $@
+	# slimit < $< > $@ # ModuleNotFoundError: No module named 'minifier'
 
 # Diagnostics:
 
 env:
 	. venv/bin/activate; env | sort
+
+var:
+	@echo '$(v)=$($(v))'
 
 vars:
 	@$(foreach v,BIN_FILES LIB_FILES TEST_FILES LINT_FILES MYPY_FILES,echo '$(v)=$($(v))'; )

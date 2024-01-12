@@ -199,11 +199,11 @@ TABLE_FOOT = '''
   ${this.javascript(this.resource_min("filter.js"))}
 %endif
 % if opt('sorting'):
-  ${this.javascript(this.resource("vendor/tablesort-5.3.0/src/tablesort.js"))}
-  ${this.javascript(this.resource("vendor/tablesort-5.3.0/src/sorts/tablesort.number.js"))}
-  ${this.javascript(this.resource("vendor/tablesort-5.3.0/src/sorts/tablesort.date.js"))}
-  ${this.javascript(this.resource("vendor/tablesort-5.3.0/src/sorts/tablesort.dotsep.js"))}
-  ${this.javascript(this.resource("vendor/tablesort-5.3.0/src/sorts/tablesort.filesize.js"))}
+  ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/tablesort.js"))}
+  ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.number.js"))}
+  ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.date.js"))}
+  ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.dotsep.js"))}
+  ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.filesize.js"))}
   ${this.init_sort()}
 %endif
 % if opt('filtering'):
