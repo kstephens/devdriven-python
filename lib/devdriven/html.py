@@ -159,7 +159,7 @@ HTML_HEAD = '''
     % if opt('stylesheet'):
     ${this.style(this.resource_min(opt('stylesheet')))}
     % endif
-    ${this.resource('head.html')}
+    ${this.resource('html-head-foot.html')}
     ${this.resource_opt('head', '')}
   </head>
   <body>
