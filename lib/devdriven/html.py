@@ -7,17 +7,17 @@ import html
 from devdriven.resource import Resources
 from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
+# from icecream import ic
 
 @dataclass
 class Table:
-  output: Any = None
-  title: Optional[str] = None
   columns: list = field(default_factory=list)
   rows: List[Any] = field(default_factory=list)
   options: dict = field(default_factory=dict)
-  table_head: bool = True
+  output: Any = None
   resources: Optional[Any] = None
   data: Optional[dict] = None
+  _col_opts: Optional[dict] = None
 
   def render(self) -> Self:
     if not self.output:
@@ -25,12 +25,14 @@ class Table:
     if not self.resources:
       path = Path(__file__).parent.joinpath('resources/html')
       self.resources = Resources(search_paths=[str(path)])
+    self.prepare_options()
     self.data = vars(self) | {
       'this': self,
       'h': self.h,
       'opt': self.opt,
+      'col_opt': self.col_opt,
       'width': len(self.columns),
-      'colspan': len(self.columns) + 1,
+      'colspan': len(self.columns) + 1 if self.opt('row_index') else len(self.columns),
       'height': len(self.rows),
       'unicode': UNICODE,
     }
@@ -47,6 +49,7 @@ class Table:
     templates += [TBODY, TABLE_FOOT]
     if not self.opt('table_only'):
       templates = [HTML_HEAD, *templates, HTML_FOOT]
+    templates += [TABLE_INIT]
     return self.join_templates(templates)
 
   def render_template(self, text) -> Self:
@@ -66,6 +69,33 @@ class Table:
     return ''.join(map(strip_leading, templates))
 
   ######################################
+  # Options:
+
+  def prepare_options(self):
+    # Merge and amend column options:
+    opt_cols = self.options.get('columns', {})
+    # ic(opt_cols)
+    self._col_opts = {col: {} | opt_cols.get(col, {}) for col in self.columns}
+    # ic(self._col_opts)
+    for col, opts in self._col_opts.items():
+      opts['none'] = self.opt('none', opts.get('none', None))
+      opts['td_class'] = self.col_class(col)
+    # ic(self._col_opts)
+
+  def col_class(self, col):
+    cls = []
+    align = None
+    if self.col_opt(col, 'numeric'):
+      align = 'right'
+    if align := (self.col_opt(col, 'align') or align):
+      cls.append(f'cx-{align}')
+    cls.append(self.col_opt(col, 'class', ''))
+    cls = ' '.join([x for x in cls if x])
+    if cls:
+      return f'class="{cls}"'
+    return ''
+
+  ######################################
   # Helpers:
 
   def h(self, x: Any) -> str:
@@ -73,6 +103,24 @@ class Table:
 
   def opt(self, name, default: Any = None) -> Any:
     return self.options.get(name, default)
+
+  def col_opt(self, col: str, opt: str, default=None) -> Any:
+    # ic((col, opt, default))
+    return self._col_opts[col].get(opt, default)
+
+  ######################################
+  # Content:
+
+  def cell(self, row, col: str, _row_idx: int) -> str:
+    data = row.get(col, '')
+    if not self.col_opt(col, 'raw', False):
+      data = self.h(data)
+    if data is None:
+      none = self.col_opt(col, 'none', None)
+      if none is not None:
+        return none
+    data = str(data)
+    return data
 
   def resource_(self, names: List[str], default=None) -> Any:
     if not names:
@@ -87,7 +135,7 @@ class Table:
 
   def resource_opt(self, name: str, default=None) -> str:
     if data := self.options.get(name, False):
-      if data.startswith('@'):
+      if isinstance(data, str) and data.startswith('@'):
         return self.resource(name[:1])
       return str(data)
     if default is None:
@@ -115,18 +163,6 @@ class Table:
       return f'<style>\n{content}\n</style>\n'
     return ''
 
-  def col_opts(self, col: str) -> dict:
-    return self.options.get('column_options', EMPTY_DICT).get(col, EMPTY_DICT)
-
-  def col_opt(self, col: str, opt: str, default=None) -> Any:
-    return self.col_opts(col).get(opt, default)
-
-  def cell(self, row, col: str, _row_idx: int) -> str:
-    data = row.get(col, '')
-    if not self.col_opt(col, 'raw', False):
-      return self.h(data)
-    return str(data)
-
   def init_sort(self) -> str:
     return self.javascript("new Tablesort(document.getElementById('cx-table'));")
 
@@ -146,12 +182,12 @@ UNICODE = {
 #########################################
 
 HTML_HEAD = '''
-<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
   <head>
     <meta charset="UTF-8"/>
-    % if title:
-    <title>${h(title)}</title>
+    % if opt('title'):
+    <title>${h(opt('title'))}</title>
     % endif
     % if opt('styled'):
     ${this.style(this.resource_min('cx.css'))}
@@ -159,28 +195,30 @@ HTML_HEAD = '''
     % if opt('stylesheet'):
     ${this.style(this.resource_min(opt('stylesheet')))}
     % endif
-    ${this.resource('html-head-foot.html')}
-    ${this.resource_opt('head', '')}
+    ${this.resource('html-head-footer.html')}
+    ${this.resource_opt('header', '')}
   </head>
   <body>
-  <!--
-    ${repr(this.options)}
-  -->
-  ${this.resource('body-head.html', '')}
-  ${this.resource_opt('body_head', '')}
+  ${this.resource('body-header.html', '')}
+  ${this.resource_opt('body_header', '')}
   <div class="cx-content">
-  % if title:
-    <div class="cx-title">${title}</div>
+  % if opt('title'):
+    <div class="cx-title">${opt('title')}</div>
   % endif
 '''
 
 HTML_FOOT = '''
     </div>
-    ${this.resource_opt('body_foot', '')}
-    ${this.resource('body-foot.html')}
+    <div class="cx-footer">
+${this.resource_opt('body_footer', '')}
+${this.resource('body-footer.html')}
+%if opt('attribution'):
+      <div class="cx-attribution">Generated by <a href="https://github.com/kstephens/psv">PSV</a></div>
+%endif
+${this.resource('html-footer.html')}
+${this.resource_opt('html_footer', '')}
+    </div>
   </body>
-${this.resource_opt('html_foot', '')}
-${this.resource('html-foot.html')}
 </html>
 '''
 
@@ -193,6 +231,9 @@ TABLE_HEAD = '''
 TABLE_FOOT = '''
   ${this.resource_opt('table_foot', '')}
 </table>
+'''
+
+TABLE_INIT = '''
 % if opt('filtering'):
   ${this.javascript(this.resource_min("vendor/zepto-1.2.0/zepto.js"))}
   ${this.javascript(this.resource_min("parser_combinator.js"))}
@@ -230,15 +271,17 @@ THEAD_COLUMNS = '''
     row_title += ' -- click to sort'
 %>
     <tr class="cx-columms">
+%if opt('row_index'):
       <th title="${row_title}" data-sort-method="number">#</th>
+%endif
 <% col_idx = 0 %>
 % for col in columns:
 <%
   col_idx += 1
-  col_title = f'name: {col}; index: {col_idx}; type: {this.col_opt("type", "UNKNOWN")}'
+  col_title = f'name: {col}; index: {col_idx}; type: {this.col_opt(col, "type", "UNKNOWN")}'
   col_sort = ''
   if opt('sorting'):
-    if this.col_opt('numeric', False):
+    if this.col_opt(col, 'numeric', False):
       col_sort = 'number'
     if col_sort:
       col_sort = f'data-sort-method="{col_sort}"'
@@ -298,9 +341,11 @@ TBODY = '''
     row_tooltip = f'{row_idx} / {height}'
   %>
     <tr title="${row_tooltip}">
+%if opt('row_index'):
       <td class="cx-right">${row_idx}</td>
+%endif
   % for col in columns:
-      <td title="${row_tooltip} - ${col}">${this.cell(row, col, row_idx)}</td>
+      <td ${col_opt(col, 'td_class')} title="${row_tooltip} - ${col}">${this.cell(row, col, row_idx)}</td>
   % endfor
     </tr>
 % endfor
@@ -308,4 +353,3 @@ TBODY = '''
 '''
 
 #########################################
-

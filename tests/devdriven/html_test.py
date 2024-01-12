@@ -1,25 +1,30 @@
 from devdriven.html import Table
-# from icecream import ic
 
 def test_table():
-  title = 'TITLE'
-  columns = ['a', 'b', 'c']
+  columns = ['a', 'b', 'c', 'd']
   rows = [
-    {'a': 11,    'b': "jack", 'c': 13},
-    {'a': "boo", 'b': '<span style="font-size: 150%;"><b><i>RAW</i></b></span>', 'c': "soup"},
-    {'a': "foo", 'b': 'farm', 'c': '<b>not-raw</b>'},
+    [11, "jack", 13, 234],
+    ["boo", '<span style="font-size: 150%;"><b><i>RAW</i></b></span>', "soup", 872],
+    ["foo", 'farm', '<b>not-raw</b>', 284],
+    [None, '0', '', -1],
   ]
+  rows = [dict(zip(columns, row)) for row in rows]
   options = {
-    'column_options': {
+    'title': 'TITLE',
+    'columns': {
+      'a': {'align': 'center'},
       'b': {'raw': True},
+      'c': {'align': 'right'},
+      'd': {'numeric': True},
     },
     'styled': True,
     'sorting': True,
     'filtering': True,
     'filtering_tooltip': True,
+    'row_index': True,
+    'none': '',
   }
-  sut = Table(title=title,
-              columns=columns,
+  sut = Table(columns=columns,
               rows=rows,
               options=options)
   sut.render()
