@@ -7,4 +7,5 @@ autopep8==2.0.4
 virtualenv==20.16.5
 pytest-cov==4.1.0
 lxml==4.9.3
+rjsmin==1.2.2
 icecream==2.1.3

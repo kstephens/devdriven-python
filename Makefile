@@ -122,6 +122,11 @@ clean:
 very-clean: clean
 	rm -rf ./venv
 
+minify: lib/devdriven/resources/html/parser_combinator.min.js lib/devdriven/resources/html/filter.min.js
+
+%.min.js: %.js
+	python -mrjsmin < $< > $@
+
 # Diagnostics:
 
 env:
