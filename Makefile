@@ -110,6 +110,17 @@ run-test:
 	coverage json
 #	coverage xml
 
+# Resources:
+
+HTML_DIR=lib/devdriven/resources/html
+JS_FILES:=$(shell find $(HTML_DIR)/*.js $(HTML_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort)
+MIN_JS_FILES:=$(patsubst %.js,%.min.js,$(JS_FILES))
+
+minify: $(MIN_JS_FILES)
+%.min.js: %.js
+	python -mrjsmin < $< > $@
+	# slimit < $< > $@ # ModuleNotFoundError: No module named 'minifier'
+
 # Productivity:
 
 watch-files:
@@ -123,21 +134,13 @@ clean:
 very-clean: clean
 	rm -rf ./venv
 
-HTML_DIR=lib/devdriven/resources/html
-JS_FILES:=$(shell find $(HTML_DIR)/*.js $(HTML_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js')
-MIN_JS_FILES:=$(JS_FILES:%.js=%.min.js)
-minify: $(MIN_JS_FILES)
-%.min.js: %.js
-	python -mrjsmin < $< > $@
-	# slimit < $< > $@ # ModuleNotFoundError: No module named 'minifier'
-
 # Diagnostics:
 
 env:
 	. venv/bin/activate; env | sort
 
 var:
-	@echo '$(v)=$($(v))'
+	@echo '$($(v))'
 
 vars:
 	@$(foreach v,BIN_FILES LIB_FILES TEST_FILES LINT_FILES MYPY_FILES,echo '$(v)=$($(v))'; )
