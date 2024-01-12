@@ -1,5 +1,5 @@
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from devdriven.tempfile import tempfile_from_readable
 from devdriven.url import url_normalize, url_join, url_to_str, url_is_file, url_is_stdio
 from devdriven.user_agent import UserAgent
 
@@ -62,14 +62,7 @@ The decoded body, defaults to utf-8.
     if self.is_file():
       return fun(self.url.path)
     suffix = suffix or Path(self.url.path).suffix
-    with NamedTemporaryFile(suffix=suffix) as tmp:
-      try:
-        with open(tmp.name, "wb") as tmp_io:
-          while buf := self.response().read(16384):
-            tmp_io.write(buf)
-        return fun(tmp.name)
-      finally:
-        tmp.close()
+    return tempfile_from_readable(self.response(), suffix, fun)
 
   def response(self):
     if self._response:
