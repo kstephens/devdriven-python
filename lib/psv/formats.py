@@ -3,8 +3,11 @@ import re
 import json
 from devdriven.util import not_implemented
 from devdriven.mime import content_type_for_suffixes
+from devdriven.html import Table
+from devdriven.pandas import column_type_names
 import tabulate
 import pandas as pd
+# from icecream import ic
 from .command import Command, section, command
 from .content import Content
 
@@ -300,7 +303,10 @@ class HtmlOut(FormatOut):
   alias: html
 
   --table-name=NAME  |  <title>
-  --header, -h       |  Generate header.  Default: True.
+  --styled           |  Add style.
+  --filtering        |  Add filtering UI.
+  --sorting          |  Add sorting support.
+  --row-index        |  Show row index in first column.
 
   :suffixes: .html,.htm
 
@@ -318,15 +324,27 @@ $ w3m -dump /tmp/users.html
 
   '''
   def format_out(self, inp, _env, writeable):
-    # pylint: disable-next=import-outside-toplevel
-    from devdriven.pandas import format_html
-    opts = {
-      'table_name': self.opt('table_name', None),
-      'header': bool(self.opt('header', True)),
-    }
-    opts = {k: v for k, v in opts.items() if v is not None}
-    format_html(inp, writeable, **opts)
-    writeable.write('\n')
+    columns = inp.columns
+    dtypes = column_type_names(inp)
+    rows = inp.to_dict(orient='records')
+    column_opts = {}
+    for col in columns:
+      column_opts[col] = {}
+      if dtypes[col] in ('int64', 'float64'):
+        column_opts[col]['numeric'] = True
+    options = {
+      'title': self.opt('table_name', None),
+      'columns': column_opts,
+      'styled': True,
+      # 'row_ind': True,
+    } | self.opts
+    table = Table(
+      columns=columns,
+      rows=rows,
+      options=options,
+      output=writeable,
+    )
+    table.render()
 
 @command
 class SQLOut(FormatOut):

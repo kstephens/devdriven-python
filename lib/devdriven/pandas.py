@@ -28,6 +28,9 @@ def write_logs(basename):
     write_df(processing_log, f'00-{basename}-log')
 # pylint: enable=invalid-name
 
+def column_type_names(dframe):
+  return {col: str(dtype) for col, dtype in dframe.dtypes.to_dict().items()}
+
 def select_rows(rows, match):
   selected = rows.loc[match]
   selected = selected.reset_index(drop=True)
