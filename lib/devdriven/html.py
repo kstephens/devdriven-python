@@ -41,9 +41,9 @@ class Table:
   def opt(self, name, default: Any = None) -> Any:
     return self.opts.get(name, default)
 
-  def resource(self, name, _default=None) -> str:
+  def resource(self, name, default='') -> str:
     if not name:
-      return ''
+      return str(default)
     if data := self.opts.get(name, False):
       if data.startswith('@'):
         return f'TODO:RESOURCE-FROM-FILE({data[1:]})'
@@ -73,12 +73,14 @@ HEAD = '''<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8"/>
+    % if title:
     <title>${h(title)}</title>
+    % endif
     % if opt('styled'):
     ${resource('cx.css')}
     % endif
     ${resource('head.html')}
-    ${opt('head')}
+    ${opt('head', '')}
   </head>
   <body>
   <!--
@@ -89,7 +91,7 @@ HEAD = '''<!DOCTYPE html>
 
 FOOT = '''${resource(opt('body_foot'))}
   </body>
-${opt('foot')}
+${opt('foot', '')}
 ${resource('foot.html')}
 </html>
 '''
