@@ -1,5 +1,4 @@
-from __future__ import annotations
-from typing import Any, Optional, List
+from typing import Any, Self, Optional, List
 import re
 from dataclasses import dataclass, field
 
@@ -15,12 +14,12 @@ class Option:
   default: Optional[str] = None
   aliases: List[Any] = field(default_factory=list)
 
-  def parse_arg(self, arg: str) -> Optional[Option]:
+  def parse_arg(self, arg: str) -> Optional[Self]:
     self.style = 'arg'
     self.aliases = []
     return self.parse_simple(arg)
 
-  def parse_doc(self, arg: str) -> Optional[Option]:
+  def parse_doc(self, arg: str) -> Optional[Self]:
     self.style = 'doc'
     self.aliases = []
     if m := re.match(r'^(?:.+  |)Default: +(.+?)\.$', arg):
@@ -35,7 +34,7 @@ class Option:
         other.kind = self.kind
     return result
 
-  def parse_alias(self, opt: str, target: Option) -> Option:
+  def parse_alias(self, opt: str, target: Self):
     alias = Option().parse_simple(opt)
     assert alias is not None
     alias.style = target.style
@@ -45,7 +44,7 @@ class Option:
     alias.default = target.default
     return alias
 
-  def parse_simple(self, arg: str) -> Optional[Option]:
+  def parse_simple(self, arg: str) -> Optional[Self]:
     def matched_long(kind, name, val):
       self.arg = arg
       self.kind, self.full, self.name, self.value = \

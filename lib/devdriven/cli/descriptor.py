@@ -1,5 +1,4 @@
-from __future__ import annotations
-from typing import Optional, List
+from typing import Self, Optional, List
 import re
 from dataclasses import dataclass
 from devdriven.cli.options import Options
@@ -23,7 +22,7 @@ class Descriptor:
   suffix_list: list
   data: object
 
-  def parse_docstring(self, docstr: str) -> Descriptor:
+  def parse_docstring(self, docstr: str) -> Self:
     found_aliases = False
     debug = False
     lines = unpad_lines(re.sub(r'\\\n', '', docstr).splitlines())

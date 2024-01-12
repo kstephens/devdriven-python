@@ -1,5 +1,4 @@
-from __future__ import annotations
-from typing import Any, Optional, List, Dict
+from typing import Any, Self, Optional, List, Dict
 import re
 import inspect
 from dataclasses import dataclass, field
@@ -18,7 +17,7 @@ class Options:
   opt_aliases: Dict[str, Option] = field(default_factory=dict)
   delegate: Any = None
 
-  def parse_argv(self, argv: List[str]) -> Options:
+  def parse_argv(self, argv: List[str]) -> Self:
     self.argv = argv.copy()
     while argv:
       arg = argv.pop(0)
@@ -70,7 +69,7 @@ class Options:
     return self.maybe_delegate('opt_name_key', self.opt_char_map.get(flag, flag), flag)
 
   # See: Descriptor
-  def parse_docstring(self, line: str) -> Optional[Options]:
+  def parse_docstring(self, line: str) -> Optional[Self]:
     m = None
 
     def add_arg(m):
