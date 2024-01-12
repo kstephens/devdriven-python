@@ -240,7 +240,7 @@ class JsonIn(FormatIn):
   '''
   def format_in(self, readable, _env):
     orient = self.opt('orient', 'records')
-    return pd.read_json(readable, orient=orient)
+    return pd.read_json(readable, orient=orient, convert_dates=True)
 
 @command
 class JsonOut(FormatOut):
