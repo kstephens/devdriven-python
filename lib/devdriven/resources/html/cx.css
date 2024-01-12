@@ -128,7 +128,6 @@ table.cx-table {
 .cx-footer {
   position: sticky;
   left:  1em;
-  float: left;
 }
 
 .cx-attribution {
