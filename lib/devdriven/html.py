@@ -218,7 +218,7 @@ ${this.style(this.resource_min('cx.css'))}
 ${this.style(this.resource_min(opt('stylesheet')))}
 % endif
 ${this.resource('html-head-footer.html')}
-${this.resource_opt('header', '')}
+${this.resource_opt('html_head_footer', '')}
 </head>
 <body>
 ${this.resource('body-header.html', '')}
@@ -277,11 +277,13 @@ ${this.init_filtering()}
 #########################################
 
 THEAD_HEAD = '''
+% if opt('header'):
 <thead ${attrs({'class': "cx-thead"})}>
 '''
 
 THEAD_FOOT = '''
 </thead>
+%endif
 '''
 
 #########################################

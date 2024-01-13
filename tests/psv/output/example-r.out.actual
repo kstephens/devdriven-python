@@ -173,45 +173,70 @@ $ psv in a.csv // -csv // json-
 $ psv in a.csv // html // o a.html
 
 $ w3m -dump a.html
-a b     c      d
-1 b1 23.763  xspdf
-2 b2 -98.73  qwer
-3 b3 3451.0  bixop
-1 b4 1.234   zxy
+┌─┬──┬───────┬─────┐
+│a│b │   c   │  d  │
+├─┼──┼───────┼─────┤
+│1│b1│23.763 │xspdf│
+├─┼──┼───────┼─────┤
+│2│b2│-98.73 │qwer │
+├─┼──┼───────┼─────┤
+│3│b3│3451.0 │bixop│
+├─┼──┼───────┼─────┤
+│1│b4│1.234  │zxy  │
+└─┴──┴───────┴─────┘
 
+$ psv in users.txt // -table --fs=":" // html --title=users.txt // o users.html
 
-$ psv in users.txt // -table --fs=":" // html // o /tmp/users.html
+$ w3m -dump users.html
+users.txt
+┌──────┬──┬─────┬─────┬──────┬──────────────┬─────────────────┐
+│  c1  │c2│ c3  │ c4  │  c5  │      c6      │       c7        │
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│root  │x │0    │0    │root  │/root         │/bin/bash        │
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│daemon│x │1    │1    │daemon│/usr/sbin     │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│bin   │x │2    │2    │bin   │/bin          │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sys   │x │3    │3    │sys   │/dev          │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│games │x │5    │60   │games │/usr/games    │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│man   │x │6    │12   │man   │/var/cache/man│/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│mail  │x │8    │8    │mail  │/var/mail     │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│backup│x │34   │34   │backup│/var/backups  │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│nobody│x │65534│65534│nobody│/nonexistent  │/usr/sbin/nologin│
+├──────┼──┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sshd  │x │122  │65534│      │/run/sshd     │/usr/sbin/nologin│
+└──────┴──┴─────┴─────┴──────┴──────────────┴─────────────────┘
 
-$ w3m -dump /tmp/users.html
-  c1   c2  c3    c4     c5         c6              c7
-root   x  0     0     root   /root          /bin/bash
-daemon x  1     1     daemon /usr/sbin      /usr/sbin/nologin
-bin    x  2     2     bin    /bin           /usr/sbin/nologin
-sys    x  3     3     sys    /dev           /usr/sbin/nologin
-games  x  5     60    games  /usr/games     /usr/sbin/nologin
-man    x  6     12    man    /var/cache/man /usr/sbin/nologin
-mail   x  8     8     mail   /var/mail      /usr/sbin/nologin
-backup x  34    34    backup /var/backups   /usr/sbin/nologin
-nobody x  65534 65534 nobody /nonexistent   /usr/sbin/nologin
-sshd   x  122   65534        /run/sshd      /usr/sbin/nologin
+$ psv in users.txt // -table --fs=":" // html --no-header // o users.html
 
-
-# html: Generate HTML:
-$ psv in users.txt // -table --fs=":" // html --no-header // o /tmp/users.html
-
-$ w3m -dump /tmp/users.html
-  c1   c2  c3    c4     c5         c6              c7
-root   x  0     0     root   /root          /bin/bash
-daemon x  1     1     daemon /usr/sbin      /usr/sbin/nologin
-bin    x  2     2     bin    /bin           /usr/sbin/nologin
-sys    x  3     3     sys    /dev           /usr/sbin/nologin
-games  x  5     60    games  /usr/games     /usr/sbin/nologin
-man    x  6     12    man    /var/cache/man /usr/sbin/nologin
-mail   x  8     8     mail   /var/mail      /usr/sbin/nologin
-backup x  34    34    backup /var/backups   /usr/sbin/nologin
-nobody x  65534 65534 nobody /nonexistent   /usr/sbin/nologin
-sshd   x  122   65534        /run/sshd      /usr/sbin/nologin
-
+$ w3m -dump users.html
+┌──────┬─┬─────┬─────┬──────┬──────────────┬─────────────────┐
+│root  │x│0    │0    │root  │/root         │/bin/bash        │
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│daemon│x│1    │1    │daemon│/usr/sbin     │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│bin   │x│2    │2    │bin   │/bin          │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sys   │x│3    │3    │sys   │/dev          │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│games │x│5    │60   │games │/usr/games    │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│man   │x│6    │12   │man   │/var/cache/man│/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│mail  │x│8    │8    │mail  │/var/mail     │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│backup│x│34   │34   │backup│/var/backups  │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│nobody│x│65534│65534│nobody│/nonexistent  │/usr/sbin/nologin│
+├──────┼─┼─────┼─────┼──────┼──────────────┼─────────────────┤
+│sshd  │x│122  │65534│      │/run/sshd     │/usr/sbin/nologin│
+└──────┴─┴─────┴─────┴──────┴──────────────┴─────────────────┘
 
 # sql: Convert TSV to SQL schema:
 $ psv in a.tsv // sql
