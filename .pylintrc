@@ -570,11 +570,11 @@ function-naming-style=snake_case
 
 # Good variable names which should always be accepted, separated by a comma.
 good-names=i,j,k,m,n,
-           a,b,c,
+           a,b,c,d,
            # Function names:
            f,g,h,
            # Numbers:
-           x,y,z,
+           x,y,z,w,
            # I/O:
            io,
            # Pandas:

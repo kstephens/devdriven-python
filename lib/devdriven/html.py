@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self, List, Tuple
+from typing import Any, Optional, Self, List, Tuple, Dict
 from io import StringIO
 from pathlib import Path
 import re
@@ -16,8 +16,8 @@ class Table:
   options: dict = field(default_factory=dict)
   output: Any = None
   resources: Optional[Any] = None
-  data: Optional[dict] = None
-  _col_opts: Optional[dict] = None
+  data: dict = field(default_factory=dict)
+  _col_opts: dict = field(default_factory=dict)
 
   def render(self) -> Self:
     if not self.output:
@@ -35,7 +35,12 @@ class Table:
       'colspan': len(self.columns) + 1 if self.opt('row_index') else len(self.columns),
       'height': len(self.rows),
       'unicode': UNICODE,
+      'allow_attributes': self.opt('styled') or self.opt('filtering') or self.opt('sorting'),
+      'attr': self.attr,
+      'attrs': self.attrs,
+      'class_': self.class_,
     }
+
     self.render_template(self.template_text())
     return self
 
@@ -64,14 +69,21 @@ class Table:
     )
 
   def join_templates(self, templates):
-    def strip_leading(text):
-      return re.sub(r'^\s*\n+', '', text, count=1)
-    return ''.join(map(strip_leading, templates))
+    def strip_it(text):
+      return re.sub(r'^\s*\n+|\s*\n+$', '', text, count=1)
+    return ''.join(map(strip_it, templates))
 
   ######################################
   # Options:
 
   def prepare_options(self):
+    self.options = {} | self.options
+    if self.opt('simple'):
+      self.options['styled'] = False
+      self.options['sorting'] = False
+      self.options['filtering'] = False
+    if self.opt('sorting') or self.opt('filtering'):
+      self.options['styled'] = True
     # Merge and amend column options:
     opt_cols = self.options.get('columns', {})
     # ic(opt_cols)
@@ -92,8 +104,8 @@ class Table:
     cls.append(self.col_opt(col, 'class', ''))
     cls = ' '.join([x for x in cls if x])
     if cls:
-      return f'class="{cls}"'
-    return ''
+      return cls
+    return None
 
   ######################################
   # Helpers:
@@ -105,8 +117,18 @@ class Table:
     return self.options.get(name, default)
 
   def col_opt(self, col: str, opt: str, default=None) -> Any:
-    # ic((col, opt, default))
     return self._col_opts[col].get(opt, default)
+
+  def attrs(self, d):
+    return ' '.join([self.attr(name, val) for name, val in d.items()]).strip()
+
+  def attr(self, name, val):
+    if name and val is not None and self.data['allow_attributes']:
+      return f'{name}="{val}"'
+    return ''
+
+  def class_(self, val):
+    return self.attr('class', val)
 
   ######################################
   # Content:
@@ -172,7 +194,7 @@ class Table:
 
 #########################################
 
-EMPTY_DICT = {}
+EMPTY_DICT: Dict[Any, Any] = {}
 
 UNICODE = {
   # Left-Pointing Magnifying Glass : U+1F50D
@@ -201,15 +223,15 @@ HTML_HEAD = '''
   <body>
   ${this.resource('body-header.html', '')}
   ${this.resource_opt('body_header', '')}
-  <div class="cx-content">
+  <div ${class_("cx-content")}>
   % if opt('title'):
-    <div class="cx-title">${opt('title')}</div>
+    <div ${class_("cx-title")}>${opt('title')}</div>
   % endif
 '''
 
 HTML_FOOT = '''
     </div>
-    <div class="cx-footer">
+    <div ${class_("cx-footer")}>
 ${this.resource_opt('body_footer', '')}
 ${this.resource('body-footer.html')}
 %if opt('attribution'):
@@ -225,7 +247,7 @@ ${this.resource_opt('html_footer', '')}
 #########################################
 
 TABLE_HEAD = '''
-<table id="cx-table" class="cx-table">
+<table ${attrs({"id": "cx-table", "class":"cx-table"})}>
   ${this.resource_opt('table_head', '')}
 '''
 TABLE_FOOT = '''
@@ -255,7 +277,7 @@ TABLE_INIT = '''
 #########################################
 
 THEAD_HEAD = '''
-  <thead class="cx-thead">
+  <thead ${attrs({'class': "cx-thead"})}>
 '''
 
 THEAD_FOOT = '''
@@ -270,9 +292,9 @@ THEAD_COLUMNS = '''
   if opt('sorting'):
     row_title += ' -- click to sort'
 %>
-    <tr class="cx-columms">
+    <tr ${class_("cx-columms")}>
 %if opt('row_index'):
-      <th title="${row_title}" data-sort-method="number">#</th>
+      <th ${attrs({'title': row_title, "data-sort-method": "number"})}>#</th>
 %endif
 <% col_idx = 0 %>
 % for col in columns:
@@ -287,16 +309,14 @@ THEAD_COLUMNS = '''
       col_sort = f'data-sort-method="{col_sort}"'
 %>
       <th
-        class="cx-column"
+        ${class_("cx-column")}
 % if opt('sorting'):
         ${col_sort}
 %endif
 %if opt('filtering'):
-        data-column-index="${col_idx}"
-        data-filter-name="${col}"
-        data-filter-name-full="${col}"
+${attrs({"data-column-index": col_idx, "data-filter-name": col, "data-filter-name-full": col})}
 %endif
-      title="${col_title}"
+      ${attr("title", col_title)}
       >${h(col)}</th>
 % endfor
     </tr>
@@ -333,21 +353,19 @@ THEAD_FILTERING = '''
 #########################################
 
 TBODY = '''
-  <tbody class="cx-tbody">
+<tbody ${class_("cx-tbody")}>
 <% row_idx = 0 %>
 % for row in rows:
-  <%
-    row_idx += 1
-    row_tooltip = f'{row_idx} / {height}'
-  %>
-    <tr title="${row_tooltip}">
+  <% row_idx += 1; row_tooltip = f'{row_idx} / {height}' %>
+<tr ${attr("title", row_tooltip)}>
 %if opt('row_index'):
-      <td class="cx-right">${row_idx}</td>
+<td ${class_("cx-right")}>${row_idx}</td>
 %endif
-  % for col in columns:
-      <td ${col_opt(col, 'td_class')} title="${row_tooltip} - ${col}">${this.cell(row, col, row_idx)}</td>
+% for col in columns:
+<% col_tooltip = f'{row_tooltip} - {col}' %>
+<td ${attrs({"class": col_opt(col, 'td_class'), "title": col_tooltip})}>${this.cell(row, col, row_idx)}</td>
   % endfor
-    </tr>
+</tr>
 % endfor
   </tbody>
 '''
