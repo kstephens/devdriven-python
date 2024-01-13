@@ -62,7 +62,7 @@
 |                |                                                                                                       |
 | html-          | Generate HTML.                                                                                        |
 |                |                                                                                                       |
-|                |   psv html- [--table-name] [--header]                                                                 |
+|                |   psv html- [--title] [--styled] [--filtering] [--sorting] [--row-index] [--table-only]               |
 |                |                                                                                                       |
 |                | Aliases: html                                                                                         |
 |                |                                                                                                       |

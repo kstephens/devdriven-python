@@ -1,114 +1,278 @@
-
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
-<head>
+  <head>
+    <meta charset="UTF-8"/>
+    <style>
+/** generic *****************************************/
 
-<style>
-h1 {
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #000;
+  color: #eee;
+}
+
+a:link {
+  color: inherit;
+  text-decoration: none;
+}
+a:active {
+  color: inherit;
+  text-decoration: none;
+}
+a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/** cx-content *****************************************/
+
+.cx-error {
+  background-color: #b08080;
+}
+
+.cx-title {
+  text-align: center;
+}
+div.cx-content {
+  display: inline-block;
+}
+
+/** cx-table *****************************************/
+
+table.cx-table {
+  border-collapse: collapse;
+  background-color: #000;
+}
+.cx-table thead th {
+  background-color: #333;
+  padding: 0.5rem 1rem;
+}
+.cx-table tr:nth-child(odd) {
+  background-color: #111;
+}
+.cx-table tr:nth-child(even) {
+  background-color: #222;
+}
+.cx-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #555;
+}
+.cx-table tr:hover td {
+  background-color: #444;
+}
+
+/** cell alignment *****************************************/
+
+.cx-numeric {
+  text-align: right;
+}
+.cx-right {
+  text-align: right;
+}
+.cx-left {
   text-align: left;
 }
-body {
-  /* width: 110%; */
-  background-color: black;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
+.cx-center {
+  text-align: center;
 }
-table.dataframe {
-  border: none !important;
+
+/* https://css-tricks.com/position-sticky-and-table-headers/ */
+table.cx-table {
+  position: relative,
 }
-table {
-  /* width: 110%; */
-  width: 1%;
-  border: none;
-  /* border-collapse: collapse; */
-  position: relative;
-}
-thead {
+.cx-table .cx-thead {
   position: sticky;
   top: 0;
 }
-tr {
-  border: none;
-  /* border-left: 1px solid rgba(255,255,255,16); */
-}
-tr:nth-child(odd) {
-  background-color: rgba(24,24,24,64);
-}
-tr:hover {
-  border: none;
-  background-color: rgba(32,32,64,16);
-}
-.tsv-header {
+
+/** filtering  *****************************************/
+
+.cx-table .cx-filter-row {
   position: sticky;
   left: 0; /* needed for sticky? */
 }
-th, td {
-  /* width: auto; */
-  width: 1%;
-  padding: 1em;
-  white-space: pre;
+
+.cx-table .cx-filter-th {
+  position: sticky;
+  left: 0;
 }
-th {
-  background-color: rgba(32,32,32,16);
-  font-weight: bold;
-  border-bottom: 1px solid rgba(128,128,128,16);
-  text-align: center;
+
+.cx-filter-input-span {
+  position: sticky;
+  left: 2em;
+  float: left;
 }
-td {
+
+.cx-filter-input {
+  width: 20em;
+}
+.cx-filter-input-clear {
+  background-color: inherit; /* black; */
+  color: red;
   border: none;
-  /* border-right: 1px solid rgba(255,255,255,16); */
-}
-a {
+  padding: 2px 2px;
+  vertical-align: middle;
+  text-align: center;
   text-decoration: none;
-  color: inherit;
+  display: inline-block;
+  font-size: 80%;
+  margin: 4px 2px;
+  cursor: pointer;
 }
-a:hover {
-  color: rgba(200,160,160,255);
-  text-decoration: underline;
+.cx-filter-row-count-span {
+  vertical-align: middle;
+  font-size: 80%;
 }
+
+/** footer  *****************************************/
+
+.cx-footer {
+  position: sticky;
+  left:  1em;
+}
+
+.cx-attribution {
+  font-style: italic;
+  font-size: 80%;
+}
+
+/** tooltip  *****************************************/
+/* https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_tooltip */
+
+.cx-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.cx-tooltip .cx-tooltip-body {
+  padding: 1em;
+  vertical-align: middle;
+  font-size: 80%;
+}
+
+.cx-tooltip .cx-tooltip-text {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 10;
+  top: 100%;
+  left: 100%;
+
+  text-align: left;
+  padding: 1.5em;
+
+  border: solid 0.5em;
+  border-color: rgba(80, 80, 80, 0.95);
+  background: rgba(25, 25, 25, 0.95);
+  color: #fff;
+  transition: opacity 0.3s;
+}
+
+.cx-tooltip .cx-tooltip-text::after {
+  content: "";
+}
+
+.cx-tooltip:hover .cx-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
 </style>
-</head>
-<body>
-<div>
-        
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>a</th>
-      <th>b</th>
-      <th>c</th>
-      <th>d</th>
+
+    
+    
+  </head>
+  <body>
+  
+  
+  <div class="cx-content">
+<table id="cx-table" class="cx-table">
+  
+  <thead class="cx-thead">
+
+    <tr class="cx-columms">
+
+
+      <th
+        class="cx-column"
+      title="name: a; index: 1; type: UNKNOWN"
+      >a</th>
+
+      <th
+        class="cx-column"
+      title="name: b; index: 2; type: UNKNOWN"
+      >b</th>
+
+      <th
+        class="cx-column"
+      title="name: c; index: 3; type: UNKNOWN"
+      >c</th>
+
+      <th
+        class="cx-column"
+      title="name: d; index: 4; type: UNKNOWN"
+      >d</th>
     </tr>
   </thead>
-  <tbody>
-    <tr>
-      <td>1</td>
-      <td>b1</td>
-      <td>23.763</td>
-      <td>xspdf</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>b2</td>
-      <td>-98.730</td>
-      <td>qwer</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>b3</td>
-      <td>3451.000</td>
-      <td>bixop</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>b4</td>
-      <td>1.234</td>
-      <td>zxy</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</body>
-</html>
-          
+<tbody class="cx-tbody">
 
+  
+<tr title="1 / 4">
+
+<td class="cx-right" title="1 / 4 - a">1</td>
+
+<td title="1 / 4 - b">b1</td>
+
+<td class="cx-right" title="1 / 4 - c">23.763</td>
+
+<td title="1 / 4 - d">xspdf</td>
+</tr>
+  
+<tr title="2 / 4">
+
+<td class="cx-right" title="2 / 4 - a">2</td>
+
+<td title="2 / 4 - b">b2</td>
+
+<td class="cx-right" title="2 / 4 - c">-98.73</td>
+
+<td title="2 / 4 - d">qwer</td>
+</tr>
+  
+<tr title="3 / 4">
+
+<td class="cx-right" title="3 / 4 - a">3</td>
+
+<td title="3 / 4 - b">b3</td>
+
+<td class="cx-right" title="3 / 4 - c">3451.0</td>
+
+<td title="3 / 4 - d">bixop</td>
+</tr>
+  
+<tr title="4 / 4">
+
+<td class="cx-right" title="4 / 4 - a">1</td>
+
+<td title="4 / 4 - b">b4</td>
+
+<td class="cx-right" title="4 / 4 - c">1.234</td>
+
+<td title="4 / 4 - d">zxy</td>
+</tr>
+  </tbody>
+  
+</table>
+    </div>
+    <div class="cx-footer">
+
+
+
+
+    </div>
+  </body>
+</html>

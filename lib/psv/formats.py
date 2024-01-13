@@ -302,11 +302,12 @@ class HtmlOut(FormatOut):
   html- - Generate HTML.
   alias: html
 
-  --table-name=NAME  |  <title>
+  --title=NAME       |  <title>
   --styled           |  Add style.
   --filtering        |  Add filtering UI.
   --sorting          |  Add sorting support.
-  --row-index        |  Show row index in first column.
+  --row-index        |  Add row index to first column.
+  --table-only       |  Do not render entire HTML document.
 
   :suffixes: .html,.htm
 
@@ -333,9 +334,10 @@ $ w3m -dump /tmp/users.html
       if dtypes[col] in ('int64', 'float64'):
         column_opts[col]['numeric'] = True
     options = {
-      'title': self.opt('table_name', None),
       'columns': column_opts,
+      # 'simple': True,
       'styled': True,
+      # 'table_only': True,
       # 'row_ind': True,
     } | self.opts
     table = Table(

@@ -160,16 +160,18 @@ Aliases: dataframe-
 
 html- - Generate HTML.
 
-  psv html- [--table-name] [--header]
+  psv html- [--title] [--styled] [--filtering] [--sorting] [--row-index] [--table-only]
 
 Aliases: html
 
 Options:
 
-  --table-name | <title>.
-               |
-  --header, -h | Generate header.
-               | Default: True.
+  --title      | <title>.
+  --styled     | Add style.
+  --filtering  | Add filtering UI.
+  --sorting    | Add sorting support.
+  --row-index  | Add row index to first column.
+  --table-only | Do not render entire HTML document.
 
 Examples:
 
