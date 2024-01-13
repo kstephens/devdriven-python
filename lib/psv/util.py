@@ -1,23 +1,30 @@
+from typing import Union, List
 import re
 from devdriven.util import get_safe, glob_to_rx
-import pandas as pd
+import pandas as pd  # type: ignore
 
-def get_columns(cols):
+HasCols = Union[List[str], pd.DataFrame]
+Cols = List[str]
+
+def get_columns(cols: HasCols) -> Cols:
   if isinstance(cols, pd.DataFrame):
     cols = list(cols.columns)
   return cols
 
-def parse_column_and_opt(cols, arg):
+def parse_column_and_opt(cols: HasCols, arg):
   cols = get_columns(cols)
   if m := re.match(r'^([^:]+):(.*)$', arg):
     return parse_col_or_index(cols, m[1]), m[2]
   return parse_col_or_index(cols, arg), None
 
-def select_columns(inp, args, check=False, default_all=False):
+def select_columns(inp: HasCols,
+                   args: List[str],
+                   check=False,
+                   default_all=False) -> Cols:
   inp_cols = get_columns(inp)
   if not args and default_all:
     return inp_cols
-  selected = []
+  selected: Cols = []
   for col in args:
     action = '+'
     if mtch := re.match(r'^([^:]+):([-+]?)$', col):
@@ -37,7 +44,7 @@ def select_columns(inp, args, check=False, default_all=False):
       raise Exception(f"unknown columns: {unknown!r} : available {inp_cols!r}")
   return selected
 
-def parse_col_or_index(cols, arg, check=False):
+def parse_col_or_index(cols: HasCols, arg: str, check=False) -> str:
   cols = get_columns(cols)
   col = arg
 #  if m := re.match(r'^(?:@(-\d+)|@?(\d+))$', arg):

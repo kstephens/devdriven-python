@@ -1,12 +1,12 @@
+from typing import Any, Optional, List
 from pathlib import Path
-from typing import List
 from dataclasses import dataclass
 
 @dataclass
 class Resources:
   search_paths: List[str]
 
-  def read(self, names: List[str], default=None):
+  def read(self, names: List[str], default=None) -> Optional[str]:
     file = self.find(names, None)
     if file is None:
       if default is not None:
@@ -16,7 +16,7 @@ class Resources:
     with open(file, 'r') as file:
       return file.read()
 
-  def find(self, names: List[str], default=None):
+  def find(self, names: List[str], default=None) -> Any:
     if paths := self.find_all(names):
       return paths[0]
     return default

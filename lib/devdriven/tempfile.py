@@ -1,8 +1,9 @@
+from typing import IO, Callable
 from tempfile import NamedTemporaryFile
 
 BUF_SIZE = 8192 * 2
 
-def tempfile_to_writeable(writeable, suffix, fun):
+def tempfile_to_writeable(writeable: IO, suffix: str, fun: Callable):
   with NamedTemporaryFile(suffix=suffix) as tmp:
     try:
       fun(tmp.name)
@@ -12,7 +13,7 @@ def tempfile_to_writeable(writeable, suffix, fun):
     finally:
       tmp.close()
 
-def tempfile_from_readable(readable, suffix, fun):
+def tempfile_from_readable(readable: IO, suffix: str, fun: Callable):
   with NamedTemporaryFile(suffix=suffix) as tmp:
     try:
       with open(tmp.name, "wb") as tmp_io:
