@@ -5,6 +5,7 @@ import subprocess
 import shlex
 from devdriven.cli.application import app
 from devdriven.util import cwd, flat_map
+# from icecream import ic
 from .command import Command, section, command
 
 section('Documentation')
@@ -51,18 +52,21 @@ class Example(Command):
 
   def run_examples(self, examples):
     for ex in examples:
-      for comment in ex.comments:
-        print('# ' + comment)
-      print('$ ' + ex.command)
-      if self.opt(('run', 'r'), False):
-        sys.stdout.flush()
-        sys.stderr.flush()
-        self.run_example(ex)
-      print('')
-      sys.stdout.flush()
-      sys.stderr.flush()
+      self.run_example(ex)
 
   def run_example(self, ex):
+    for comment in ex.comments:
+      print('# ' + comment)
+    print('$ ' + ex.command)
+    if self.opt(('run', 'r'), False):
+      sys.stdout.flush()
+      sys.stderr.flush()
+      self.run_example_command(ex)
+    print('')
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+  def run_example_command(self, ex):
     with cwd(f'{self.main.root_dir}/example'):
       tokens = shlex.split(ex.command)
       shell_tokens = {'|', '>', '<', ';'}
@@ -77,7 +81,10 @@ class Example(Command):
     cmd_argv = shlex.split(cmd)
     instance = self.main.__class__()
     instance.prog_path = self.main.prog_path
-    instance.run(cmd_argv)
+    result = instance.run(cmd_argv)
+    if result.exit_code != 0:
+      raise Exception("example run failed: {cmd}")
+    return result
 
   def run_command(self, cmd):
     # logging.warning('run_command: %s', repr(cmd))
@@ -88,4 +95,4 @@ class Example(Command):
       "PSV_RUNNING": '1',
       'PATH': f'{self.main.bin_dir}:{env["PATH"]}'
     }
-    subprocess.run(cmd, shell=True, env=env)
+    subprocess.run(cmd, check=True, shell=True, env=env)
