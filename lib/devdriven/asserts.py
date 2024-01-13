@@ -18,14 +18,15 @@ def assert_files(actual_out, expect_out, fix_line=None, context_line=None):
   if os.path.isfile(expect_out):
     differences = compare_files(actual_out, expect_out, context_line=context_line)
     if differences:
-      for lineno, actual_line, expect_line, context in differences:
-        log(f'FAILED       : for {context}')
-        log(f'  Line       : {lineno!r}')
-        log(f'    Actual   : {actual_line!r}')
-        log(f'    Expected : {expect_line!r}')
       log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
       log(f'To accept  : cp {actual_out!r} {expect_out!r}')
-      assert actual_out == 'expected'
+      if int(os.environ.get('ASSERT_DIFF_VERBOSE', '0')):
+        for lineno, actual_line, expect_line, context in differences:
+          log(f'FAILED       : for {context}')
+          log(f'  Line       : {lineno!r}')
+          log(f'    Actual   : {actual_line!r}')
+          log(f'    Expected : {expect_line!r}')
+      assert actual_out == expect_out
   else:
     log(f'Initialize {expect_out!r} with {actual_out!r}')
     os.system(f'cp {actual_out} {expect_out}')
