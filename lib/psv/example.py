@@ -94,6 +94,13 @@ class Example(Command):
       return
     env = env | {
       "PSV_RUNNING": '1',
-      'PATH': f'{self.main.bin_dir}:{env["PATH"]}'
+      'PATH': f'{self.main.bin_dir}:{env["PATH"]}',
+      # 'TERM': 'xterm-256color'
     }
+    cmd = self.fix_command_line(cmd)
     subprocess.run(cmd, check=True, shell=True, env=env)
+
+  def fix_command_line(self, cmd):
+    w3m_conf = resources.find(['w3m.conf'])
+    cmd = re.sub(r'^(w3m -dump )', f'TERM=xterm-256color \\1 -config {w3m_conf} ', cmd, count=1)
+    return cmd
