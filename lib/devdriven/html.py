@@ -189,12 +189,6 @@ class Table:
       return f'<style>\n{content}\n</style>\n'
     return ''
 
-  def init_sort(self) -> str:
-    return self.javascript("new Tablesort(document.getElementById('cx-table'));")
-
-  def init_filtering(self) -> str:
-    return self.javascript("var cx_filter = cx_make_filter('cx-table');")
-
 
 #########################################
 
@@ -271,11 +265,23 @@ TABLE_INIT = '''
   ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.date.js"))}
   ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.dotsep.js"))}
   ${this.javascript(this.resource_min("vendor/tablesort-5.3.0/src/sorts/tablesort.filesize.js"))}
-  ${this.init_sort()}
+%endif
+
+% if opt('sorting') or opt('filtering'):
+<script>
+  var cx_filter;
+$(document).ready(function() {
+  console.log( "psv : document ready!" );
+% if opt('sorting'):
+  new Tablesort(document.getElementById('cx-table'));
 %endif
 % if opt('filtering'):
-  ${this.init_filtering()}
+  cx_filter = cx_make_filter('cx-table');
 %endif
+});
+</script>
+%endif
+
 '''
 
 #########################################
