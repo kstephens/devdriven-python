@@ -29,10 +29,10 @@ def assert_files(actual_out: str,
     if differences:
       log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
       log(f'To accept  : cp {actual_out!r} {expect_out!r}')
-      log(f'      OR   : export ASSERT_DIFF_ACCEPT=1')
+      log('      OR   : export ASSERT_DIFF_ACCEPT=1')
       os.system(f'set -x; diff -u {expect_out!r} {actual_out!r} >&2')
       if int(os.environ.get('ASSERT_DIFF_ACCEPT', '0')):
-        log(f'ACCEPTING : {expect_out!r} from {actual_out!r}')
+        log(f'ASSERT_DIFF_ACCEPT : ACCEPTING : {expect_out!r} from {actual_out!r}')
         os.system(f'set -x; cp {actual_out!r} {expect_out!r}')
       assert actual_out == expect_out
   else:
@@ -80,4 +80,4 @@ def fix_file(file: str, fix_line: FilterFunc = None) -> None:
   os.rename(file_tmp, file)
 
 def log(msg: Any):
-  print(f'  ### {msg}', file=sys.stderr)
+  print(f'  ### assert : {msg}', file=sys.stderr)
