@@ -8,4 +8,7 @@ virtualenv==20.16.5
 pytest-cov==4.1.0
 lxml==4.9.3
 rjsmin==1.2.2
+slimit==0.8.1
+minify==66.0.2
+python_minifier==2.9.0
 icecream==2.1.3
