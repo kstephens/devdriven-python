@@ -4,7 +4,6 @@ import json
 from devdriven.util import not_implemented
 from devdriven.mime import content_type_for_suffixes
 from devdriven.html import Table
-from devdriven.pandas import column_type_names
 import tabulate
 import pandas as pd
 # from icecream import ic
@@ -326,20 +325,22 @@ $ w3m -dump /tmp/users.html
   '''
   def format_out(self, inp, _env, writeable):
     columns = inp.columns
-    dtypes = column_type_names(inp)
     rows = inp.to_dict(orient='records')
     column_opts = {}
     for col in columns:
-      column_opts[col] = {}
-      if dtypes[col] in ('int64', 'float64'):
-        column_opts[col]['numeric'] = True
+      col_opts = column_opts[col] = {}
+      dtype = inp[col].dtype
+      if dtype.kind in ('i', 'f'):
+        col_opts['numeric'] = True
+        col_opts['type'] = dtype.name
+    opts = {k.replace('-', '_'): v for k, v in self.opts.items()}
     options = {
       'columns': column_opts,
       # 'simple': True,
       'styled': True,
       # 'table_only': True,
       # 'row_ind': True,
-    } | self.opts
+    } | opts
     table = Table(
       columns=columns,
       rows=rows,
