@@ -323,6 +323,9 @@ $ w3m -dump users.html
 $ psv in users.txt // -table --fs=":" // html --no-header // o users.html
 $ w3m -dump users.html
 
+$ psv in users.txt // -table --fs=":" // html --filtering // o users.html
+$ w3m -dump users.html
+
   '''
   def format_out(self, inp, _env, writeable):
     columns = inp.columns

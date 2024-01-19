@@ -193,6 +193,10 @@ $ psv in users.txt // -table --fs=":" // html --no-header // o users.html
 
 $ w3m -dump users.html
 
+$ psv in users.txt // -table --fs=":" // html --filtering // o users.html
+
+$ w3m -dump users.html
+
 
 ==========================================================
 
@@ -503,6 +507,24 @@ Examples:
 
 # reverse:
 $ psv in a.tsv // seq // tac // md
+
+
+==========================================================
+
+shuffle - shuffle rows.
+
+  psv shuffle [--seed]
+
+Aliases: rand
+
+Options:
+
+  --seed | Integer.
+         | Default: use default state.'.
+
+Examples:
+
+$ psv in a.tsv // shuffle --seed=5 // md
 
 
 ==========================================================

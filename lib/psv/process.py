@@ -103,11 +103,7 @@ class Shuffle(Command):
 
   Options:
 
-  --seed=SEED         |  Integer.
-
-$ psv in a.tsv // shuffle // md
-
-$ psv in a.tsv // shuffle --seed=5 // md
+  --seed=SEED         |  Integer.  Default: use default state.'
 
 $ psv in a.tsv // shuffle --seed=5 // md
 

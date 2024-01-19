@@ -172,6 +172,12 @@
 |                |                                                                                                               |
 |                | Aliases: tac                                                                                                  |
 |                |                                                                                                               |
+| shuffle        | shuffle rows.                                                                                                 |
+|                |                                                                                                               |
+|                |   psv shuffle [--seed]                                                                                        |
+|                |                                                                                                               |
+|                | Aliases: rand                                                                                                 |
+|                |                                                                                                               |
 | cut            | Cut specified columns.                                                                                        |
 |                |                                                                                                               |
 |                |   psv cut [NAME] [I] [COL:-] [*] [NAME*]                                                                      |
