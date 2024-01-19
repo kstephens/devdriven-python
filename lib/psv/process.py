@@ -95,6 +95,29 @@ $ psv in a.tsv // seq // tac // md
     return process_range(inp, None, None, -1)
 
 @command
+class Shuffle(Command):
+  '''
+  shuffle - shuffle rows.
+
+  Aliases: rand
+
+  Options:
+
+  --seed=SEED         |  Integer.
+
+$ psv in a.tsv // shuffle // md
+
+$ psv in a.tsv // shuffle --seed=5 // md
+
+$ psv in a.tsv // shuffle --seed=5 // md
+
+  '''
+  def xform(self, inp, _env):
+    if seed := self.opt('seed'):
+      seed = int(seed)
+    return inp.sample(frac=1, random_state=seed)
+
+@command
 class Cut(Command):
   '''
   cut - Cut specified columns.
