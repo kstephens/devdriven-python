@@ -1,7 +1,9 @@
 import re
 from devdriven.util import chunks, split_flat
 from devdriven.to_dict import to_dict
+from devdriven.pandas import dtype_to_dict
 import pandas as pd
+# from icecream import ic
 from .command import Command, section, command
 from .util import parse_column_and_opt
 
@@ -188,23 +190,18 @@ $ psv in a.tsv // show-columns // md
 
   '''
   def xform(self, inp, _env):
-    out = get_dataframe_info(inp)
-    out.reset_index(inplace=True)
-    out['index'] = out.index
-    out = out.rename(columns={'features': 'name'})
-    return out
+    return pd.DataFrame.from_records(get_dataframe_info(inp))
 
 def get_dataframe_info(dframe):
-  df_types = pd.DataFrame(dframe.dtypes)
-  df_nulls = dframe.count()
-  df_null_count = pd.concat([df_types, df_nulls], axis=1)
-  df_null_count = df_null_count.reset_index()
-  # Reassign column names
-  col_names = ["features", "types", "non_null_counts"]
-  df_null_count.columns = col_names
-  # Add this to sort
-  # df_null_count = df_null_count.sort_values(by=["null_counts"], ascending=False)
-  return df_null_count
+  return [get_dataframe_col_info(dframe, col) for col in dframe.columns]
+
+def get_dataframe_col_info(df, col):
+  dtype = df[col].dtype
+  return {
+    'name': col,
+  } | {
+    f'type_{k}': v for k, v in dtype_to_dict(dtype).items()
+  }
 
 @command
 class EnvOut(Command):
