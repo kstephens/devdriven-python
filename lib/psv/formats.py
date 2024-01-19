@@ -301,12 +301,14 @@ class HtmlOut(FormatOut):
   html- - Generate HTML.
   alias: html
 
-  --title=NAME       |  <title>
-  --styled           |  Add style.
+  --title=NAME       |  Set <title> and a <div>.
+  --header           |  Add table header.  Default: True.
+  --simple           |  Minimal format.
+  --styled           |  Add style.  Default: True.
   --filtering        |  Add filtering UI.
   --sorting          |  Add sorting support.
   --row-index        |  Add row index to first column.
-  --table-only       |  Do not render entire HTML document.
+  --table-only       |  Render only a <table>.
 
   :suffixes: .html,.htm
 
@@ -315,12 +317,11 @@ class HtmlOut(FormatOut):
 $ psv in a.csv // html // o a.html
 $ w3m -dump a.html
 
-$ psv in users.txt // -table --fs=":" // html // o /tmp/users.html
-$ w3m -dump /tmp/users.html
+$ psv in users.txt // -table --fs=":" // html --title=users.txt // o users.html
+$ w3m -dump users.html
 
-# html: Generate HTML:
-$ psv in users.txt // -table --fs=":" // html --no-header // o /tmp/users.html
-$ w3m -dump /tmp/users.html
+$ psv in users.txt // -table --fs=":" // html --no-header // o users.html
+$ w3m -dump users.html
 
   '''
   def format_out(self, inp, _env, writeable):
@@ -338,6 +339,7 @@ $ w3m -dump /tmp/users.html
       'columns': column_opts,
       # 'simple': True,
       'styled': True,
+      'header': True,
       # 'table_only': True,
       # 'row_ind': True,
     } | opts

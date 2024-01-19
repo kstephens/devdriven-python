@@ -1,4 +1,4 @@
-from typing import Any, Iterable, List, Dict, Callable, Tuple, Union, Optional
+from typing import Any, Union, Optional, Iterable, Callable, List, Dict, Tuple
 import os
 import subprocess
 import logging
@@ -19,7 +19,7 @@ SubprocessResult = Any  # subprocess.CompletedProcess
 #####################################################################
 # Access
 
-def get_safe(items, key, default=None):
+def get_safe(items: Any, key: Any, default=None) -> Any:
   try:
     return items[key]
   except (KeyError, IndexError):

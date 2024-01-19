@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+w3m="$(which w3m 2>/dev/null)"
+w3m_opts+='-o graphic_char=1 '
+w3m_opts+='-o display_borders=1 '
+w3m_opts+='-o color=true '
+w3m_opts+='-o display_charset=UTF-8 '
+browse-w3m() {
+  local url="$1"
+  TERM=xterm-256color ${w3m} ${w3m_opts} -graph -o color=true -o display_link=true "$url" 2>/dev/null | cat -
+}
+
+links="$(which links 2>/dev/null)"
+#links_opts+=' -no-g'
+links_opts+=' -g'
+links_opts+=' -html-tables 1'
+browse-links() {
+  local url="$1"
+  TERM=xterm-256color ${links} ${links_opts} -dump "$url" | cat -
+}
+
+[[ -x "$links" ]] && prog=links
+[[ -x "$w3m" ]] && prog=w3m
+
+browse-() {
+  "browse-${prog}" "$@"
+}
+
+browse() {
+  local url="$1" display_url="${2:-$1}"
+  echo -n "${_vt_INV}${_vt_LOW}"
+  # echo "  localhost_url=$localhost_url"
+  echo "| $display_url |"
+  echo "+----------------------------------------------------------------------"
+  echo "|${_vt_NORM} "
+  browse- "$url" | sed -e "s@^@${_vt_INV}|${_vt_NORM}  @"
+  echo -n "${_vt_INV}${_vt_LOW}"
+  echo "-----------------------------------------------------------------------"
+  echo -n "${_vt_NORM}"
+}
+
+browse- "$1"

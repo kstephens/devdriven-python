@@ -1,9 +1,15 @@
+from typing import Any, Optional, Iterable, Callable, Tuple
 import os
 import sys
 from pathlib import Path
 from .util import file_md5
 
-def assert_command_output(file, command, fix_line=None, context_line=None):
+FilterFunc = Optional[Callable]
+
+def assert_command_output(file: str,
+                          command: str,
+                          fix_line: FilterFunc = None,
+                          context_line: FilterFunc = None):
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
@@ -12,7 +18,10 @@ def assert_command_output(file, command, fix_line=None, context_line=None):
   assert_files(actual_out, expect_out,
                fix_line=fix_line, context_line=context_line)
 
-def assert_files(actual_out, expect_out, fix_line=None, context_line=None):
+def assert_files(actual_out: str,
+                 expect_out: str,
+                 fix_line: FilterFunc = None,
+                 context_line: FilterFunc = None):
   if fix_line:
     fix_file(actual_out, fix_line)
   if os.path.isfile(expect_out):
@@ -29,7 +38,9 @@ def assert_files(actual_out, expect_out, fix_line=None, context_line=None):
     log(f'Initialize {expect_out!r} with {actual_out!r}')
     os.system(f'cp {actual_out} {expect_out}')
 
-def compare_files(actual_out, expect_out, context_line=None):
+def compare_files(actual_out: str,
+                  expect_out: str,
+                  context_line: FilterFunc = None):
   with open(actual_out, 'r', encoding='utf-8') as io:
     actual_lines = io.readlines()
   with open(expect_out, 'r', encoding='utf-8') as io:
@@ -38,7 +49,10 @@ def compare_files(actual_out, expect_out, context_line=None):
   log(f'Expected : {expect_out!r} : {len(expect_lines)} lines : md5 {file_md5(expect_out)!r}')
   return compare_lines(actual_lines, expect_lines, context_line=context_line)
 
-def compare_lines(actual_lines, expect_lines, context_line=None):
+def compare_lines(actual_lines: Iterable[str],
+                  expect_lines: Iterable[str],
+                  context_line: FilterFunc = None
+                  ) -> Iterable[Tuple[int, str, str, Optional[str]]]:
   i = 0
   context = None
   differences = []
@@ -52,7 +66,7 @@ def compare_lines(actual_lines, expect_lines, context_line=None):
       differences.append((i, actual_line, expect_line, context))
   return differences
 
-def fix_file(file, fix_line):
+def fix_file(file: str, fix_line: FilterFunc = None) -> None:
   # log(f'fix_file: {file!r}')
   file_tmp = f'{file}.tmp'
   with open(file_tmp, 'w', encoding='utf-8') as tmp:
@@ -64,5 +78,5 @@ def fix_file(file, fix_line):
   # os.system(f'diff -U0 {file} {file_tmp}')
   os.rename(file_tmp, file)
 
-def log(msg):
+def log(msg: Any):
   print(f'  ### {msg}', file=sys.stderr)
