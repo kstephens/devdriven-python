@@ -298,15 +298,15 @@ THEAD_FOOT = '''
 
 THEAD_COLUMNS = '''
 <%
-  row_title = "row #"
+  col_idx = 0;
+  row_title = "row #";
   if opt('sorting'):
     row_title += ' -- click to sort'
 %>
     <tr ${class_("cx-columms")}>
 %if opt('row_index'):
-      <th ${attrs({'title': row_title, "data-sort-method": "number"})}>#</th>
+      <th ${attrs({'class': 'cx-right', 'title': row_title, "data-sort-method": "number"})}>#</th>
 %endif
-<% col_idx = 0 %>
 % for col in columns:
 <%
   col_idx += 1
