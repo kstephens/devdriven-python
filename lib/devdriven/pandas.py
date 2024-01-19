@@ -1,3 +1,4 @@
+from typing import Any
 import os
 import re
 import logging
@@ -5,7 +6,7 @@ from pathlib import Path
 from datetime import datetime
 from collections import OrderedDict
 import subprocess
-import pandas as pd
+import pandas as pd  # type: ignore
 from .util import reorder_list
 
 # pylint: disable=invalid-name
@@ -31,7 +32,7 @@ def write_logs(basename):
 def column_type_names(dframe):
   return {col: str(dtype) for col, dtype in dframe.dtypes.to_dict().items()}
 
-def dtype_to_dict(dtype):
+def dtype_to_dict(dtype: Any) -> dict:
   return {
     'name': dtype.name,
     'kind': dtype.kind,
