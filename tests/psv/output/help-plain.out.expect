@@ -400,10 +400,15 @@ show-columns - Table of column names and attributes.
 
 Aliases: columns, cols
 
+See numpy.dtype.
+
 Examples:
 
-# show-columns: show column metadata:
-$ psv in a.tsv // show-columns // md
+# Column metadata columns:
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+
+# Column metadata:
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
 
 
 ==========================================================
@@ -622,20 +627,6 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
 
 ==========================================================
 
-stats - Basic stats of numeric columns.
-
-  psv stats
-
-Aliases: describe
-
-Examples:
-
-# stats: basic stats:
-$ psv in a.tsv // -tsv // stats // md
-
-
-==========================================================
-
 null - Does nothing.
 
   psv null
@@ -704,6 +695,19 @@ $ psv in transfers.csv // summary Fee sum Payee
 
 # Summary of all transfer Ammount and Fee:
 $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+
+
+==========================================================
+
+stats - Table of column names and basic statistics.
+
+  psv stats
+
+Examples:
+
+$ psv in a.tsv // stats // cols // cut name,dtype.name // md
+
+$ psv in a.tsv // stats // cut name,count,min,max
 
 
 ==========================================================

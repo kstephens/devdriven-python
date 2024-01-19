@@ -83,7 +83,7 @@ class Stats(Command):
   '''
   stats - Table of column names and basic statistics.
 
-$ psv in a.tsv // stats // cols // md
+$ psv in a.tsv // stats // cols // cut name,dtype.name // md
 
 $ psv in a.tsv // stats // cut name,count,min,max
 

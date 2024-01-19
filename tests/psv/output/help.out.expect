@@ -202,12 +202,6 @@
 |                |                                                                                                       |
 |                | Aliases: tr                                                                                           |
 |                |                                                                                                       |
-| stats          | Basic stats of numeric columns.                                                                       |
-|                |                                                                                                       |
-|                |   psv stats                                                                                           |
-|                |                                                                                                       |
-|                | Aliases: describe                                                                                     |
-|                |                                                                                                       |
 | null           | Does nothing.                                                                                         |
 |                |                                                                                                       |
 |                |   psv null                                                                                            |
@@ -223,6 +217,10 @@
 | summary        | Summary of column values.                                                                             |
 |                |                                                                                                       |
 |                |   psv summary [COL,... [STAT,...] [GROUP-BY,...]] [COL,...] [STAT,...] [GROUP-BY,...]                 |
+|                |                                                                                                       |
+| stats          | Table of column names and basic statistics.                                                           |
+|                |                                                                                                       |
+|                |   psv stats                                                                                           |
 |                |                                                                                                       |
 |   ---------    |                                                                                                       |
 |    Section     | -------- Format --------                                                                              |

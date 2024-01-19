@@ -323,14 +323,37 @@ $ psv in a.tsv // rename b B // md
 |   3 | b3     | 3451     | bixop |
 |   1 | b4     |    1.234 | zxy   |
 
-# show-columns: show column metadata:
-$ psv in a.tsv // show-columns // md
-|   index | name   | types   |   non_null_counts |
-|--------:|:-------|:--------|------------------:|
-|       0 | a      | int64   |                 4 |
-|       1 | b      | object  |                 4 |
-|       2 | c      | float64 |                 4 |
-|       3 | d      | object  |                 4 |
+# Column metadata columns:
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+| name            | dtype.name   |
+|:----------------|:-------------|
+| name            | object       |
+| dtype.name      | object       |
+| dtype.kind      | object       |
+| dtype.char      | object       |
+| dtype.num       | int64        |
+| dtype.str       | object       |
+| dtype.itemsize  | int64        |
+| dtype.byteorder | object       |
+| dtype.subdtype  | object       |
+| dtype.shape     | object       |
+| dtype.hasobject | bool         |
+| dtype.flags     | int64        |
+| dtype.isbuiltin | int64        |
+| dtype.isnative  | int64        |
+| dtype.descr     | object       |
+| dtype.alignment | int64        |
+| dtype.base      | object       |
+| dtype.metadata  | object       |
+
+# Column metadata:
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
+| name   | dtype.name   | dtype.kind   |   dtype.isnative |
+|:-------|:-------------|:-------------|-----------------:|
+| a      | int64        | i            |                1 |
+| b      | object       | O            |                1 |
+| c      | float64      | f            |                1 |
+| d      | object       | O            |                1 |
 
 # env: display proccessing info:
 $ psv in a.tsv // show-columns // md // env-
@@ -344,13 +367,13 @@ $ psv in a.tsv // show-columns // md // env-
     ],
     [
       "<< ShowColumns: show-columns >>",
-      "<< DataFrame: (4, 4) >>",
+      "<< DataFrame: (4, 18) >>",
       "application/x-pandas-dataframe",
       null
     ],
     [
       "<< MarkdownOut: markdown >>",
-      "<< str: |   index | name   | types   |   non_n... >>",
+      "<< str: | name   | dtype.name   | dtype.kind  ... >>",
       null,
       null
     ],
@@ -510,19 +533,6 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
 |      9 | NorthCarolina |       37000 |     10698973 |
 |     10 | Michigan      |       26000 |     10034113 |
 
-# stats: basic stats:
-$ psv in a.tsv // -tsv // stats // md
-|        a |         c | stat   |
-|---------:|----------:|:-------|
-| 4        |    4      | count  |
-| 1.75     |  844.317  | mean   |
-| 0.957427 | 1738.6    | std    |
-| 1        |  -98.73   | min    |
-| 1        |  -23.757  | 25%    |
-| 1.5      |   12.4985 | 50%    |
-| 2.25     |  880.572  | 75%    |
-| 3        | 3451      | max    |
-
 # null: does nothing:
 $ psv in a.tsv // null IGNORED --OPTION=VALUE // md
 |   a | b   |        c | d     |
@@ -592,6 +602,30 @@ $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
 1     Fee           NaN         NaN  ...  5.369561     15.0  2.527704
 
 [2 rows x 17 columns]
+
+$ psv in a.tsv // stats // cols // cut name,dtype.name // md
+| name   | dtype.name   |
+|:-------|:-------------|
+| name   | object       |
+| count  | int64        |
+| first  | object       |
+| middle | object       |
+| last   | object       |
+| min    | object       |
+| mean   | float64      |
+| median | float64      |
+| max    | object       |
+| std    | float64      |
+| q25    | float64      |
+| q50    | float64      |
+| q75    | float64      |
+
+$ psv in a.tsv // stats // cut name,count,min,max
+  name  count    min     max
+0    a      4      1       3
+1    b      4     b1      b4
+2    c      4 -98.73  3451.0
+3    d      4  bixop     zxy
 
 # Extract by names:
 $ psv in users.txt // extract '^(?P<login>[^:]+)' // md

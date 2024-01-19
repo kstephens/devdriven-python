@@ -183,10 +183,15 @@ class ShowColumns(Command):
   '''
   show-columns - Table of column names and attributes.
 
+See numpy.dtype.
+
   Aliases: columns, cols
 
-# show-columns: show column metadata:
-$ psv in a.tsv // show-columns // md
+# Column metadata columns:
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+
+# Column metadata:
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
 
   '''
   def xform(self, inp, _env):
@@ -200,7 +205,7 @@ def get_dataframe_col_info(df, col):
   return {
     'name': col,
   } | {
-    f'type_{k}': v for k, v in dtype_to_dict(dtype).items()
+    f'dtype.{k}': v for k, v in dtype_to_dict(dtype).items()
   }
 
 @command
