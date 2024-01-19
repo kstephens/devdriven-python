@@ -22,7 +22,7 @@ def test_table():
     'filtering': True,
     'filtering_tooltip': True,
     'row_index': True,
-    'none': '',
+    'none_as': '',
   }
   sut = Table(columns=columns,
               rows=rows,

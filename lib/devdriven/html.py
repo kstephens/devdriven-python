@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 from dataclasses import dataclass, field
 import html
+import cmath
 from devdriven.resource import Resources
 from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
@@ -135,12 +136,15 @@ class Table:
 
   def cell(self, row, col: str, _row_idx: int) -> str:
     data = row.get(col, '')
-    if not self.col_opt(col, 'raw', False):
-      data = self.h(data)
+    replace = None
     if data is None:
-      none = self.col_opt(col, 'none', None)
-      if none is not None:
-        return none
+      replace = self.col_opt(col, 'none_as', self.opt('none_as'))
+    elif isinstance(data, float) and cmath.isnan(data):
+      replace = self.col_opt(col, 'nan_as', self.opt('nan_as'))
+    if replace is not None:
+      return replace
+    if self.col_opt(col, 'raw', False):
+      data = self.h(data)
     data = str(data)
     return data
 
