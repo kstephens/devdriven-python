@@ -58,15 +58,19 @@ venv-force:
 install-requirements:
 	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
 
+# Early:
+
+early: minify
+
 # Check:
 
-check: test lint mypy
+check: early test lint mypy
 
 run-check: run-test run-lint run-mypy
 
 # Lint:
 
-lint: pylint pycodestyle
+lint: early pylint pycodestyle
 
 pylint:
 	$(MAKE) run-pylint FILES='$(or $(FILES), $(LINT_FILES))'
@@ -95,7 +99,7 @@ run-mypy:
 
 # Unit Test:
 
-test: unit-test
+test: early unit-test
 
 unit-test:
 	$(MAKE) run-test FILES='$(or $(FILES), $(TEST_FILES))'
