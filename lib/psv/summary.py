@@ -1,5 +1,6 @@
 from devdriven.util import split_flat
 from devdriven.pandas import count_by, summarize
+import pandas as pd
 from .command import Command, section, command
 from .util import get_safe, select_columns
 
@@ -76,3 +77,51 @@ class Summary(Command):
       cols = [group_by[0]]
     col_agg_funs = [[col, agg_funs] for col in cols]
     return summarize(inp, col_agg_funs, group_by=group_by, sort_by=group_by)
+
+@command
+class Stats(Command):
+  '''
+  stats - Table of column names and basic statistics.
+
+$ psv in a.tsv // stats // cols // md
+
+$ psv in a.tsv // stats // cut name,count,min,max
+
+  '''
+  def xform(self, inp, _env):
+    return pd.DataFrame.from_records(get_dataframe_info(inp))
+
+def get_dataframe_info(dframe):
+  return [get_dataframe_col_info(dframe, col) for col in dframe.columns]
+
+def get_dataframe_col_info(df, col):
+  c = df[col]
+  cna = c.dropna()
+  nrows = len(df.index)
+
+  def try_this(c, f, default=None):
+    if c.empty:
+      return default
+    try:
+      return f()
+    # pylint: disable-next=broad-except
+    except Exception:
+      return None
+
+  return {
+    # pylint: disable=unnecessary-lambda
+    'name': col,
+    'count': c.count(),
+    'first': try_this(c, lambda: c.iloc[0]),
+    'middle': try_this(c, lambda: c[int(nrows / 2)]),
+    'last': try_this(c, lambda: c.iloc[-1]),
+    'min': try_this(cna, lambda: cna.min()),
+    'mean': try_this(cna, lambda: cna.mean()),
+    'median': try_this(cna, lambda: cna.median()),
+    'max': try_this(cna, lambda: cna.max()),
+    'std': try_this(cna, lambda: cna.std()),
+    'q25': try_this(cna, lambda: cna.quantile(0.25)),
+    'q50': try_this(cna, lambda: cna.quantile(0.50)),
+    'q75': try_this(cna, lambda: cna.quantile(0.75)),
+    # pylint: enable=unnecessary-lambda
+  }

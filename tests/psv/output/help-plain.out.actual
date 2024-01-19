@@ -622,20 +622,6 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
 
 ==========================================================
 
-stats - Basic stats of numeric columns.
-
-  psv stats
-
-Aliases: describe
-
-Examples:
-
-# stats: basic stats:
-$ psv in a.tsv // -tsv // stats // md
-
-
-==========================================================
-
 null - Does nothing.
 
   psv null
@@ -704,6 +690,17 @@ $ psv in transfers.csv // summary Fee sum Payee
 
 # Summary of all transfer Ammount and Fee:
 $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+
+
+==========================================================
+
+stats - Table of column names and basic statistics.
+
+  psv stats
+
+Examples:
+
+$ psv in a.tsv // stats // md
 
 
 ==========================================================

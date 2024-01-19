@@ -290,21 +290,6 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
     return out
 
 @command
-class Stats(Command):
-  '''
-  stats - Basic stats of numeric columns.
-  aliases: describe
-
-# stats: basic stats:
-$ psv in a.tsv // -tsv // stats // md
-
-  '''
-  def xform(self, inp, _env):
-    out = inp.describe()
-    out['stat'] = out.index
-    return out
-
-@command
 class NullXform(Command):
   '''
   null - Does nothing.
