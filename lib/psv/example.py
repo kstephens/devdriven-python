@@ -5,6 +5,7 @@ import subprocess
 import shlex
 from devdriven.cli.application import app
 from devdriven.util import cwd, flat_map
+from devdriven.html import resources
 # from icecream import ic
 from .command import Command, section, command
 

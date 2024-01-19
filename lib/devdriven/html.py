@@ -10,6 +10,8 @@ from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
 # from icecream import ic
 
+resources = Resources([]).add_file_dir(__file__, 'resources/html')
+
 @dataclass
 class Table:
   columns: list = field(default_factory=list)
@@ -24,8 +26,7 @@ class Table:
     if not self.output:
       self.output = StringIO()
     if not self.resources:
-      path = Path(__file__).parent.joinpath('resources/html')
-      self.resources = Resources(search_paths=[str(path)])
+      self.resources = Resources(resources.search_paths.copy())
     self.prepare_options()
     self.data = vars(self) | {
       'this': self,
