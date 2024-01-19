@@ -20,8 +20,7 @@ def assert_files(actual_out, expect_out, fix_line=None, context_line=None):
     if differences:
       log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
       log(f'To accept  : cp {actual_out!r} {expect_out!r}')
-      if int(os.environ.get('ASSERT_DIFF_VERBOSE', '0')):
-        os.system(f'set -x; diff -u {expect_out!r} {actual_out!r} >&2')
+      os.system(f'set -x; diff -u {expect_out!r} {actual_out!r} >&2')
       if int(os.environ.get('ASSERT_DIFF_ACCEPT', '0')):
         log(f'ACCEPTING : {expect_out!r} from {actual_out!r}')
         os.system(f'set -x; cp {actual_out!r} {expect_out!r}')
