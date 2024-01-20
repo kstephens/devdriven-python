@@ -31,7 +31,7 @@ $ psv in a.xlsx // -xls // csv-
     workbook = tempfile_from_readable(readable, '.xlsx', read_workbook)
     sheet_id = self.opt('sheet-name', 0)
     worksheet = workbook.worksheets[sheet_id]
-    if self.opt(('header', 'h'), True):
+    if self.opt('header', True):
       data = worksheet.values
       cols = next(data)[1:]
       data = list(data)

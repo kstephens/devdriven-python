@@ -188,7 +188,7 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
       col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
-    key = Coerce().coercer('numeric') if self.opt(('numeric', 'n')) else None
+    key = Coerce().coercer('numeric') if self.opt('numeric') else None
     return inp.sort_values(by=cols, ascending=ascending, key=key)
 
 @command
@@ -231,17 +231,17 @@ $ psv in a.tsv // grep d 'x' b '3$' // md
       for col, pat in chunks(self.args, 2):
         self.add_match(inp, col, pat, 'all')
     if self.has_filter:
-      if self.opt(('invert-match', 'v'), False):
+      if self.opt('invert-match', False):
         # pylint: disable-next=invalid-unary-operand-type
         self.filter_expr = ~ self.filter_expr
       return inp[self.filter_expr]
     return inp
 
   def add_match(self, inp, col, pat, combine_default):
-    if self.opt(('fixed-strings', 'F')):
+    if self.opt('fixed-strings'):
       pat = re.escape(pat)
     pat = f'.*{pat}'
-    if self.opt(('case-insensitive', 'i')):
+    if self.opt('case-insensitive'):
       pat = f'(?i){pat}'
     rx = re.compile(pat)
 
@@ -293,7 +293,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
 
   '''
   def xform(self, inp, _env):
-    if self.opt(('delete', 'd')):
+    if self.opt('delete'):
       trans = str.maketrans('', '', self.args[0])
       args = self.args[1:]
     else:

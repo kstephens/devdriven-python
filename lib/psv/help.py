@@ -38,9 +38,9 @@ class Help(Command):
     return self.do_commands(commands, env)
 
   def do_commands(self, commands, env):
-    if self.opt(('raw', 'r'), False):
+    if self.opt('raw', False):
       return self.do_commands_raw(commands, env)
-    if self.opt(('plain', 'p'), False) or len(self.args) == 1:
+    if self.opt('plain', False) or len(self.args) == 1:
       return self.do_commands_plain(commands, env)
     return self.do_commands_table(commands, env)
 
@@ -73,7 +73,7 @@ class Help(Command):
       if desc.aliases:
         row('', '')
         row('', 'Aliases: ' + ', '.join(desc.aliases))
-      if self.opt(('verbose', 'v')):
+      if self.opt('verbose'):
         if desc.detail:
           row('', '')
           for text in desc.detail:

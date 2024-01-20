@@ -43,7 +43,7 @@ $ psv in https://tinyurl.com/4sscj338
     env['input.paths'] = [self.args[0]]
     content = Content(url=self.args[0])
     format_for_suffix = app.find_format(self.args[0], FormatIn)
-    if not self.opt(('raw', 'r'), False) and format_for_suffix:
+    if not self.opt('raw', False) and format_for_suffix:
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
 

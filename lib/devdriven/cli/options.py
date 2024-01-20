@@ -73,6 +73,7 @@ class Options:
       return opt.name
     if alias := self.opt_aliases.get(name):
       return alias.alias_of
+    return None
 
   # See: Descriptor
   def parse_docstring(self, line: str) -> Optional[Self]:

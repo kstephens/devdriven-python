@@ -48,7 +48,7 @@ class Eval(Command):
   '''
   def xform(self, inp, env):
     cols = list(filter(len, self.opt('columns', '').split(','))) or list(inp.columns)
-    if self.opt(('normalize', 'n'), False):
+    if self.opt('normalize', False):
       ident_to_column = {normalize_column_name(col): col for col in cols}
     else:
       ident_to_column = dict(zip(cols, cols))

@@ -104,7 +104,7 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
     if '%' not in column_format:
       column_format += '%d'
     encoding = self.opt('encoding', self.default_encoding())
-    header = self.opt(('header', 'h'))
+    header = self.opt('header')
     max_width = 0
     # Split content by record separator:
     rows = readable.read()
@@ -302,13 +302,13 @@ class HtmlOut(FormatOut):
   alias: html
 
   --title=NAME       |  Set <title> and a <div>.
-  --header           |  Add table header.  Default: True.
-  --simple           |  Minimal format.
+  --header, -h       |  Add table header.  Default: True.
+  --simple, -S       |  Minimal format.
+  --filtering, -f    |  Add filtering UI.
+  --sorting, -s      |  Add sorting support.
+  --row-index, -i    |  Add row index to first column.  Default: False.
+  --table-only, -T   |  Render only a <table>.
   --styled           |  Add style.  Default: True.
-  --filtering        |  Add filtering UI.
-  --sorting          |  Add sorting support.
-  --row-index        |  Add row index to first column.
-  --table-only       |  Render only a <table>.
 
   :suffixes: .html,.htm
 
@@ -323,7 +323,7 @@ $ w3m -dump users.html
 $ psv in users.txt // -table --fs=":" // html --no-header // o users.html
 $ w3m -dump users.html
 
-$ psv in users.txt // -table --fs=":" // html --filtering // o users.html
+$ psv in users.txt // -table --fs=":" // html -fs // o users.html
 $ w3m -dump users.html
 
   '''

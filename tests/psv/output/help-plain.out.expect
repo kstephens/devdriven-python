@@ -160,24 +160,26 @@ Aliases: dataframe-
 
 html- - Generate HTML.
 
-  psv html- [--title] [--header] [--simple] [--styled] [--filtering] [--sorting] [--row-index] [--table-only]
+  psv html- [--title] [--header] [--simple] [--filtering] [--sorting] [--row-index] [--table-only] [--styled]
 
 Aliases: html
 
 Options:
 
-  --title      | Set <title> and a <div>.
-               |
-  --header     | Add table header.
-               | Default: True.
-  --simple     | Minimal format.
-               |
-  --styled     | Add style.
-               | Default: True.
-  --filtering  | Add filtering UI.
-  --sorting    | Add sorting support.
-  --row-index  | Add row index to first column.
-  --table-only | Render only a <table>.
+  --title          | Set <title> and a <div>.
+                   |
+  --header, -h     | Add table header.
+                   | Default: True.
+  --simple, -S     | Minimal format.
+  --filtering, -f  | Add filtering UI.
+  --sorting, -s    | Add sorting support.
+                   |
+  --row-index, -i  | Add row index to first column.
+                   | Default: False.
+  --table-only, -T | Render only a <table>.
+                   |
+  --styled         | Add style.
+                   | Default: True.
 
 Examples:
 
@@ -193,7 +195,7 @@ $ psv in users.txt // -table --fs=":" // html --no-header // o users.html
 
 $ w3m -dump users.html
 
-$ psv in users.txt // -table --fs=":" // html --filtering // o users.html
+$ psv in users.txt // -table --fs=":" // html -fs // o users.html
 
 $ w3m -dump users.html
 

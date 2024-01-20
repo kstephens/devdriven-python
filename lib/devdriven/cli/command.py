@@ -79,8 +79,8 @@ class Command:
   def opt_default(self, key):
     return self.opts_defaults.get(key, None)
 
-  def opt_name_key(self, flag):
-    return self.opt_char_map.get(flag, flag)
+  def opt_name_key(self, name):
+    return self.opt_char_map.get(name, name)
 
   # OVERRIDE:
   def exec(self):

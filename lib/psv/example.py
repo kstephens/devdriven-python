@@ -59,7 +59,7 @@ class Example(Command):
     for comment in ex.comments:
       print('# ' + comment)
     print('$ ' + ex.command)
-    if self.opt(('run', 'r'), False):
+    if self.opt('run', False):
       sys.stdout.flush()
       sys.stderr.flush()
       self.run_example_command(ex)
