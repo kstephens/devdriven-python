@@ -13,6 +13,7 @@ class Option:
   description: str = ''
   default: Optional[str] = None
   aliases: List[Any] = field(default_factory=list)
+  alias_of: Optional[Self] = None
 
   def parse_arg(self, arg: str) -> Optional[Self]:
     self.style = 'arg'
@@ -30,8 +31,9 @@ class Option:
       for opt in opts:
         self.aliases.append(self.parse_alias(opt, self))
     if result := self.parse_simple(arg):
-      for other in self.aliases:
-        other.kind = self.kind
+      for alias in self.aliases:
+        alias.kind = self.kind
+        alias.alias_of = self.name
     return result
 
   def parse_alias(self, opt: str, target: Self):

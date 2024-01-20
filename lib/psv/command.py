@@ -11,6 +11,9 @@ class Command(cmd.Command):
   def make_xform(self, argv):
     return main_make_xform(self.main, argv[0], argv[1:])
 
+  def opt_name_key(self, name):
+    return self.command_descriptor().options.opt_name_normalize(name) or name
+
 def main_make_xform(main, klass_or_name, argv):
   assert main
   if desc := app.descriptor(klass_or_name):

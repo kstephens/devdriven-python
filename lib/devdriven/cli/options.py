@@ -68,6 +68,12 @@ class Options:
   def opt_name_key(self, flag: str) -> Optional[str]:
     return self.maybe_delegate('opt_name_key', self.opt_char_map.get(flag, flag), flag)
 
+  def opt_name_normalize(self, name: str) -> Optional[str]:
+    if opt := self.opt_by_name.get(name):
+      return opt.name
+    if alias := self.opt_aliases.get(name):
+      return alias.alias_of
+
   # See: Descriptor
   def parse_docstring(self, line: str) -> Optional[Self]:
     m = None
@@ -83,6 +89,8 @@ class Options:
     if option := Option().parse_doc(line):
       self.opt_by_name[option.name] = option
       self.opts.append(option)
+      for alias in option.aliases:
+        self.opt_aliases[alias.name] = alias
       return self
     if m := re.match(r'^([^\|]+)[\|] *(.*)', line):
       add_arg(m)

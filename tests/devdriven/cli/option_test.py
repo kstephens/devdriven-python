@@ -12,7 +12,9 @@ def test_parse_doc_long_flag():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': True}
+    'value': True,
+    'alias_of': None,
+  }
 
 def test_parse_doc_long_flag_default():
   obj = Option().parse_doc('--opt  |  desc.  Default: True.')
@@ -25,7 +27,9 @@ def test_parse_doc_long_flag_default():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': True}
+    'value': True,
+    'alias_of': None,
+  }
 
 def test_parse_doc_long_flag_false():
   obj = Option().parse_doc('++opt  |  desc.')
@@ -38,7 +42,9 @@ def test_parse_doc_long_flag_false():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': False}
+    'value': False,
+    'alias_of': None,
+  }
 
 def test_parse_doc_alias_flag():
   obj = Option().parse_doc('--opt, -o  |  opt: doc')
@@ -53,7 +59,8 @@ def test_parse_doc_alias_flag():
         'kind': 'flag',
         'name': 'o',
         'style': 'doc',
-        'value': True
+        'value': True,
+        'alias_of': 'opt',
       }
     ],
     'arg': '--opt',
@@ -63,7 +70,8 @@ def test_parse_doc_alias_flag():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': True
+    'value': True,
+    'alias_of': None,
   }
 
 def test_parse_doc_long_opt():
@@ -77,7 +85,8 @@ def test_parse_doc_long_opt():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': True
+    'value': True,
+    'alias_of': None,
   }
 
 def test_parse_doc_long_opt_default():
@@ -91,7 +100,8 @@ def test_parse_doc_long_opt_default():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': True
+    'value': True,
+    'alias_of': None,
   }
 
 
@@ -106,7 +116,8 @@ def test_parse_doc_long_opt_false():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': False
+    'value': False,
+    'alias_of': None,
   }
 
 def test_parse_doc_alias_opt():
@@ -122,7 +133,8 @@ def test_parse_doc_alias_opt():
         'kind': 'flag',
         'name': 'o',
         'style': 'doc',
-        'value': True
+        'value': True,
+        'alias_of': 'opt',
       }
     ],
     'arg': '--opt',
@@ -132,5 +144,6 @@ def test_parse_doc_alias_opt():
     'kind': 'flag',
     'name': 'opt',
     'style': 'doc',
-    'value': True
+    'value': True,
+    'alias_of': None,
   }
