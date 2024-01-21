@@ -1,4 +1,4 @@
-from typing import Self, Tuple, IO
+from typing import Any, Self, Tuple, IO
 import logging
 import json
 import sys
@@ -20,7 +20,7 @@ class Main(devdriven.cli.Main):
       argv = ['help']
     return super().parse_argv(argv)
 
-  def make_command(self, argv: Argv):
+  def make_command(self, argv: Argv) -> devdriven.cli.Command:
     cmd = Main.MainCommand().set_main(self).parse_argv(argv)
     cmd.env = self.env
     return cmd
@@ -57,7 +57,7 @@ class Main(devdriven.cli.Main):
       self.pipeline = pipe
       return self
 
-    def exec(self):
+    def exec(self) -> Any:
       self.env.update({
         'now': self.main.now,
         'history': [],
