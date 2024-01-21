@@ -1,5 +1,8 @@
+from typing import Any, Self, Type
 import logging
 from devdriven.util import get_safe
+from devdriven.cli.types import Argv
+from .descriptor import Descriptor
 from .option import Option
 # import devdriven.cli.descriptor as desc
 from .application import app
@@ -54,14 +57,14 @@ class Command:
     else:
       raise Exception(f'Invalid option : {name!r}')
 
-  def opt(self, key, *default):
-    if isinstance(key, tuple) and key:
-      return self.opt(key[0], self.opt(key[1:], *default))
-    if key in self.opts:
-      return self.opts[key]
+  def opt(self, name: str, *default) -> Any:
+    if not isinstance(name, str):
+      raise TypeError(f'Invalid option : {name!r}')
+    if name in self.opts:
+      return self.opts[name]
     if default:
       return default[0]
-    return self.opt_default(key)
+    return self.opt_default(name)
 
   def arg_or_opt(self, i, k, default):
     return get_safe(self.args, i, get_safe(self.opts, k, default))
