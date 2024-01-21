@@ -4,11 +4,12 @@ import inspect
 from dataclasses import dataclass, field
 from devdriven.util import get_safe
 from devdriven.cli.option import Option
+from devdriven.cli.types import Argv
 
 @dataclass
 class Options:
-  argv: List[str] = field(default_factory=list)
-  args: List[str] = field(default_factory=list)
+  argv: Argv = field(default_factory=list)
+  args: Argv = field(default_factory=list)
   arg_by_name: Dict[str, str] = field(default_factory=dict)
   opts: List[Option] = field(default_factory=list)
   opt_by_name: Dict[str, Option] = field(default_factory=dict)
@@ -17,7 +18,7 @@ class Options:
   opt_aliases: Dict[str, Option] = field(default_factory=dict)
   delegate: Any = None
 
-  def parse_argv(self, argv: List[str]) -> Self:
+  def parse_argv(self, argv: Argv) -> Self:
     self.argv = argv.copy()
     while argv:
       arg = argv.pop(0)
@@ -98,7 +99,7 @@ class Options:
       return self
     return None
 
-  def command_synopsis(self) -> List[str]:
+  def command_synopsis(self) -> Argv:
     cmd = []
     for opt in self.opts:
       opts = [opt.full]  # + [alias.full for alias in opt.aliases]

@@ -1,8 +1,10 @@
+from typing import Self, Tuple, IO
 import logging
 import json
 import sys
 import os
 import devdriven.cli
+from devdriven.cli.types import Argv
 from devdriven.to_dict import to_dict
 from . import pipeline, io
 
@@ -13,17 +15,17 @@ class Main(devdriven.cli.Main):
     self.env = {}
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-  def parse_argv(self, argv):
+  def parse_argv(self, argv: Argv):
     if not argv:
       argv = ['help']
     return super().parse_argv(argv)
 
-  def make_command(self, argv):
+  def make_command(self, argv: Argv):
     cmd = Main.MainCommand().set_main(self).parse_argv(argv)
     cmd.env = self.env
     return cmd
 
-  def arg_is_command_separator(self, arg):
+  def arg_is_command_separator(self, arg: str) -> Tuple[bool, str]:
     return (False, arg)
 
   def emit_output(self, output):
@@ -31,10 +33,10 @@ class Main(devdriven.cli.Main):
     logging.debug(json.dumps(output, indent=2))
     return output
 
-  def output_file(self):
+  def output_file(self) -> IO:
     return self.stdout
 
-  def parse_pipeline(self, name, argv):
+  def parse_pipeline(self, name: str, argv: Argv) -> pipeline.Pipeline:
     return pipeline.Pipeline().set_main(self).set_name(name).parse_argv(argv)
 
   class MainCommand(devdriven.cli.Command):
@@ -45,7 +47,7 @@ class Main(devdriven.cli.Main):
       self.pipeline = None
       self.env = None
 
-    def parse_argv(self, argv):
+    def parse_argv(self, argv: Argv) -> Self:
       pipe = self.main.parse_pipeline('main', argv)
       if pipe.xforms:
         if not isinstance(pipe.xforms[0], io.IoIn):

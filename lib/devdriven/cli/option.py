@@ -13,7 +13,7 @@ class Option:
   description: str = ''
   default: Optional[str] = None
   aliases: List[Any] = field(default_factory=list)
-  alias_of: Optional[Self] = None
+  alias_of: Optional[str] = None
 
   def parse_arg(self, arg: str) -> Optional[Self]:
     self.style = 'arg'
