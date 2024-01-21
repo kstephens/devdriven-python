@@ -84,7 +84,7 @@ class Example(Command):
     instance.prog_path = self.main.prog_path
     result = instance.run(cmd_argv)
     if result.exit_code != 0:
-      raise Exception("example run failed: {cmd}")
+      raise Exception(f'example run failed: {cmd}')
     return result
 
   def run_command(self, cmd):
