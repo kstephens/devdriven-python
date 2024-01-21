@@ -858,14 +858,17 @@ Options:
 
 examples - Show examples.
 
-  psv examples [SEARCH-STRING] [--run, -r]
+  psv examples [--run] SEARCH-STRING
 
 Aliases: ex, example
 
 Arguments:
 
   SEARCH-STRING | Matches name, aliases, brief.
-  --run, -r     | Run examples.
+
+Options:
+
+  --run, -r | Run examples.
 
 ==========================================================
 

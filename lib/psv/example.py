@@ -18,9 +18,9 @@ class Example(Command):
 
   Aliases: ex, example
 
-  SEARCH-STRING | Matches name, aliases, brief
+  SEARCH-STRING  |  Matches name, aliases, brief.
+  --run, -r      |  Run examples.
 
-  --run, -r     | Run examples.
   '''
   def xform(self, _inp, _env):
     # ???: move this to cli.application

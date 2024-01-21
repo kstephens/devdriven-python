@@ -11,9 +11,11 @@ def test_help_plain():
   assert_command_output('tests/psv/output/help-plain', f'{PROG} help --plain')
 
 def test_example_r():
+  command = f'{PROG} example -r'
+
   def context_line(line):
     if re.match(r'^\$ ', line):
-      log(line)
+      log(f'command : {line}')
       return line
     return None
 
@@ -23,5 +25,5 @@ def test_example_r():
     return line
 
   assert_command_output('tests/psv/output/example-r',
-                        f'{PROG} example -r',
+                        command,
                         fix_line=fix_line, context_line=context_line)

@@ -238,7 +238,7 @@ $ w3m -dump users.html
 │sshd  │x│122  │65534│      │/run/sshd     │/usr/sbin/nologin│
 └──────┴─┴─────┴─────┴──────┴──────────────┴─────────────────┘
 
-$ psv in users.txt // -table --fs=":" // html --filtering // o users.html
+$ psv in users.txt // -table --fs=":" // html -fs // o users.html
 
 $ w3m -dump users.html
 ┌─────────────────────────────────────────────────────────────┐
