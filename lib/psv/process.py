@@ -179,7 +179,7 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
     specified_cols = split_flat(self.args, ',') if self.args else imp_cols
     cols = []
     ascending = []
-    default_order = '-' if self.opt(('reverse', 'r')) else '+'
+    default_order = '-' if self.opt('reverse') else '+'
     for col in specified_cols:
       order = default_order
       if mtch := re.match(r'^([^:]+):([-+]?)$', col):
