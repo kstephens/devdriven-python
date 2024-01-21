@@ -13,8 +13,9 @@ def assert_command_output(file: str,
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
-  os.system(f'{command} > {actual_out}')
-  log(f'Command  : {command!r}')
+  system_command = f'exec 2>&1; set -x; {command} > {actual_out}'
+  os.system(system_command)
+  log(f'assert_command_output : {command!r}')
   assert_files(actual_out, expect_out,
                fix_line=fix_line, context_line=context_line)
 
@@ -30,10 +31,10 @@ def assert_files(actual_out: str,
       log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
       log(f'To accept  : cp {actual_out!r} {expect_out!r}')
       log('      OR   : export ASSERT_DIFF_ACCEPT=1')
-      os.system(f'set -x; diff -u {expect_out!r} {actual_out!r} >&2')
+      os.system(f'exec 2>&1; set -x; diff -u {expect_out!r} {actual_out!r} 2>&1')
       if int(os.environ.get('ASSERT_DIFF_ACCEPT', '0')):
         log(f'ASSERT_DIFF_ACCEPT : ACCEPTING : {expect_out!r} from {actual_out!r}')
-        os.system(f'set -x; cp {actual_out!r} {expect_out!r}')
+        os.system(f'exec 2>&1; set -x; cp {actual_out!r} {expect_out!r}')
       assert actual_out == expect_out
   else:
     log(f'Initialize {expect_out!r} with {actual_out!r}')
@@ -46,8 +47,8 @@ def compare_files(actual_out: str,
     actual_lines = io.readlines()
   with open(expect_out, 'r', encoding='utf-8') as io:
     expect_lines = io.readlines()
-  log(f'Actual   : {actual_out!r} : {len(actual_lines)} lines : md5 {file_md5(actual_out)!r}')
-  log(f'Expected : {expect_out!r} : {len(expect_lines)} lines : md5 {file_md5(expect_out)!r}')
+  log(f'actual   : {actual_out!r} : {len(actual_lines)} lines : md5 {file_md5(actual_out)!r}')
+  log(f'expected : {expect_out!r} : {len(expect_lines)} lines : md5 {file_md5(expect_out)!r}')
   return compare_lines(actual_lines, expect_lines, context_line=context_line)
 
 def compare_lines(actual_lines: Iterable[str],
