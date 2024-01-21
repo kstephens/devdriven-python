@@ -85,7 +85,7 @@ class Options:
       self.arg_by_name[name] = m[2].strip()
       self.args.append(name)
 
-    if m := re.match(r'^(-) *[\|] *(.*)', line):
+    if m := re.match(r'^(-) +[\|] *(.*)', line):
       add_arg(m)
       return self
     if option := Option().parse_doc(line):
