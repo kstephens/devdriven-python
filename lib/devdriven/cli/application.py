@@ -1,11 +1,10 @@
+from typing import Union, Optional, Type, List
 from itertools import chain
-from typing import List
 from devdriven.util import dataclass_from_dict
 from devdriven.mime import short_and_long_suffix
 from .options import Options
 from .descriptor import Descriptor
 
-# @dataclass
 class Application:
   sections: list = []
   current_section: str = 'UNKNOWN'
@@ -20,7 +19,7 @@ class Application:
     if name not in self.sections:
       self.sections.append(name)
 
-  def create_descriptor(self, klass) -> Descriptor:
+  def create_descriptor(self, klass: Type) -> Descriptor:
     options = Options()
     kwargs = {
       'name': '',
@@ -38,7 +37,7 @@ class Application:
     }
     return dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__)
 
-  def descriptor(self, name_or_klass, default=None):
+  def descriptor(self, name_or_klass: Union[str, Type], default=None) -> Descriptor:
     return self.descriptor_by_any.get(name_or_klass, default)
 
   def descriptors_for_section(self, name: str) -> List[Descriptor]:
@@ -47,7 +46,7 @@ class Application:
   def descriptors_by_sections(self, secs=None) -> List[Descriptor]:
     return list(chain.from_iterable([self.descriptors_for_section(sec) for sec in (secs or self.sections)]))
 
-  def find_format(self, path: str, klass):
+  def find_format(self, path: str, klass: Type) -> Optional[Type]:
     short_suffix, long_suffix = short_and_long_suffix(path)
     valid_descs = [dsc for dsc in self.descriptors if issubclass(dsc.klass, klass)]
     for dsc in valid_descs:
@@ -70,7 +69,7 @@ class Application:
     return desc
 
   # Decorator
-  def command(self, klass):
+  def command(self, klass: Type):
     self.register(self.create_descriptor(klass))
     return klass
 

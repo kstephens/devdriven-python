@@ -1,4 +1,4 @@
-from typing import Self, Optional, List
+from typing import Optional, Self, Type, List
 import re
 from dataclasses import dataclass
 from devdriven.cli.options import Options
@@ -7,7 +7,7 @@ from icecream import ic
 
 @dataclass
 class Descriptor:
-  klass: object
+  klass: Type
   name: str
   brief: str
   synopsis: str

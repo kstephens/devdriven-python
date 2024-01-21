@@ -21,11 +21,11 @@ class Command:
   def log(self, level, fmt, *args):
     getattr(logging, level)('%s : ' + fmt, self.name, *args)
 
-  def run(self, argv):
+  def run(self, argv: Argv) -> None:
     self.parse_argv(argv)
     self.exec()
 
-  def parse_argv(self, argv):
+  def parse_argv(self, argv: Argv) -> Self:
     self.argv = argv.copy()
     while argv:
       arg = argv.pop(0)
@@ -42,15 +42,15 @@ class Command:
         self.args.append(arg)
     return self
 
-  def set_name(self, name):
+  def set_name(self, name: str) -> Self:
     self.name = name
     return self
 
-  def set_main(self, main):
+  def set_main(self, main) -> Self:
     self.main = main
     return self
 
-  def set_opt(self, name, val):
+  def set_opt(self, name: str, val: Any) -> None:
     key = self.opt_name_key(name)
     if self.opt_valid(key, val):
       self.opts[key] = val
@@ -66,31 +66,31 @@ class Command:
       return default[0]
     return self.opt_default(name)
 
-  def arg_or_opt(self, i, k, default):
+  def arg_or_opt(self, i: int, k: str, default: Any) -> Any:
     return get_safe(self.args, i, get_safe(self.opts, k, default))
 
-  def command_descriptor(self):
+  def command_descriptor(self) -> Descriptor:
     return app.descriptor(self.__class__)
 
-  def to_dict(self):
+  def to_dict(self) -> list:
     return [self.name, *self.argv]
 
   # OVERRIDE:
-  def opt_valid(self, _key, _val):
+  def opt_valid(self, _key: str, _val: Any) -> bool:
     return True
 
-  def opt_default(self, key):
-    return self.opts_defaults.get(key, None)
+  def opt_default(self, name: str) -> Any:
+    return self.opts_defaults.get(name, None)
 
-  def opt_name_key(self, name):
+  def opt_name_key(self, name: str) -> Any:
     return self.opt_char_map.get(name, name)
 
   # OVERRIDE:
-  def exec(self):
+  def exec(self) -> Any:
     return self.rtn
 
 # Decorator
-def command(klass):
+def command(klass: Type) -> Type:
   assert issubclass(klass, Command)
   app.command(klass)
   return klass
