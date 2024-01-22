@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.11
-from typing import Any, Optional, Self, Tuple, List, Dict, IO
+from typing import Any, Optional, Self, Tuple, List, Dict, IO, NoReturn
 import logging as log
 import json
 import re
@@ -26,6 +26,7 @@ class Main:
   def __init__(self):
     self.stdin = sys.stdin
     self.stdout = sys.stdout
+    self.stderr = sys.stderr
     self.http = urllib3.PoolManager()
     self.now = datetime.now()
     self.prog_name = self.prog_path = self.bin_dir = None
@@ -139,3 +140,8 @@ class Main:
     if mtch := re.match(r'^(.+),$', arg):
       return (True, mtch.group(1))
     return (False, arg)
+
+  def fatal(self, msg: str, exit_code: Optional[int] = None) -> NoReturn:
+    self.exit_code = (exit_code or 1)
+    print(msg, file=self.stderr)
+    sys.exit(self.exit_code)
