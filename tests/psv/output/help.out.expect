@@ -1,6 +1,22 @@
 | command        | description                                                                                                   |
 |:---------------|:--------------------------------------------------------------------------------------------------------------|
 |   ---------    |                                                                                                               |
+|    Section     | -------- I/O --------                                                                                         |
+|   ---------    |                                                                                                               |
+|                |                                                                                                               |
+| in             | Read input.                                                                                                   |
+|                |                                                                                                               |
+|                |   psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]                                                     |
+|                |                                                                                                               |
+|                | Aliases: i, -i                                                                                                |
+|                |                                                                                                               |
+| out            | write output to URLs.                                                                                         |
+|                |                                                                                                               |
+|                |   psv out [FILE] [file///FILE] [https?://...] [-]                                                             |
+|                |                                                                                                               |
+|                | Aliases: o, o-                                                                                                |
+|                |                                                                                                               |
+|   ---------    |                                                                                                               |
 |    Section     | -------- Formats --------                                                                                     |
 |   ---------    |                                                                                                               |
 |                |                                                                                                               |
@@ -90,59 +106,11 @@
 |                |                                                                                                               |
 |                | Aliases: xls-, xls                                                                                            |
 |                |                                                                                                               |
-|   ---------    |                                                                                                               |
-|    Section     | -------- I/O --------                                                                                         |
-|   ---------    |                                                                                                               |
+| extract        | Extract fields by Regexp.                                                                                     |
 |                |                                                                                                               |
-| in             | Read input.                                                                                                   |
+|                |   psv extract                                                                                                 |
 |                |                                                                                                               |
-|                |   psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]                                                     |
-|                |                                                                                                               |
-|                | Aliases: i, -i                                                                                                |
-|                |                                                                                                               |
-| out            | write output to URLs.                                                                                         |
-|                |                                                                                                               |
-|                |   psv out [FILE] [file///FILE] [https?://...] [-]                                                             |
-|                |                                                                                                               |
-|                | Aliases: o, o-                                                                                                |
-|                |                                                                                                               |
-|   ---------    |                                                                                                               |
-|    Section     | -------- Metadata --------                                                                                    |
-|   ---------    |                                                                                                               |
-|                |                                                                                                               |
-| add-sequence   | Add a column with a sequence of numbers.                                                                      |
-|                |                                                                                                               |
-|                |   psv add-sequence [--column] [--start] [--step]                                                              |
-|                |                                                                                                               |
-|                | Aliases: seq                                                                                                  |
-|                |                                                                                                               |
-| rename-columns | Rename columns.                                                                                               |
-|                |                                                                                                               |
-|                |   psv rename-columns [OLD-COL:NEW-NAME ...]                                                                   |
-|                |                                                                                                               |
-|                | Aliases: rename                                                                                               |
-|                |                                                                                                               |
-| infer-objects  | Infer column types.                                                                                           |
-|                |                                                                                                               |
-|                |   psv infer-objects                                                                                           |
-|                |                                                                                                               |
-|                | Aliases: infer                                                                                                |
-|                |                                                                                                               |
-| coerce         | Corece column types.                                                                                          |
-|                |                                                                                                               |
-|                |   psv coerce [COL:TYPE ...]                                                                                   |
-|                |                                                                                                               |
-|                | Aliases: astype                                                                                               |
-|                |                                                                                                               |
-| show-columns   | Table of column names and attributes.                                                                         |
-|                |                                                                                                               |
-|                |   psv show-columns                                                                                            |
-|                |                                                                                                               |
-|                | Aliases: columns, cols                                                                                        |
-|                |                                                                                                               |
-| env-           | Show env.                                                                                                     |
-|                |                                                                                                               |
-|                |   psv env-                                                                                                    |
+|                | Aliases: rx, re                                                                                               |
 |                |                                                                                                               |
 |   ---------    |                                                                                                               |
 |    Section     | -------- Manipulation --------                                                                                |
@@ -192,7 +160,7 @@
 |                |                                                                                                               |
 | sort           | Sort rows by columns.                                                                                         |
 |                |                                                                                                               |
-|                |   psv sort [--reverse] [--numeric] [COL] [COL:-] [COL:+]                                                      |
+|                |   psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]                                           |
 |                |                                                                                                               |
 |                | Aliases: s                                                                                                    |
 |                |                                                                                                               |
@@ -229,14 +197,46 @@
 |                |   psv stats                                                                                                   |
 |                |                                                                                                               |
 |   ---------    |                                                                                                               |
-|    Section     | -------- Format --------                                                                                      |
+|    Section     | -------- Types --------                                                                                       |
 |   ---------    |                                                                                                               |
 |                |                                                                                                               |
-| extract        | Extract fields by Regexp.                                                                                     |
+| coerce         | Corece column types.                                                                                          |
 |                |                                                                                                               |
-|                |   psv extract                                                                                                 |
+|                |   psv coerce [COL:TYPE ...]                                                                                   |
 |                |                                                                                                               |
-|                | Aliases: rx, re                                                                                               |
+|                | Aliases: astype                                                                                               |
+|                |                                                                                                               |
+|   ---------    |                                                                                                               |
+|    Section     | -------- Metadata --------                                                                                    |
+|   ---------    |                                                                                                               |
+|                |                                                                                                               |
+| add-sequence   | Add a column with a sequence of numbers.                                                                      |
+|                |                                                                                                               |
+|                |   psv add-sequence [--column] [--start] [--step]                                                              |
+|                |                                                                                                               |
+|                | Aliases: seq                                                                                                  |
+|                |                                                                                                               |
+| rename-columns | Rename columns.                                                                                               |
+|                |                                                                                                               |
+|                |   psv rename-columns [OLD-COL:NEW-NAME ...]                                                                   |
+|                |                                                                                                               |
+|                | Aliases: rename                                                                                               |
+|                |                                                                                                               |
+| infer-objects  | Infer column types.                                                                                           |
+|                |                                                                                                               |
+|                |   psv infer-objects                                                                                           |
+|                |                                                                                                               |
+|                | Aliases: infer                                                                                                |
+|                |                                                                                                               |
+| show-columns   | Table of column names and attributes.                                                                         |
+|                |                                                                                                               |
+|                |   psv show-columns                                                                                            |
+|                |                                                                                                               |
+|                | Aliases: columns, cols                                                                                        |
+|                |                                                                                                               |
+| env-           | Show env.                                                                                                     |
+|                |                                                                                                               |
+|                |   psv env-                                                                                                    |
 |                |                                                                                                               |
 |   ---------    |                                                                                                               |
 |    Section     | -------- Expression Evaluation --------                                                                       |
@@ -264,7 +264,7 @@
 |                |                                                                                                               |
 | help           | This help document.                                                                                           |
 |                |                                                                                                               |
-|                |   psv help [--verbose] [--plain] [--raw]                                                                      |
+|                |   psv help [--verbose] [--plain] [--raw] [--sections]                                                         |
 |                |                                                                                                               |
 | examples       | Show examples.                                                                                                |
 |                |                                                                                                               |

@@ -332,139 +332,6 @@ $ psv in a.csv // xls // o a.xlsx
 $ file a.xlsx
 a.xlsx: Microsoft Excel 2007+
 
-# add-sequence (seq): add a column with a sequence:
-$ psv in a.tsv // seq // md
-|   a | b   |        c | d     |   __i__ |
-|----:|:----|---------:|:------|--------:|
-|   1 | b1  |   23.763 | xspdf |       1 |
-|   2 | b2  |  -98.73  | qwer  |       2 |
-|   3 | b3  | 3451     | bixop |       3 |
-|   1 | b4  |    1.234 | zxy   |       4 |
-
-# add-sequence (seq): start at 0:
-$ psv in a.tsv // seq --start=0 // md
-|   a | b   |        c | d     |   __i__ |
-|----:|:----|---------:|:------|--------:|
-|   1 | b1  |   23.763 | xspdf |       0 |
-|   2 | b2  |  -98.73  | qwer  |       1 |
-|   3 | b3  | 3451     | bixop |       2 |
-|   1 | b4  |    1.234 | zxy   |       3 |
-
-# add-sequence (seq): step by 2:
-$ psv in a.tsv // seq --step=2 // md
-|   a | b   |        c | d     |   __i__ |
-|----:|:----|---------:|:------|--------:|
-|   1 | b1  |   23.763 | xspdf |       1 |
-|   2 | b2  |  -98.73  | qwer  |       3 |
-|   3 | b3  | 3451     | bixop |       5 |
-|   1 | b4  |    1.234 | zxy   |       7 |
-
-# add-sequence (seq): start at 5, step by -2:
-$ psv in a.tsv // seq --start=5 --step=-2 // md
-|   a | b   |        c | d     |   __i__ |
-|----:|:----|---------:|:------|--------:|
-|   1 | b1  |   23.763 | xspdf |       5 |
-|   2 | b2  |  -98.73  | qwer  |       3 |
-|   3 | b3  | 3451     | bixop |       1 |
-|   1 | b4  |    1.234 | zxy   |      -1 |
-
-# rename-columns: rename column 'b' to 'B':
-$ psv in a.tsv // rename b B // md
-|   a | None   |        c | d     |
-|----:|:-------|---------:|:------|
-|   1 | b1     |   23.763 | xspdf |
-|   2 | b2     |  -98.73  | qwer  |
-|   3 | b3     | 3451     | bixop |
-|   1 | b4     |    1.234 | zxy   |
-
-# Column metadata columns:
-$ psv in a.tsv // cols // cols // cut name,dtype.name // md
-| name            | dtype.name   |
-|:----------------|:-------------|
-| name            | object       |
-| dtype.name      | object       |
-| dtype.kind      | object       |
-| dtype.char      | object       |
-| dtype.num       | int64        |
-| dtype.str       | object       |
-| dtype.itemsize  | int64        |
-| dtype.byteorder | object       |
-| dtype.subdtype  | object       |
-| dtype.shape     | object       |
-| dtype.hasobject | bool         |
-| dtype.flags     | int64        |
-| dtype.isbuiltin | int64        |
-| dtype.isnative  | int64        |
-| dtype.descr     | object       |
-| dtype.alignment | int64        |
-| dtype.base      | object       |
-| dtype.metadata  | object       |
-
-# Column metadata:
-$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
-| name   | dtype.name   | dtype.kind   |   dtype.isnative |
-|:-------|:-------------|:-------------|-----------------:|
-| a      | int64        | i            |                1 |
-| b      | object       | O            |                1 |
-| c      | float64      | f            |                1 |
-| d      | object       | O            |                1 |
-
-# env: display proccessing info:
-$ psv in a.tsv // show-columns // md // env-
-{
-  "now": "...",  "history": [
-    [
-      "<< IoIn: in a.tsv >>",
-      "<< DataFrame: (4, 4) >>",
-      "application/x-pandas-dataframe",
-      null
-    ],
-    [
-      "<< ShowColumns: show-columns >>",
-      "<< DataFrame: (4, 18) >>",
-      "application/x-pandas-dataframe",
-      null
-    ],
-    [
-      "<< MarkdownOut: markdown >>",
-      "<< str: | name   | dtype.name   | dtype.kind  ... >>",
-      null,
-      null
-    ],
-    [
-      "<< EnvOut: env- >>",
-      null,
-      null,
-      null
-    ]
-  ],
-  "xform": {
-    "first": [
-      "in",
-      "a.tsv"
-    ],
-    "last": [
-      null
-    ],
-    "prev": [
-      null
-    ],
-    "next": [
-      "show-columns"
-    ],
-    "current": [
-      "<< EnvOut: env- >>",
-      null,
-      null,
-      null
-    ]
-  },
-  "Content-Type": "application/x-psv-env",
-  "Content-Encoding": null,
-  "input.paths": [
-    "a.tsv"
-  ]
-}
 # range: select a range of rows:
 $ psv in a.tsv // seq --start=0 // range 1 3 // md
 |   a | b   |       c | d     |   __i__ |
@@ -689,6 +556,139 @@ $ psv in a.tsv // stats // cut name,count,min,max
 2    c      4 -98.73  3451.0
 3    d      4  bixop     zxy
 
+# add-sequence (seq): add a column with a sequence:
+$ psv in a.tsv // seq // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       1 |
+|   2 | b2  |  -98.73  | qwer  |       2 |
+|   3 | b3  | 3451     | bixop |       3 |
+|   1 | b4  |    1.234 | zxy   |       4 |
+
+# add-sequence (seq): start at 0:
+$ psv in a.tsv // seq --start=0 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       0 |
+|   2 | b2  |  -98.73  | qwer  |       1 |
+|   3 | b3  | 3451     | bixop |       2 |
+|   1 | b4  |    1.234 | zxy   |       3 |
+
+# add-sequence (seq): step by 2:
+$ psv in a.tsv // seq --step=2 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       1 |
+|   2 | b2  |  -98.73  | qwer  |       3 |
+|   3 | b3  | 3451     | bixop |       5 |
+|   1 | b4  |    1.234 | zxy   |       7 |
+
+# add-sequence (seq): start at 5, step by -2:
+$ psv in a.tsv // seq --start=5 --step=-2 // md
+|   a | b   |        c | d     |   __i__ |
+|----:|:----|---------:|:------|--------:|
+|   1 | b1  |   23.763 | xspdf |       5 |
+|   2 | b2  |  -98.73  | qwer  |       3 |
+|   3 | b3  | 3451     | bixop |       1 |
+|   1 | b4  |    1.234 | zxy   |      -1 |
+
+# rename-columns: rename column 'b' to 'B':
+$ psv in a.tsv // rename b B // md
+|   a | None   |        c | d     |
+|----:|:-------|---------:|:------|
+|   1 | b1     |   23.763 | xspdf |
+|   2 | b2     |  -98.73  | qwer  |
+|   3 | b3     | 3451     | bixop |
+|   1 | b4     |    1.234 | zxy   |
+
+# Column metadata columns:
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+| name            | dtype.name   |
+|:----------------|:-------------|
+| name            | object       |
+| dtype.name      | object       |
+| dtype.kind      | object       |
+| dtype.char      | object       |
+| dtype.num       | int64        |
+| dtype.str       | object       |
+| dtype.itemsize  | int64        |
+| dtype.byteorder | object       |
+| dtype.subdtype  | object       |
+| dtype.shape     | object       |
+| dtype.hasobject | bool         |
+| dtype.flags     | int64        |
+| dtype.isbuiltin | int64        |
+| dtype.isnative  | int64        |
+| dtype.descr     | object       |
+| dtype.alignment | int64        |
+| dtype.base      | object       |
+| dtype.metadata  | object       |
+
+# Column metadata:
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
+| name   | dtype.name   | dtype.kind   |   dtype.isnative |
+|:-------|:-------------|:-------------|-----------------:|
+| a      | int64        | i            |                1 |
+| b      | object       | O            |                1 |
+| c      | float64      | f            |                1 |
+| d      | object       | O            |                1 |
+
+# env: display proccessing info:
+$ psv in a.tsv // show-columns // md // env-
+{
+  "now": "...",  "history": [
+    [
+      "<< IoIn: in a.tsv >>",
+      "<< DataFrame: (4, 4) >>",
+      "application/x-pandas-dataframe",
+      null
+    ],
+    [
+      "<< ShowColumns: show-columns >>",
+      "<< DataFrame: (4, 18) >>",
+      "application/x-pandas-dataframe",
+      null
+    ],
+    [
+      "<< MarkdownOut: markdown >>",
+      "<< str: | name   | dtype.name   | dtype.kind  ... >>",
+      null,
+      null
+    ],
+    [
+      "<< EnvOut: env- >>",
+      null,
+      null,
+      null
+    ]
+  ],
+  "xform": {
+    "first": [
+      "in",
+      "a.tsv"
+    ],
+    "last": [
+      null
+    ],
+    "prev": [
+      null
+    ],
+    "next": [
+      "show-columns"
+    ],
+    "current": [
+      "<< EnvOut: env- >>",
+      null,
+      null,
+      null
+    ]
+  },
+  "Content-Type": "application/x-psv-env",
+  "Content-Encoding": null,
+  "input.paths": [
+    "a.tsv"
+  ]
+}
 # Extract by names:
 $ psv in users.txt // extract '^(?P<login>[^:]+)' // md
 | login   |

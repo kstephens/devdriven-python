@@ -1,3 +1,58 @@
+in - Read input.
+
+  psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]
+
+Aliases: i, -i
+
+If no arguments are given, read from STDIN.
+
+Arguments:
+
+  FILE         | Read FILE.
+  file:///FILE | Read FILE.
+  https?://URL | GET URL.
+  -            | Read STDIN.
+
+Options:
+
+  --raw, -r | Do not infer format from suffix.
+
+Examples:
+
+# in: read from STDIN:
+$ cat a.tsv | psv in -
+
+$ cat a.tsv | psv in
+
+# in: HTTP support:
+$ psv in https://tinyurl.com/4sscj338
+
+
+==========================================================
+
+out - write output to URLs.
+
+  psv out [FILE] [file///FILE] [https?://...] [-]
+
+Aliases: o, o-
+
+If no arguments are given, write to STDOUT.
+
+Arguments:
+
+  FILE         | Write FILE.
+  file///FILE  | Write FILE.
+  https?://... | PUT URL.
+  -            | Write STDOUT.
+
+Examples:
+
+# out: Convert TSV to CSV and save to a file:
+$ psv in a.tsv // -tsv // csv- // out a.csv
+
+
+==========================================================
+
 -table - Parse table.
 
   psv -table [--fs] [--rs] [--max-cols] [--columns] [--header] [--column] [--encoding] [--skip]
@@ -271,167 +326,24 @@ $ file a.xlsx
 
 ==========================================================
 
-in - Read input.
+extract - Extract fields by Regexp.
 
-  psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]
+  psv extract
 
-Aliases: i, -i
-
-If no arguments are given, read from STDIN.
-
-Arguments:
-
-  FILE         | Read FILE.
-  file:///FILE | Read FILE.
-  https?://URL | GET URL.
-  -            | Read STDIN.
-
-Options:
-
-  --raw, -r | Do not infer format from suffix.
+Aliases: rx, re
 
 Examples:
 
-# in: read from STDIN:
-$ cat a.tsv | psv in -
+# Extract by names:
+$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
 
-$ cat a.tsv | psv in
+$ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
 
-# in: HTTP support:
-$ psv in https://tinyurl.com/4sscj338
+# Extract unnamed group:
+$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
 
-
-==========================================================
-
-out - write output to URLs.
-
-  psv out [FILE] [file///FILE] [https?://...] [-]
-
-Aliases: o, o-
-
-If no arguments are given, write to STDOUT.
-
-Arguments:
-
-  FILE         | Write FILE.
-  file///FILE  | Write FILE.
-  https?://... | PUT URL.
-  -            | Write STDOUT.
-
-Examples:
-
-# out: Convert TSV to CSV and save to a file:
-$ psv in a.tsv // -tsv // csv- // out a.csv
-
-
-==========================================================
-
-add-sequence - Add a column with a sequence of numbers.
-
-  psv add-sequence [--column] [--start] [--step]
-
-Aliases: seq
-
-Options:
-
-  --column | Default: "__i__".
-  --start  | Default: 1.
-  --step   | Default: 1.
-
-Examples:
-
-# add-sequence (seq): add a column with a sequence:
-$ psv in a.tsv // seq // md
-
-# add-sequence (seq): start at 0:
-$ psv in a.tsv // seq --start=0 // md
-
-# add-sequence (seq): step by 2:
-$ psv in a.tsv // seq --step=2 // md
-
-# add-sequence (seq): start at 5, step by -2:
-$ psv in a.tsv // seq --start=5 --step=-2 // md
-
-
-==========================================================
-
-rename-columns - Rename columns.
-
-  psv rename-columns [OLD-COL:NEW-NAME ...]
-
-Aliases: rename
-
-Arguments:
-
-  OLD-COL:NEW-NAME ... | Columns to rename.
-
-Examples:
-
-# rename-columns: rename column 'b' to 'B':
-$ psv in a.tsv // rename b B // md
-
-
-==========================================================
-
-infer-objects - Infer column types.
-
-  psv infer-objects
-
-Aliases: infer
-
-==========================================================
-
-coerce - Corece column types.
-
-  psv coerce [COL:TYPE ...]
-
-Aliases: astype
-
-TYPES:
-
-numeric      - to int64 or float64.
-int          - to int64.
-float        - to float64.
-timedelta    - string to timedelta64[ns].
-datetime     - string to datetime.
-second       - string to timedelta64[ns] to float seconds.
-minute       - string to timedelta64[ns] to float minutes.
-hour         - string to timedelta64[ns] to float hours.
-day          - string to timedelta64[ns] to float days.
-
-Arguments:
-
-  COL:TYPE ... | Columns to retype.
-
-==========================================================
-
-show-columns - Table of column names and attributes.
-
-  psv show-columns
-
-Aliases: columns, cols
-
-See numpy.dtype.
-
-Examples:
-
-# Column metadata columns:
-$ psv in a.tsv // cols // cols // cut name,dtype.name // md
-
-# Column metadata:
-$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
-
-
-==========================================================
-
-env- - Show env.
-
-  psv env-
-
-Examples:
-
-# env: display proccessing info:
-$ psv in a.tsv // show-columns // md // env-
+# Extract unnamed groups using a template:
+$ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
 
 
 ==========================================================
@@ -566,7 +478,7 @@ Aliases: u
 
 sort - Sort rows by columns.
 
-  psv sort [--reverse] [--numeric] [COL] [COL:-] [COL:+]
+  psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]
 
 Aliases: s
 
@@ -579,7 +491,8 @@ Arguments:
 Options:
 
   --reverse, -r | Sort descending.
-  --numeric, -n | Coerce columns to numeric.
+  --numeric, -n | Sort as numeric.
+  --coerce      | Sort by coerced value.
 
 Examples:
 
@@ -741,24 +654,113 @@ $ psv in a.tsv // stats // cut name,count,min,max
 
 ==========================================================
 
-extract - Extract fields by Regexp.
+coerce - Corece column types.
 
-  psv extract
+  psv coerce [COL:TYPE ...]
 
-Aliases: rx, re
+Aliases: astype
+
+TYPES:
+
+numeric      - to int64 or float64.
+int          - to int64.
+float        - to float64.
+timedelta    - string to timedelta64[ns].
+datetime     - string to datetime.
+second       - string to timedelta64[ns] to float seconds.
+minute       - string to timedelta64[ns] to float minutes.
+hour         - string to timedelta64[ns] to float hours.
+day          - string to timedelta64[ns] to float days.
+ipaddr       - string to ipaddress.  See python ipaddress module.
+
+Arguments:
+
+  COL:TYPE ... | Column to coerce to TYPE.
+
+==========================================================
+
+add-sequence - Add a column with a sequence of numbers.
+
+  psv add-sequence [--column] [--start] [--step]
+
+Aliases: seq
+
+Options:
+
+  --column | Default: "__i__".
+  --start  | Default: 1.
+  --step   | Default: 1.
 
 Examples:
 
-# Extract by names:
-$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+# add-sequence (seq): add a column with a sequence:
+$ psv in a.tsv // seq // md
 
-$ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
+# add-sequence (seq): start at 0:
+$ psv in a.tsv // seq --start=0 // md
 
-# Extract unnamed group:
-$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+# add-sequence (seq): step by 2:
+$ psv in a.tsv // seq --step=2 // md
 
-# Extract unnamed groups using a template:
-$ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+# add-sequence (seq): start at 5, step by -2:
+$ psv in a.tsv // seq --start=5 --step=-2 // md
+
+
+==========================================================
+
+rename-columns - Rename columns.
+
+  psv rename-columns [OLD-COL:NEW-NAME ...]
+
+Aliases: rename
+
+Arguments:
+
+  OLD-COL:NEW-NAME ... | Columns to rename.
+
+Examples:
+
+# rename-columns: rename column 'b' to 'B':
+$ psv in a.tsv // rename b B // md
+
+
+==========================================================
+
+infer-objects - Infer column types.
+
+  psv infer-objects
+
+Aliases: infer
+
+==========================================================
+
+show-columns - Table of column names and attributes.
+
+  psv show-columns
+
+Aliases: columns, cols
+
+See numpy.dtype.
+
+Examples:
+
+# Column metadata columns:
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+
+# Column metadata:
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
+
+
+==========================================================
+
+env- - Show env.
+
+  psv env-
+
+Examples:
+
+# env: display proccessing info:
+$ psv in a.tsv // show-columns // md // env-
 
 
 ==========================================================
@@ -846,13 +848,14 @@ Arguments:
 
 help - This help document.
 
-  psv help [--verbose] [--plain] [--raw]
+  psv help [--verbose] [--plain] [--raw] [--sections]
 
 Options:
 
-  --verbose, -v | Show more detail.
-  --plain, -p   | Show plain docs.
-  --raw, -r     | Raw detail.
+  --verbose, -v  | Show more detail.
+  --plain, -p    | Show plain docs.
+  --raw, -r      | Raw detail.
+  --sections, -s | List sections.
 
 ==========================================================
 
