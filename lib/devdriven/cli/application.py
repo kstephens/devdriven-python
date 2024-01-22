@@ -46,7 +46,7 @@ class Application:
     return self.descriptor_by_any.get(name_or_klass, default)
 
   def descriptors_for_section(self, name: str) -> List[Descriptor]:
-    return self.sections[name].descriptors
+    return self.section_by_name[name].descriptors
 
   def descriptors_by_sections(self, secs=None) -> List[Descriptor]:
     return sum([sec.descriptors for sec in (secs or self.sections)], [])
