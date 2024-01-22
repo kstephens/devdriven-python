@@ -76,7 +76,7 @@ class Command:
     return [self.name, *self.argv]
 
   # OVERRIDE:
-  def opt_valid(self, _key: str, _val: Any) -> bool:
+  def opt_valid(self, _name: str, _val: Any) -> bool:
     return True
 
   def opt_default(self, name: str) -> Any:

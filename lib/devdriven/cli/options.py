@@ -60,14 +60,14 @@ class Options:
   def arg_or_opt(self, i: int, k: str, default: Any) -> Any:
     return get_safe(self.args, i, get_safe(self.opt_by_name, k, default))
 
-  def opt_valid(self, key: str, val: Any) -> Any:
-    return self.maybe_delegate('opt_valid', True, key, val)
+  def opt_valid(self, name: str, val: Any) -> Any:
+    return self.maybe_delegate('opt_valid', True, name, val)
 
-  def opt_default(self, key: str) -> Any:
-    return self.maybe_delegate('opt_default', self.opts_defaults.get(key), key)
+  def opt_default(self, name: str) -> Any:
+    return self.maybe_delegate('opt_default', self.opts_defaults.get(name), name)
 
-  def opt_name_key(self, flag: str) -> Optional[str]:
-    return self.maybe_delegate('opt_name_key', self.opt_char_map.get(flag, flag), flag)
+  def opt_name_key(self, name: str) -> Optional[str]:
+    return self.maybe_delegate('opt_name_key', self.opt_char_map.get(name, name), name)
 
   def opt_name_normalize(self, name: str) -> Optional[str]:
     if opt := self.opt_by_name.get(name):
