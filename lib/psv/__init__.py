@@ -7,6 +7,7 @@ from . import yaml
 from . import spreadsheet
 from . import process
 from . import summary
+from . import coerce
 from . import metadata
 from . import extract
 from . import expr

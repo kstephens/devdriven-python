@@ -1,7 +1,7 @@
 import re
 from devdriven.util import get_safe, chunks, split_flat, parse_range, make_range
 from .command import Command, section, command
-from .metadata import Coerce
+from .coerce import Coerce
 from .util import select_columns, parse_col_or_index
 
 section('Manipulation', 30)
