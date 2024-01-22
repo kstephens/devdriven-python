@@ -163,7 +163,8 @@ class Sort(Command):
   Options:
 
   --reverse, -r     |  Sort descending.
-  --numeric, -n     |  Coerce columns to numeric.
+  --numeric, -n     |  Sort as numeric.
+  --coerce=TYPE     |  Sort by coerced value.
 
 # sort: decreasing:
 $ psv in a.tsv // sort -r a // md
@@ -188,7 +189,15 @@ $ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
       col = parse_col_or_index(imp_cols, col)
       cols.append(col)
       ascending.append(order != '-')
-    key = Coerce().coercer('numeric') if self.opt('numeric') else None
+    key = None
+    if self.opt('numeric'):
+      key = 'numeric'
+    elif self.opt('datetime'):
+      key = 'datetime'
+    else:
+      key = self.opt('coerce')
+    if key:
+      key = Coerce().coercer(key)
     return inp.sort_values(by=cols, ascending=ascending, key=key)
 
 @command

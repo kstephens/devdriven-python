@@ -1,4 +1,3 @@
-import re
 from devdriven.util import chunks, split_flat
 from devdriven.to_dict import to_dict
 from devdriven.pandas import dtype_to_dict
