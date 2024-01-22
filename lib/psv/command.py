@@ -1,4 +1,4 @@
-from typing import Any, Union, Type
+from typing import Any, Optional, Union, Type
 import devdriven.cli.command as cmd
 from devdriven.cli.types import Argv
 from devdriven.cli.application import app
@@ -13,12 +13,12 @@ class Command(cmd.Command):
     return inp
 
   def make_xform(self, argv: Argv):  # -> Self:
-    return main_make_xform(self.main, argv[0], argv[1:])
+    return main_make_xform(self.main, argv[0], argv[1:]) or Exception(f'unknown command {argv[0]!r}')
 
   def opt_name_key(self, name: str) -> str:
     return self.command_descriptor().options.opt_name_normalize(name) or name
 
-def main_make_xform(main, klass_or_name: Union[str, Type], argv: Argv) -> Command:
+def main_make_xform(main, klass_or_name: Union[str, Type], argv: Argv) -> Optional[Command]:
   assert main
   if desc := app.descriptor(klass_or_name):
     xform = desc.klass()
@@ -26,7 +26,8 @@ def main_make_xform(main, klass_or_name: Union[str, Type], argv: Argv) -> Comman
     xform.set_name(desc.name)
     xform.parse_argv(argv)
     return xform
-  raise Exception(f'unknown command {klass_or_name!r}')
+  main.fatal(f'psv: unknown command {klass_or_name!r} : see {"psv help -s"!r}.')
+  return None
 
 def section(name: str, order: int, *args):
   return app.begin_section(name, order, *args)
