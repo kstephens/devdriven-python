@@ -10,7 +10,7 @@ from .command import Command, section, command
 # pylint: enable=unused-import,wildcard-import,redefined-builtin,unused-wildcard-import
 
 
-section('Expression Evaluation')
+section('Expression Evaluation', 60)
 
 @command
 class Eval(Command):

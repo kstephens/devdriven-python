@@ -9,7 +9,7 @@ from devdriven.html import resources
 # from icecream import ic
 from .command import Command, section, command
 
-section('Documentation')
+section('Documentation', 200)
 
 @command
 class Example(Command):

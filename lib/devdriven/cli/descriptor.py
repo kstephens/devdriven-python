@@ -1,6 +1,6 @@
 from typing import Optional, Self, Type, List
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from devdriven.cli.options import Options
 from devdriven.util import set_from_match, unpad_lines
 from icecream import ic
@@ -80,3 +80,9 @@ class Descriptor:
 class Example:
   command: str
   comments: List[str]
+
+@dataclass
+class Section:
+  name: str = 'UNKNOWN'
+  order: int = -1
+  descriptors: List[Descriptor] = field(default_factory=list)

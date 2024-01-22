@@ -4,7 +4,7 @@ from devdriven.util import not_implemented
 from .content import Content
 from .command import Command, section, command
 
-section('Format')
+section('Formats', 20)
 
 @command
 class Extract(Command):

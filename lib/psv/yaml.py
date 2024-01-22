@@ -2,7 +2,7 @@ import pandas as pd
 from .command import section, command
 from .formats import FormatOut
 
-section('Formats')
+section('Formats', 20)
 
 @command
 class YamlOut(FormatOut):

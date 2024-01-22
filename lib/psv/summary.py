@@ -4,7 +4,7 @@ import pandas as pd
 from .command import Command, section, command
 from .util import get_safe, select_columns
 
-section('Summaries')
+section('Summaries', 40)
 
 @command
 class Count(Command):

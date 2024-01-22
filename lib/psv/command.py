@@ -28,8 +28,8 @@ def main_make_xform(main, klass_or_name: Union[str, Type], argv: Argv) -> Comman
     return xform
   raise Exception(f'unknown command {klass_or_name!r}')
 
-def section(name):
-  return app.begin_section(name)
+def section(name: str, order: int, *args):
+  return app.begin_section(name, order, *args)
 
 # Decorator
 def command(klass):

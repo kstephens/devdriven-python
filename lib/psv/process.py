@@ -4,7 +4,7 @@ from .command import Command, section, command
 from .metadata import Coerce
 from .util import select_columns, parse_col_or_index
 
-section('Manipulation')
+section('Manipulation', 30)
 
 @command
 class Range(Command):

@@ -4,7 +4,7 @@ from devdriven.tempfile import tempfile_to_writeable, tempfile_from_readable
 from .command import section, command
 from .formats import FormatIn, FormatOut
 
-section('Formats')
+section('Formats', 20)
 
 @command
 class XlsIn(FormatIn):

@@ -1,12 +1,13 @@
 import re
 import pandas as pd
 import tabulate
+# from icecream import ic
 from devdriven.to_dict import to_dict
 from devdriven.cli.application import app, DEFAULTS
 from .command import Command, section, command
 from .formats import MarkdownOut, JsonOut
 
-section('Documentation')
+section('Documentation', 200)
 
 @command
 class Help(Command):

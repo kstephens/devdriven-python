@@ -6,7 +6,7 @@ from .content import Content
 from .command import Command, command, section
 from .formats import FormatIn
 
-section('I/O')
+section('I/O', 1)
 
 class IoBase(Command):
   def user_agent_headers(self, env):
