@@ -17,9 +17,14 @@ class Help(Command):
   --verbose, -v   |  Show more detail.
   --plain, -p     |  Show plain docs.
   --raw, -r       |  Raw detail.
+  --sections, -s  |  List sections.
   '''
   def xform(self, _inp, env):
     tabulate.PRESERVE_WHITESPACE = True
+
+    if self.opt('sections'):
+      return self.do_sections(app.sections, env)
+
     commands = all_commands = app.descriptors_by_sections()
     if self.args:
       pattern = '|'.join([f' {arg} ' for arg in self.args])
@@ -37,6 +42,22 @@ class Help(Command):
       if not commands:
         commands = list(filter(match_soft, all_commands))
     return self.do_commands(commands, env)
+
+  def do_sections(self, sections, env):
+    tab = pd.DataFrame(columns=['section', 'command', 'brief'])
+
+    def row(*cols):
+      tab.loc[len(tab.index)] = cols
+
+    for (name, descs) in [(s.name, s.descriptors) for s in sections]:
+      name_last = None
+      for desc in descs:
+        if name_last == name:
+          name = ''
+        name_last = name
+        row(name, desc.name, desc.brief)
+
+    return MarkdownOut().xform(tab, env)
 
   def do_commands(self, commands, env):
     if self.opt('raw', False):

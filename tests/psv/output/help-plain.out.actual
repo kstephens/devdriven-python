@@ -846,13 +846,14 @@ Arguments:
 
 help - This help document.
 
-  psv help [--verbose] [--plain] [--raw]
+  psv help [--verbose] [--plain] [--raw] [--sections]
 
 Options:
 
-  --verbose, -v | Show more detail.
-  --plain, -p   | Show plain docs.
-  --raw, -r     | Raw detail.
+  --verbose, -v  | Show more detail.
+  --plain, -p    | Show plain docs.
+  --raw, -r      | Raw detail.
+  --sections, -s | List sections.
 
 ==========================================================
 
