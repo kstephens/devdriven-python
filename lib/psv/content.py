@@ -1,3 +1,4 @@
+from typing import Optional  # Any, , Iterable, Dict
 from pathlib import Path
 from devdriven.tempfile import tempfile_from_readable
 from devdriven.url import url_normalize, url_join, url_to_str, url_is_file, url_is_stdio
@@ -12,7 +13,7 @@ class Content():
   def __init__(self, url=None, headers=None, encoding=None):
     self.url = url_normalize(url)
     self.headers = headers or {}
-    self.encoding = encoding
+    self._encoding = encoding
     self._body = None
     self._content = None
     self._response = None
@@ -32,24 +33,30 @@ class Content():
   def is_stdio(self):
     return url_is_stdio(self.url)
 
-  def set_encoding(self, encoding):
+  @property
+  def encoding(self) -> Optional[str]:
+    return self._encoding
+
+  @encoding.setter
+  def encoding(self, encoding: str):
     '''
-Sets the expected encoding.
-Resets any cached content.
+    Sets the expected encoding.
+    Resets any cached content.
     '''
-    self._content = None
-    self.encoding = encoding
-    return self
+    if self._encoding != encoding:
+      self._encoding = encoding
+      self._content = None
 
   def content(self, encoding=None):
     '''
 The decoded body, defaults to utf-8.
 
     '''
-    if encoding and self.encoding != encoding:
-      self.set_encoding(encoding)
+    if encoding and self._encoding != encoding:
+      self.encoding = encoding
     if not self._content:
-      self._content = self.body().decode(self.encoding or 'utf-8')
+      body = self.body()
+      self._content = body.decode(self.encoding or 'utf-8')
     return self._content
 
   def body(self):
