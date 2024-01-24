@@ -46,13 +46,13 @@ class Example(Command):
     def command_matches(sdc):
       return match_ci(sdc.example.command) or any(map(match_ci, sdc.example.comments[0:]))
 
-    all = app.enumerate_examples()
-    by_dsc = list(filter(descriptor_matches_exactly, all))
-    by_sec = list(filter(section_matches, all))
-    by_exa = list(filter(command_matches, all))
-    examples = by_dsc or by_sec or by_exa or all
+    all_sdc = app.enumerate_examples()
+    by_dsc = list(filter(descriptor_matches_exactly, all_sdc))
+    by_sec = list(filter(section_matches, all_sdc))
+    by_exa = list(filter(command_matches, all_sdc))
+    selected = by_dsc or by_sec or by_exa or all_sdc
 
-    self.run_examples(examples)
+    self.run_examples(selected)
 
   def run_examples(self, examples: list):
     sec = cmd = None
