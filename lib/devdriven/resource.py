@@ -11,14 +11,13 @@ Paths = Sequence[Pathish]
 class Resources:
   search_paths: List[str] = field(default_factory=list)
 
-  def read(self, names: Paths, default=None) -> Any:
+  def read(self, names: Paths, default=None, encoding=None) -> Any:
     file = self.find(names, None)
     if file is None:
       if default is not None:
         return default
       raise Exception(f'cannot locate resource {names!r} in {self.search_paths!r}')
-    # pylint: disable-next=unspecified-encoding
-    with open(file, 'r') as file:
+    with open(file, 'r', encoding=encoding) as file:
       return file.read()
 
   def find(self, names: Paths, default=None) -> Any:
