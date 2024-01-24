@@ -15,7 +15,7 @@ class XlsIn(FormatIn):
   --sheet-name=NAME  |  Sheet name
   --header, -h       |  Generate header.  Default: True.
 
-  :suffix=.xls
+  :suffix=.xlsx
 
   Examples:
 
@@ -55,7 +55,7 @@ class XlsOut(FormatOut):
   --sheet-name=NAME  |  Sheet name
   --header, -h       |  Generate header.  Default: True.
 
-  :suffix=.xls
+  :suffix=.xlsx
 
   Examples:
 
@@ -79,7 +79,7 @@ $ file a.xlsx
     if isinstance(inp, pd.DataFrame):
       for row in dataframe_to_rows(inp, index=index, header=header):
         worksheet.append(row)
-      tempfile_to_writeable(writeable, '.xls', save_workbook)
+      tempfile_to_writeable(writeable, '.xlsx', save_workbook)
     else:
       raise Exception("xls-out: cannot format {type(inp)}")
 
