@@ -3,6 +3,8 @@ from . import command
 from . import pipeline
 from . import io
 from . import formats
+from . import html
+from . import sql
 from . import yaml
 from . import spreadsheet
 from . import process

@@ -3,7 +3,6 @@ import re
 import json
 from devdriven.util import not_implemented
 from devdriven.mime import content_type_for_suffixes
-from devdriven.html import Table
 import tabulate
 import pandas as pd
 # from icecream import ic
@@ -294,82 +293,3 @@ class PickleOut(FormatOut):
 
   def format_out(self, inp, _env, writeable):
     inp.to_pickle(writeable, compression='xz')
-
-@command
-class HtmlOut(FormatOut):
-  '''
-  html- - Generate HTML.
-  alias: html
-
-  --title=NAME       |  Set <title> and a <div>.
-  --header, -h       |  Add table header.  Default: True.
-  --simple, -S       |  Minimal format.
-  --filtering, -f    |  Add filtering UI.
-  --sorting, -s      |  Add sorting support.
-  --row-index, -i    |  Add row index to first column.  Default: False.
-  --table-only, -T   |  Render only a <table>.
-  --styled           |  Add style.  Default: True.
-
-  :suffixes: .html,.htm
-
-  Examples:
-
-$ psv in a.csv // html // o a.html
-$ w3m -dump a.html
-
-$ psv in users.txt // -table --fs=":" // html --title=users.txt // o users.html
-$ w3m -dump users.html
-
-$ psv in users.txt // -table --fs=":" // html --no-header // o users.html
-$ w3m -dump users.html
-
-$ psv in users.txt // -table --fs=":" // html -fs // o users.html
-$ w3m -dump users.html
-
-  '''
-  def format_out(self, inp, _env, writeable):
-    columns = inp.columns
-    rows = inp.to_dict(orient='records')
-    column_opts = {}
-    for col in columns:
-      col_opts = column_opts[col] = {}
-      dtype = inp[col].dtype
-      if dtype.kind in ('i', 'f'):
-        col_opts['numeric'] = True
-        col_opts['type'] = dtype.name
-    opts = {k.replace('-', '_'): v for k, v in self.opts.items()}
-    options = {
-      'columns': column_opts,
-      # 'simple': True,
-      'styled': True,
-      'header': True,
-      # 'table_only': True,
-      # 'row_ind': True,
-    } | opts
-    table = Table(
-      columns=columns,
-      rows=rows,
-      options=options,
-      output=writeable,
-    )
-    table.render()
-
-@command
-class SQLOut(FormatOut):
-  '''
-  sql- - Write SQL.
-  alias: sql
-
-# sql: Convert TSV to SQL schema:
-$ psv in a.tsv // sql
-
-  :suffixes: .sql
-  '''
-  def format_out(self, inp, _env, writeable):
-    # https://stackoverflow.com/a/31075679/1141958
-    # https://stackoverflow.com/a/51294670/1141958
-    action = self.opt('action', 'create-table')
-    table_name = self.opt('table', '__table__')
-    if action == 'create-table':
-      sql = pd.io.sql.get_schema(inp.reset_index(), table_name)
-    writeable.write(sql)
