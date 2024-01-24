@@ -61,15 +61,24 @@ The decoded body, defaults to utf-8.
 
   def body(self):
     if not self._body:
-      self._body = self.response().read()
       self._response = None
+      readable = self.body_as_readable()
+      try:
+        self._body = readable.read()
+      finally:
+        readable.close()
     return self._body
 
+  def body_as_readable(self):
+    # if self.is_file() and not self.is_stdio():
+    #   return open(self.url.path, 'rb')
+    return self.response()
+
   def body_as_file(self, fun, suffix=None):
-    if self.is_file():
+    if self.is_file() and not self.is_stdio():
       return fun(self.url.path)
     suffix = suffix or Path(self.url.path).suffix
-    return tempfile_from_readable(self.response(), suffix, fun)
+    return tempfile_from_readable(self.body_as_readable(), suffix, fun)
 
   def response(self):
     if self._response:

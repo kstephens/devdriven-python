@@ -11,7 +11,17 @@ from .content import Content
 
 section('Format', 20)
 
-class FormatIn(Command):
+class FormatBase(Command):
+  def default_encoding(self):
+    return 'utf-8'
+
+  def wants_input_file(self):
+    return False
+
+  def wants_output_file(self):
+    return False
+
+class FormatIn(FormatBase):
   def xform(self, inp, env):
     if isinstance(inp, pd.DataFrame):
       return inp
@@ -28,13 +38,10 @@ class FormatIn(Command):
       readable = inp.response()
     return self.format_in(readable, env)
 
-  def default_encoding(self):
-    return 'utf-8'
-
   def format_in(self, _io, _env):
     not_implemented()
 
-class FormatOut(Command):
+class FormatOut(FormatBase):
   def xform(self, inp, env):
     self.setup_env(inp, env)
     # ???: handle streaming:
@@ -48,9 +55,6 @@ class FormatOut(Command):
   def setup_env(self, _inp, env):
     desc = self.command_descriptor()
     (env['Content-Type'], env['Content-Encoding']) = content_type_for_suffixes(suffix_list(desc))
-
-  def default_encoding(self):
-    return 'utf-8'
 
   def format_out(self, _inp, _env, _writable):
     not_implemented()

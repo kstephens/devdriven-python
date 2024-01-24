@@ -43,6 +43,9 @@ $ psv in a.xlsx // -xls --no-header // md
       cols = [f'c{i}' for i in range(0, len(data[0]))]
     return pd.DataFrame(data, columns=cols)
 
+  def wants_input_file(self):
+    return False
+
   def default_encoding(self):
     return None
 
@@ -82,6 +85,9 @@ $ file a.xlsx
       tempfile_to_writeable(writeable, '.xlsx', save_workbook)
     else:
       raise Exception("xls-out: cannot format {type(inp)}")
+
+  def wants_output_file(self):
+    return False
 
   def default_encoding(self):
     return None
