@@ -1,6 +1,5 @@
 from typing import Union, Type, List, Dict
 from devdriven.util import dataclass_from_dict
-from .options import Options
 from .descriptor import Descriptor, Section, SectionDescriptorExample
 
 class Application:
@@ -25,18 +24,10 @@ class Application:
     self.current_section = section
 
   def create_descriptor(self, klass: Type) -> Descriptor:
-    options = Options()
     kwargs = {
       'name': '',
-      'brief': '',
-      'synopsis': '',
-      'aliases': [],
-      'detail': [],
-      'examples': [],
-    } | DEFAULTS | {
       'section': app.current_section.name,
       'klass': klass,
-      'options': options,
     }
     return dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__)
 

@@ -1,9 +1,14 @@
-from typing import Optional, Self, Type, List
+from typing import Any, Optional, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
 from devdriven.cli.options import Options
 from devdriven.util import set_from_match, unpad_lines
 from icecream import ic
+
+@dataclass
+class Example:
+  command: str
+  comments: List[str]
 
 @dataclass
 class Descriptor:
@@ -12,18 +17,26 @@ class Descriptor:
   brief: str
   synopsis: str
   aliases: list
-  detail: list
+  detail: List[str]
   options: Options
-  examples: list
+  examples: List[Example]
   section: str
-  metadata: dict = field(default_factory=dict)
+  metadata: Dict[str, Any]
+
+  def __post_init__(self):
+    self.brief = ''
+    self.synposis = ''
+    self.detail = []
+    self.aliases = []
+    self.options = Options()
+    self.examples = []
+    self.metadata = {}
 
   def parse_docstring(self, docstr: str) -> Self:
     found_aliases = False
     debug = False
     lines = unpad_lines(re.sub(r'\\\n', '', docstr).splitlines())
     comments = []
-    self.metadata = {}
     while lines:
       line = lines.pop(0)
       if debug:
@@ -67,11 +80,6 @@ class Descriptor:
       self.detail.pop(0)
     while self.detail and not self.detail[-1]:
       self.detail.pop(-1)
-
-@dataclass
-class Example:
-  command: str
-  comments: List[str]
 
 @dataclass
 class Section:

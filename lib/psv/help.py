@@ -4,7 +4,7 @@ import pandas as pd  # type: ignore
 import tabulate  # type: ignore
 # from icecream import ic
 from devdriven.to_dict import to_dict
-from devdriven.cli.application import app, DEFAULTS
+from devdriven.cli.application import app
 from devdriven.cli.descriptor import Descriptor
 from devdriven.cli.option import Option
 from .command import Command, section, command
@@ -127,8 +127,8 @@ class Help(Command):
           line = line[1:]
           row('  ', line)
 
-    attrs = list(DEFAULTS.keys())
     for desc in commands:
+      attrs = list(desc.metadata.keys())
       # row('', "'''")
       row('', desc.name, ' - ', desc.brief)
       row('', '')
