@@ -1,6 +1,6 @@
 import json
 import urllib3
-from devdriven.url import url_normalize, url_scheme, url_to_str
+from devdriven.url import url_normalize, url_scheme, url_to_str, url_join
 from devdriven.file_response import FileResponse
 
 class UserAgent():
@@ -37,3 +37,24 @@ class UserAgent():
       body = json.dumps(json_body).encode()
       headers = {'Content-Type': 'application/json'} | headers
     return FileResponse().request(method, url, headers, body, **kwargs)
+
+# ???: UserAgent already handle redirects:
+def with_http_redirects(fun, url, *args, **kwargs):
+  next_url = url_normalize(url)
+  max_redirects = kwargs.pop('max_redirects', 10)
+  redirects = 0
+  while completed := redirects <= max_redirects:
+    response = fun(next_url, *args, **kwargs)
+    if response.status in REDIRECTABLE_STATUS:
+      redirects += 1
+      next_url = url_to_str(url_join(next_url, response.header['Location']))
+    else:
+      break
+  if not completed:
+    raise Exception("{url} : status {response and response.status} : Too many redirects : {max_redirects}")
+  return response
+
+
+REDIRECTABLE_STATUS = {
+  301, 302, 305, 307, 308
+}

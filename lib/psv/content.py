@@ -1,8 +1,8 @@
 from typing import Optional  # Any, , Iterable, Dict
 from pathlib import Path
 from devdriven.tempfile import tempfile_from_readable
-from devdriven.url import url_normalize, url_join, url_to_str, url_is_file, url_is_stdio
-from devdriven.user_agent import UserAgent
+from devdriven.url import url_normalize, url_is_file, url_is_stdio
+from devdriven.user_agent import UserAgent, with_http_redirects
 
 class Content():
   '''
@@ -94,21 +94,5 @@ The decoded body, defaults to utf-8.
 
     self._response = with_http_redirects(do_put, self.url, body)
     if not 200 <= self._response.status <= 299:
-      raise Exception("{url} : unexpected status : {self._response.status}")
+      raise Exception("PUT {url} : unexpected status : {self._response.status}")
     return self
-
-# ???: UserAgent already handle redirects:
-def with_http_redirects(fun, url, *args, **kwargs):
-  next_url = url_normalize(url)
-  max_redirects = kwargs.pop('max_redirects', 10)
-  redirects = 0
-  while completed := redirects <= max_redirects:
-    response = fun(next_url, *args, **kwargs)
-    if response.status == 301:
-      redirects += 1
-      next_url = url_to_str(url_join(next_url, response.header['Location']))
-    else:
-      break
-  if not completed:
-    raise Exception("PUT {self.url} : status {response and response.status} : Too many redirects : {max_redirects}")
-  return response
