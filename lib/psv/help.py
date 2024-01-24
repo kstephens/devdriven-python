@@ -8,7 +8,8 @@ from devdriven.cli.application import app
 from devdriven.cli.descriptor import Descriptor
 from devdriven.cli.option import Option
 from .command import Command, section, command
-from .formats import MarkdownOut, JsonOut
+from .markdown import MarkdownOut
+from .json import JsonOut
 
 section('Documentation', 200)
 

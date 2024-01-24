@@ -3,6 +3,12 @@ from . import command
 from . import pipeline
 from . import io
 from . import formats
+from . import generic
+from . import tsv
+from . import csv
+from . import markdown
+from . import json
+from . import pickle
 from . import html
 from . import sql
 from . import yaml
