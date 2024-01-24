@@ -83,6 +83,3 @@ class Option:
   def synopsis(self) -> str:
     assert self.aliases is not None
     return ', '.join([self.full] + [opt.full for opt in self.aliases])
-
-  def table_row(self) -> List[str]:
-    return [self.synopsis(), self.description]

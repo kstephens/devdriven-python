@@ -7,7 +7,7 @@ from devdriven.html import Table
 import tabulate
 import pandas as pd
 # from icecream import ic
-from .command import Command, section, command
+from .command import Command, section, command, suffix_list
 from .content import Content
 
 section('Formats', 20)
@@ -48,7 +48,7 @@ class FormatOut(Command):
 
   def setup_env(self, _inp, env):
     desc = self.command_descriptor()
-    (env['Content-Type'], env['Content-Encoding']) = content_type_for_suffixes(desc.suffix_list)
+    (env['Content-Type'], env['Content-Encoding']) = content_type_for_suffixes(suffix_list(desc))
 
   def default_encoding(self):
     return 'utf-8'

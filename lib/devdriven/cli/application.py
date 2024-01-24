@@ -1,6 +1,5 @@
-from typing import Union, Optional, Type, List, Dict
+from typing import Union, Type, List, Dict
 from devdriven.util import dataclass_from_dict
-from devdriven.mime import short_and_long_suffix
 from .options import Options
 from .descriptor import Descriptor, Section
 
@@ -14,7 +13,6 @@ class Application:
   descriptor_by_klass: dict = {}
 
   def begin_section(self, name: str, order: int) -> None:
-    assert name
     if section := self.section_by_name.get(name):
       assert (name, order) == (section.name, section.order)
     else:
@@ -33,8 +31,6 @@ class Application:
       'aliases': [],
       'detail': [],
       'examples': [],
-      'suffixes': '',
-      'suffix_list': [],
     } | DEFAULTS | {
       'section': app.current_section.name,
       'klass': klass,
@@ -50,17 +46,6 @@ class Application:
 
   def descriptors_by_sections(self, secs=None) -> List[Descriptor]:
     return sum([sec.descriptors for sec in (secs or self.sections)], [])
-
-  def find_format(self, path: str, klass: Type) -> Optional[Type]:
-    short_suffix, long_suffix = short_and_long_suffix(path)
-    valid_descs = [dsc for dsc in self.descriptors if issubclass(dsc.klass, klass)]
-    for dsc in valid_descs:
-      if long_suffix in dsc.suffix_list:
-        return dsc.klass
-    for dsc in valid_descs:
-      if short_suffix in dsc.suffix_list:
-        return dsc.klass
-    return None
 
   def register(self, desc: Descriptor) -> Descriptor:
     for name in [desc.name, *desc.aliases]:
@@ -82,9 +67,6 @@ class Application:
 
 DEFAULTS = {
   'section': '',
-  'content_type': None,
-  'content_encoding': None,
-  'suffixes': '',
 }
 
 app = Application()

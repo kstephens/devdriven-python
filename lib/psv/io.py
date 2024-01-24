@@ -1,12 +1,12 @@
 import json
 import pandas as pd
+# from icecream import ic
 from devdriven.to_dict import to_dict
-from devdriven.cli.application import app
 from .content import Content
-from .command import Command, command, section
+from .command import Command, command, section, find_format
 from .formats import FormatIn
 
-section('I/O', 1)
+section('I/O', 10)
 
 class IoBase(Command):
   def user_agent_headers(self, env):
@@ -42,7 +42,7 @@ $ psv in https://tinyurl.com/4sscj338
       self.args.append('-')
     env['input.paths'] = [self.args[0]]
     content = Content(url=self.args[0])
-    format_for_suffix = app.find_format(self.args[0], FormatIn)
+    format_for_suffix = find_format(self.args[0], FormatIn)
     if not self.opt('raw', False) and format_for_suffix:
       content = format_for_suffix().set_main(self.main).xform(content, env)
     return content
