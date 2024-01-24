@@ -8,26 +8,7 @@ from collections import OrderedDict
 import subprocess
 import pandas as pd  # type: ignore
 from .util import reorder_list
-
-# pylint: disable=invalid-name
-src = 'data/src'
-gen = 'data/gen'
-processing_log = None
-
-def initialize():
-  # pylint: disable=global-statement,invalid-name
-  global processing_log
-  # pylint: enable=global-statement,invalid-name
-  processing_log = pd.DataFrame(columns=['report', 'file', 'mtime', 'lines', 'bytes', 'now', 'url'])
-
-def write_logs(basename):
-  # pylint: disable=global-statement,invalid-name,global-variable-not-assigned
-  global processing_log
-  # pylint: enable=global-statement,invalid-name,global-variable-not-assigned
-  if not processing_log.empty:
-    processing_log.sort_values(by=['report'], ascending=True, inplace=True)
-    write_df(processing_log, f'00-{basename}-log')
-# pylint: enable=invalid-name
+from .html import Table
 
 def column_type_names(dframe):
   return {col: str(dtype) for col, dtype in dframe.dtypes.to_dict().items()}
@@ -151,172 +132,89 @@ def remove_index(df):
 #########################################
 # I/O:
 
-def read_pickle(file, **kwargs):
-  return pd.read_pickle(file, compression='xz', **kwargs)
+class DataFrameIO:
+  src: str = 'data/src'
+  gen: str = 'data/gen'
+  processing_log: pd.DataFrame = None
 
-def read_tsv(file, **_kwargs):
-  return pd.read_table(file,
-                       sep='\t', quotechar='\\',
-                       doublequote=False,
-                       parse_dates=True, infer_datetime_format=True,
-                       float_precision='round_trip',
-                       header=0)
+  def initialize_log(self):
+    self.processing_log = pd.DataFrame(columns=['report', 'file', 'mtime', 'lines', 'bytes', 'now', 'url'])
 
-def read_json(file, **_kwargs):
-  return pd.read_json(file, orient='records', convert_dates=True)
+  def write_logs(self, basename):
+    if self.processing_log and not self.processing_log.empty:
+      self.processing_log.sort_values(by=['report'], ascending=True, inplace=True)
+      self.write_df(self.processing_log, f'00-{basename}-log')
 
-def write_df(dframe, report, dirpath=None, **_kwargs):
-  remove_index(dframe)
-  file = f'{(dirpath or gen)}/{report}'
-  msg = f'write_df : {file}.* : {len(dframe)} rows'
-  logging.info('###########################################')
-  logging.info('%s', f'{msg} : ...')
-  logging.info('%s', f'{msg} : columns {dframe.columns!r}')
-  logging.info(dframe)
-  saving_df(write_pickle, dframe, report, f'{file}.pickle.xz')
-  saving_df(write_tsv, dframe, report, f'{file}.tsv')
-  saving_df(write_html, dframe, report, f'{file}.html')
-  saving_df(write_json, dframe, report, f'{file}.json')
-  saving_df(write_md, dframe, report, f'{file}.md')
-  logging.info('%s', f'{msg} : DONE\n')
-  return dframe
+  def read_pickle(self, file, **kwargs):
+    return pd.read_pickle(file, compression='xz', **kwargs)
 
-def saving_df(fun, dframe, report, file):
-  logging.info('%s', f"Saving {file} : ...")
-  fun(dframe, file)
-  log_row = saving_df_log(report, file)
-  if dframe is not processing_log:
-    push_row(processing_log, log_row)
-  return file
+  def read_tsv(self, file, **_kwargs):
+    return pd.read_table(file,
+                         sep='\t', quotechar='\\',
+                         doublequote=False,
+                         parse_dates=True, infer_datetime_format=True,
+                         float_precision='round_trip',
+                         header=0)
 
-def saving_df_log(report, file):
-  # pylint: disable-next=global-statement,invalid-name
-  # global processing_log
-  if not processing_log:
+  def read_json(self, file, **_kwargs):
+    return pd.read_json(file, orient='records', convert_dates=True)
+
+  def write_df(self, dframe, report, dirpath=None, **_kwargs):
+    remove_index(dframe)
+    file = f'{(dirpath or self.gen)}/{report}'
+    msg = f'write_df : {file}.* : {len(dframe)} rows'
+    logging.info('###########################################')
+    logging.info('%s', f'{msg} : ...')
+    logging.info('%s', f'{msg} : columns {dframe.columns!r}')
+    logging.info(dframe)
+    self.saving_df(self.write_pickle, dframe, report, f'{file}.pickle.xz')
+    self.saving_df(self.write_tsv, dframe, report, f'{file}.tsv')
+    self.saving_df(self.write_html, dframe, report, f'{file}.html')
+    self.saving_df(self.write_json, dframe, report, f'{file}.json')
+    self.saving_df(self.write_md, dframe, report, f'{file}.md')
+    logging.info('%s', f'{msg} : DONE\n')
+    return dframe
+
+  def saving_df(self, fun, dframe, report, file):
+    logging.info('%s', f"Saving {file} : ...")
+    fun(dframe, file)
+    if self.processing_log and dframe is not self.processing_log:
+      log_row = self.saving_df_log(report, file)
+      push_row(self.processing_log, log_row)
     return file
-  file_name = Path(file).name
-  log_row = {
-    'report': report,
-    'file': file_name,
-    'mtime': datetime.fromtimestamp(os.path.getmtime(file)),
-    'bytes': os.path.getsize(file),
-    # https://stackoverflow.com/questions/9629179/python-counting-lines-in-a-huge-10gb-file-as-fast-as-possible
-    'lines': int(subprocess.check_output(['/usr/bin/wc', '-l', file]).split()[0]),
-    'now': datetime.now()
-  }
-  logging.info('%s', f'Saving {file} : {log_row!r}')
-  return log_row
 
-def write_pickle(dframe, file, **kwargs):
-  dframe.to_pickle(file, compression='xz', **kwargs)
+  def saving_df_log(self, report, file):
+    file_name = Path(file).name
+    log_row = {
+      'report': report,
+      'file': file_name,
+      'mtime': datetime.fromtimestamp(os.path.getmtime(file)),
+      'bytes': os.path.getsize(file),
+      # https://stackoverflow.com/questions/9629179/python-counting-lines-in-a-huge-10gb-file-as-fast-as-possible
+      'lines': int(subprocess.check_output(['/usr/bin/wc', '-l', file]).split()[0]),
+      'now': datetime.now()
+    }
+    logging.info('%s', f'Saving {file} : {log_row!r}')
+    return log_row
 
-def write_tsv(dframe, file, **_kw):
-  dframe.to_csv(file,
-                sep='\t', escapechar='\\',
-                date_format='iso',
-                header=True, index=False)
+  def write_pickle(self, dframe, file, **kwargs):
+    dframe.to_pickle(file, compression='xz', **kwargs)
 
-def write_json(dframe, file, **_kw):
-  dframe.to_json(file, orient="records", date_format='iso', indent=2)
+  def write_tsv(self, dframe, file, **_kw):
+    dframe.to_csv(file,
+                  sep='\t', escapechar='\\',
+                  date_format='iso',
+                  header=True, index=False)
 
-def write_md(dframe, file, **kw):
-  dframe.to_markdown(file, index=False, **kw)
+  def write_json(self, dframe, file, **_kw):
+    dframe.to_json(file, orient="records", date_format='iso', indent=2)
 
-def write_html(dframe, file, **kwargs):
-  with open(file, "w", encoding='utf-8') as output:
-    format_html(dframe, output, **kwargs)
+  def write_md(self, dframe, file, **kw):
+    dframe.to_markdown(file, index=False, **kw)
 
-def format_html(dframe, output, **kwargs):
-  if table_name := kwargs.pop('table_name', ''):
-    table_name = f'<title>{table_name}</title>'
-  kwargs = {
-    "index": False,
-    "na_rep": '',
-    # "show_dimensions": False,
-    "escape": True,
-    "render_links": True,
-    "sparsify": False
-  } | kwargs
-  print(f'''
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-{table_name}
-<style>{html_css()}</style>
-</head>
-<body>
-<div>
-        ''', file=output)
-  dframe = dframe.fillna("")
-  dframe.to_html(buf=output, **kwargs)
-  print('''
-</div>
-</body>
-</html>
-          ''', file=output)
-
-def html_css():
-  return '''
-h1 {
-  text-align: left;
-}
-body {
-  /* width: 110%; */
-  background-color: black;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-}
-table.dataframe {
-  border: none !important;
-}
-table {
-  /* width: 110%; */
-  width: 1%;
-  border: none;
-  /* border-collapse: collapse; */
-  position: relative;
-}
-thead {
-  position: sticky;
-  top: 0;
-}
-tr {
-  border: none;
-  /* border-left: 1px solid rgba(255,255,255,16); */
-}
-tr:nth-child(odd) {
-  background-color: rgba(24,24,24,64);
-}
-tr:hover {
-  border: none;
-  background-color: rgba(32,32,64,16);
-}
-.tsv-header {
-  position: sticky;
-  left: 0; /* needed for sticky? */
-}
-th, td {
-  /* width: auto; */
-  width: 1%;
-  padding: 1em;
-  white-space: pre;
-}
-th {
-  background-color: rgba(32,32,32,16);
-  font-weight: bold;
-  border-bottom: 1px solid rgba(128,128,128,16);
-  text-align: center;
-}
-td {
-  border: none;
-  /* border-right: 1px solid rgba(255,255,255,16); */
-}
-a {
-  text-decoration: none;
-  color: inherit;
-}
-a:hover {
-  color: rgba(200,160,160,255);
-  text-decoration: underline;
-}
-'''
+  def write_html(self, dframe, file, **kwargs):
+    with open(file, "w", encoding='utf-8') as output:
+      Table(columns=dframe.columns(),
+            rows=dframe.as_iterable(),
+            options=kwargs,
+            output=output).render()
