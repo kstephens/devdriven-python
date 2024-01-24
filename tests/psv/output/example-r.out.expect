@@ -320,12 +320,22 @@ $ psv in a.csv // yaml
   c: 1.234
   d: zxy
 
-$ psv in a.xlsx // -xls // csv-
-b,c,d
-b1,23.763,xspdf
-b2,-98.73,qwer
-b3,3451.0,bixop
-b4,1.234,zxy
+$ psv in a.xlsx // -xls // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |
+
+$ psv in a.xlsx // -xls --no-header // md
+| c0   | c1   | c2     | c3    |
+|:-----|:-----|:-------|:------|
+| a    | b    | c      | d     |
+| 1    | b1   | 23.763 | xspdf |
+| 2    | b2   | -98.73 | qwer  |
+| 3    | b3   | 3451   | bixop |
+| 1    | b4   | 1.234  | zxy   |
 
 $ psv in a.csv // xls // o a.xlsx
 

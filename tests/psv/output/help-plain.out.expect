@@ -299,7 +299,9 @@ Options:
 
 Examples:
 
-$ psv in a.xlsx // -xls // csv-
+$ psv in a.xlsx // -xls // md
+
+$ psv in a.xlsx // -xls --no-header // md
 
 
 ==========================================================
