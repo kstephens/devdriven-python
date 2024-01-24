@@ -10,7 +10,7 @@ section('Format', 20)
 class Extract(Command):
   '''
   extract - Extract fields by Regexp.
-  aliases: rx, re
+  aliases: rx, re, rex
 
   Examples:
 

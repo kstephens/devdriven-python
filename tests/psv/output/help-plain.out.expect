@@ -332,7 +332,7 @@ extract - Extract fields by Regexp.
 
   psv extract
 
-Aliases: rx, re
+Aliases: rx, re, rex
 
 Examples:
 
@@ -861,11 +861,11 @@ Options:
 
 ==========================================================
 
-examples - Show examples.
+example - Show examples.
 
-  psv examples [--run] SEARCH-STRING
+  psv example [--run] SEARCH-STRING
 
-Aliases: ex, example
+Aliases: ex, examples
 
 Arguments:
 

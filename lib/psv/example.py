@@ -14,9 +14,9 @@ section('Documentation', 200)
 @command
 class Example(Command):
   '''
-  examples - Show examples.
+  example - Show examples.
 
-  Aliases: ex, example
+  Aliases: ex, examples
 
   SEARCH-STRING  |  Matches name, aliases, brief.
   --run, -r      |  Run examples.
