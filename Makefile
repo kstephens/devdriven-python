@@ -64,9 +64,9 @@ early: minify
 
 # Check:
 
-check: early test lint mypy
+check: early test lint typecheck
 
-run-check: run-test run-lint run-mypy
+run-check: run-test run-lint run-typecheck
 
 # Lint:
 
@@ -78,9 +78,6 @@ pylint:
 pycodestyle:
 	$(MAKE) run-pycodestyle FILES='$(or $(FILES), $(LINT_FILES))'
 
-mypy:
-	$(MAKE) run-mypy FILES='$(or $(FILES), $(MYPY_FILES))'
-
 run-lint: run-pylint run-pycodestyle
 
 run-pylint:
@@ -88,6 +85,16 @@ run-pylint:
 
 run-pycodestyle:
 	pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard $(FILES))
+
+# Typecheck:
+
+typecheck:
+	$(MAKE) run-typecheck FILES='$(or $(FILES), $(MYPY_FILES))'
+
+run-typecheck: mypy
+
+mypy:
+	$(MAKE) run-mypy FILES='$(or $(FILES), $(MYPY_FILES))'
 
 MYPY_OPTS+= --config-file ./.mypy.ini
 MYPY_OPTS+= # --strict
