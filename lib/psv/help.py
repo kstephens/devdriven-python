@@ -1,9 +1,12 @@
+from typing import Iterable, List
 import re
-import pandas as pd
-import tabulate
+import pandas as pd  # type: ignore
+import tabulate  # type: ignore
 # from icecream import ic
 from devdriven.to_dict import to_dict
 from devdriven.cli.application import app, DEFAULTS
+from devdriven.cli.descriptor import Descriptor
+from devdriven.cli.option import Option
 from .command import Command, section, command
 from .formats import MarkdownOut, JsonOut
 
@@ -175,8 +178,11 @@ class Help(Command):
       rows.extend(item_rows)
     return rows
 
-  def args_table(self, desc):
+  def args_table(self, desc: Descriptor) -> Iterable:
     return desc.options.arg_by_name.items()
 
-  def opts_table(self, desc):
-    return [opt.table_row() for opt in desc.options.opts]
+  def opts_table(self, desc: Descriptor) -> List[List[str]]:
+    return [self.opt_row(opt) for opt in desc.options.opts]
+
+  def opt_row(self, opt: Option) -> List[str]:
+    return [opt.synopsis(), opt.description]

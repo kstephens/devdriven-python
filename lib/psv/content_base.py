@@ -44,22 +44,23 @@ class ContentImpl(ABC):
 
 class Content:
   _impl: ContentImpl
-  _as_str: str
-  _as_bytes: bytes
-  _as_dataframe: pd.DataFrame
-  _as_iterable: Iterable
+  _as_str: Optional[str]
+  _as_bytes: Optional[bytes]
+  _as_dataframe: Optional[pd.DataFrame]
+  _as_iterable: Optional[Iterable]
 
   def __init__(self, impl: ContentImpl):
     self._impl = impl
 
   @property
-  def impl(self):
+  def impl(self) -> ContentImpl:
     return self._impl
 
   @impl.setter
-  def impl(self, value):
+  def impl(self, value: ContentImpl):
     self._impl = value
-    self._as_str = self._as_bytes = self._as_dataframe = self._as_iterable
+    self._as_str = self._as_bytes = None
+    self._as_dataframe = self._as_iterable = None
 
   def as_str(self) -> str:
     if not self._as_str:
