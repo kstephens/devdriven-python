@@ -23,6 +23,8 @@ class Example(Command):
 
   '''
   def xform(self, _inp, _env):
+    os.environ['PSV_RAND_SEED'] = '12345678'
+
     # ???: move this to cli.application
     match_ci_rx = re.compile(f'(?i).*{"|".join(self.args)}.*')
     match_rx = re.compile(f'.*{"|".join(self.args)}.*')

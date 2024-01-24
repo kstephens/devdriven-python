@@ -1,4 +1,5 @@
 import re
+import os
 from devdriven.util import get_safe, chunks, split_flat, parse_range, make_range
 from .command import Command, section, command
 from .coerce import Coerce
@@ -109,7 +110,7 @@ $ psv in a.tsv // shuffle --seed=5 // md
 
   '''
   def xform(self, inp, _env):
-    if seed := self.opt('seed'):
+    if seed := self.opt('seed', os.environ.get('PSV_RAND_SEED')):
       seed = int(seed)
     return inp.sample(frac=1, random_state=seed)
 
