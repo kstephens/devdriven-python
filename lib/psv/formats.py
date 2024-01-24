@@ -10,7 +10,7 @@ import pandas as pd
 from .command import Command, section, command, suffix_list
 from .content import Content
 
-section('Formats', 20)
+section('Format', 20)
 
 class FormatIn(Command):
   def xform(self, inp, env):

@@ -1,4 +1,4 @@
-from typing import Self, Type, List
+from typing import Optional, Self, Type, List
 import re
 from dataclasses import dataclass, field
 from devdriven.cli.options import Options
@@ -78,3 +78,9 @@ class Section:
   name: str = 'UNKNOWN'
   order: int = -1
   descriptors: List[Descriptor] = field(default_factory=list)
+
+@dataclass
+class SectionDescriptorExample:
+  section: Section
+  descriptor: Descriptor
+  example: Optional[Example]

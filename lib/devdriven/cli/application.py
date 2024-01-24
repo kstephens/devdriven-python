@@ -1,7 +1,7 @@
 from typing import Union, Type, List, Dict
 from devdriven.util import dataclass_from_dict
 from .options import Options
-from .descriptor import Descriptor, Section
+from .descriptor import Descriptor, Section, SectionDescriptorExample
 
 class Application:
   sections: List[Section] = []
@@ -17,6 +17,8 @@ class Application:
       assert (name, order) == (section.name, section.order)
     else:
       section = Section(name, order)
+      if conflicts := [(sec.name, sec.order) for sec in self.sections if sec.order == order]:
+        raise AttributeError(f"order conflict : {section!r} with {conflicts!r}")
       self.sections.append(section)
       self.section_by_name[name] = section
     self.sections.sort(key=lambda s: s.order)
@@ -58,6 +60,21 @@ class Application:
     self.descriptors.append(desc)
     self.current_section.descriptors.append(desc)
     return desc
+
+  def enumerate_descriptors(self) -> List[SectionDescriptorExample]:
+    return [
+      SectionDescriptorExample(sec, dsc, None)
+      for sec in self.sections
+      for dsc in sec.descriptors
+    ]
+
+  def enumerate_examples(self) -> List[SectionDescriptorExample]:
+    return [
+      SectionDescriptorExample(sec, dsc, exa)
+      for sec in self.sections
+      for dsc in sec.descriptors
+      for exa in dsc.examples
+    ]
 
   # Decorator
   def command(self, klass: Type):
