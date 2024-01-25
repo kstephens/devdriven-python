@@ -72,6 +72,8 @@ If no arguments are given, write to STDOUT.
   https?://...     |  PUT URL.
   -                |  Write STDOUT.
 
+--encoding=ENC     |  Use encoding.  Default: 'UTF-8'.
+
 # out: Convert TSV to CSV and save to a file:
 $ psv in a.tsv // -tsv // csv- // out a.csv
 
@@ -82,17 +84,19 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
       return None
     if not self.args:
       self.args.append('-')
+    encoding = self.opt('encoding', 'UTF-8')
     env['output.paths'] = list(map(str, self.args))
+    # ???: handle encoding header?
     headers = self.user_agent_headers(env)
     # ???: implement streaming:
     if isinstance(inp, str):
-      body = inp.encode('utf-8')
+      body = inp.encode(encoding)
     elif isinstance(inp, bytes):
       body = inp
     elif isinstance(inp, Content):
       body = inp.body()
     elif isinstance(inp, pd.DataFrame):
-      body = (str(inp) + '\n').encode('utf-8')
+      body = (str(inp) + '\n').encode(encoding)
     else:
       body = json.dumps(to_dict(inp), indent=2)
     for uri in self.args:
