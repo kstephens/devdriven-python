@@ -19,6 +19,7 @@ class Help(Command):
   help - This help document.
 
   --verbose, -v   |  Show more detail.
+  --list, -l      |  List commands.
   --plain, -p     |  Show plain docs.
   --raw, -r       |  Raw detail.
   --sections, -s  |  List sections.
@@ -68,7 +69,20 @@ class Help(Command):
       return self.do_commands_raw(commands, env)
     if self.opt('plain', False) or len(self.args) == 1:
       return self.do_commands_plain(commands, env)
+    if self.opt('list', False):
+      return self.do_commands_list(commands, env)
     return self.do_commands_table(commands, env)
+
+  def do_commands_list(self, commands, env):
+    tab = pd.DataFrame(columns=['command', 'description'])
+
+    def row(*cols):
+      tab.loc[len(tab.index)] = cols
+
+    for desc in commands:
+      row(desc.name, desc.brief)
+
+    return MarkdownOut().xform(tab, env)
 
   def do_commands_table(self, commands, env):
     tab = pd.DataFrame(columns=['command', 'description'])
