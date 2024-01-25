@@ -1,14 +1,16 @@
-import pandas as pd
 # from icecream import ic
 from .command import section, command
-from .formats import FormatIn, FormatOut
+from .formats import FormatIn, FormatOut, read_table_with_header
 
 section('Format', 20)
 
 @command
 class TsvIn(FormatIn):
   '''
-  -tsv - Parse TSV.
+  tsv-in - Parse TSV.
+  aliases: -tsv
+
+--header  |  First row is header.  Default: True.
 
 # -tsv, csv: Convert TSV to CSV:
 $ cat a.tsv | psv -tsv // csv-
@@ -22,12 +24,15 @@ $ psv in https://tinyurl.com/4sscj338 // -tsv // md
   :suffixes: .tsv
   '''
   def format_in(self, readable, _env):
-    return pd.read_table(readable, sep='\t', header=0)
+    return read_table_with_header(readable,
+                                  self.opt('header', True),
+                                  sep='\t')
 
 @command
 class TsvOut(FormatOut):
   '''
-  tsv- - Generate TSV.
+  tsv-out - Generate TSV.
+  aliases: tsv-
 
   :suffixes: .tsv
   '''

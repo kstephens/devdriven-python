@@ -55,3 +55,15 @@ class FormatOut(FormatBase):
 
   def format_out(self, _inp, _env, _writable):
     not_implemented()
+
+def read_table_with_header(readable, first_row_is_header, **kwargs):
+  # print(repr(first_row_is_header))
+  header = 0 if first_row_is_header else None
+  kwargs = kwargs | {'header': header}
+  # print(repr(kwargs))
+  df = pd.read_table(readable, **kwargs)
+  if header is None:
+    width = df.shape[1]
+    cols = [f'c{i + 1}' for i in range(0, width)]
+    df = df.set_axis(cols, axis=1)
+  return df

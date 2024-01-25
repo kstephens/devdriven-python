@@ -1,6 +1,5 @@
 import re
 import pandas as pd
-from devdriven.util import not_implemented
 # from icecream import ic
 from .command import section, command
 from .formats import FormatIn, FormatOut

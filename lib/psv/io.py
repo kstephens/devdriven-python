@@ -26,7 +26,8 @@ If no arguments are given, read from STDIN.
   https?://URL     |  GET URL.
   -                |  Read STDIN.
 
-  --raw, -r        |  Do not infer format from suffix.
+  --auto, -a       |  Attempt to infer format from suffix.
+  --raw, -r        |  Do not attempt infer format.
 
 # in: read from STDIN:
 $ cat a.tsv | psv in -
@@ -42,10 +43,21 @@ $ psv in https://tinyurl.com/4sscj338
       self.args.append('-')
     env['input.paths'] = [self.args[0]]
     content = Content(url=self.args[0])
-    format_for_suffix = find_format(self.args[0], FormatIn)
-    if not self.opt('raw', False) and format_for_suffix:
-      content = format_for_suffix().set_main(self.main).xform(content, env)
+    infer = True
+    infer = infer or self.opt('auto', False)
+    infer = infer and not self.next_xform_is_format_in(env)
+    infer = infer and not self.opt('raw', False) and not content.is_stdio()
+    format_for_suffix = infer and find_format(self.args[0], FormatIn)
+    if infer and format_for_suffix:
+      xform = format_for_suffix()
+      xform.main = self.main
+      xform.opts = self.opts
+      content = xform(content, env)
     return content
+
+  def next_xform_is_format_in(self, env: dict):
+    return issubclass(type(env['xform']['next']), FormatIn)
+
 
 @command
 class IoOut(IoBase):
