@@ -8,8 +8,8 @@ section('Format', 20)
 @command
 class HtmlOut(FormatOut):
   '''
-  html- - Generate HTML.
-  alias: html
+  html-out - Generate HTML.
+  alias: html-, html
 
   --title=NAME       |  Set <title> and a <div>.
   --header, -h       |  Add table header.  Default: True.

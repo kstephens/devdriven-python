@@ -9,7 +9,8 @@ section('Format', 20)
 @command
 class JsonIn(FormatIn):
   '''
-  -json - Parse JSON.
+  json-in - Parse JSON.
+  aliases: -json, -js
 
   --orient=ORIENT  |  Orientation: see pandas read_json.
 
@@ -22,13 +23,13 @@ class JsonIn(FormatIn):
 @command
 class JsonOut(FormatOut):
   '''
-  json- - Generate JSON array of objects.
-  aliases: json, js-
+  json-out - Generate JSON array of objects.
+  aliases: json-, json, js-, js
 
 # csv, json: Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 
-  :suffixes: .tsv
+  :suffixes: .json
   '''
   def format_out(self, inp, _env, writeable):
     if isinstance(inp, pd.DataFrame):

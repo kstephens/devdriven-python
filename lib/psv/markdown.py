@@ -8,10 +8,10 @@ section('Format', 20)
 @command
 class MarkdownOut(FormatOut):
   '''
-  markdown - Generate Markdown.
-  aliases: md, md-, markdown-
+  markdown-out - Generate Markdown.
+  aliases: markdown-, md-, md
 
-# md: Convert TSV on STDIN to Markdown:
+# Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
 
   :suffixes: .md,.markdown

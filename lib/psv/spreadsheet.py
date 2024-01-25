@@ -15,7 +15,7 @@ class XlsIn(FormatIn):
   --sheet-name=NAME  |  Sheet name
   --header, -h       |  Generate header.  Default: True.
 
-  :suffix=.xlsx
+  :suffixes: .xlsx
 
   Examples:
 

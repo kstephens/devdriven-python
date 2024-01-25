@@ -8,7 +8,7 @@ section('Format', 20)
 @command
 class PickleIn(FormatIn):
   '''
-  -pickle - Read Pandas Dataframe pickle.
+  dataframe-in - Read Pandas Dataframe pickle.
   alias: -dataframe
 
   :suffixes: .pickle.xz
@@ -22,8 +22,8 @@ class PickleIn(FormatIn):
 @command
 class PickleOut(FormatOut):
   '''
-  pickle- - Write Pandas DataFrame pickle.
-  alias: dataframe-
+  dataframe-out - Write Pandas DataFrame pickle.
+  alias: dataframe-, dataframe
 
   :suffixes: .pickle.xz
   '''

@@ -11,8 +11,8 @@ section('Format', 20)
 @command
 class TableIn(FormatIn):
   r'''
-  -table - Parse table.
-  alias: table-in
+  table-in - Parse table.
+  alias: -table
 
   --fs=REGEX          |  Field separator.  Default: "\\s+".
   --rs=REGEX          |  Record separator.  Default: "\\n\\r?".
@@ -99,8 +99,12 @@ def generate_columns(columns, column_format, width):
 @command
 class TableOut(FormatOut):
   '''
-  table- - Generate table.
-  alias: table-out
+  table-out - Generate table.
+  alias: table-
+
+  --fs=STR    |  Field separator.  Default: " ".
+  --rs=STR    |  Record separator.  Default: "\\n".
+  --header    |  Emit header.  Default: True.
 
   NOT IMPLEMENTED
 
