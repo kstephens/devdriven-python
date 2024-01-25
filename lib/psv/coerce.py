@@ -35,9 +35,9 @@ class Coerce(Command):
 
   Examples:
 
-  $ psv in us-states.txt // -table --header --fs="\s{2,}" // shuffle // head 10 // cut State,Population // csv- // o us-states.csv
-  $ psv in us-states.csv // sort Population
-  $ psv in us-states.csv // coerce Population:int // sort Population
+  $ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
+  $ psv in us-states-sample.csv // sort Population
+  $ psv in us-states-sample.csv // coerce Population:int // sort Population
 
   '''
   def xform(self, inp, _env):

@@ -35,6 +35,9 @@ $ psv in users.txt // -table --fs=':' --column='col%02d'
 # -table: Set column names or generate them:
 $ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
 
+# Convert text data to CSV:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // csv- // o us-states.csv
+
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 
@@ -106,9 +109,19 @@ class TableOut(FormatOut):
   --rs=STR    |  Record separator.  Default: "\\n".
   --header    |  Emit header.  Default: True.
 
-  NOT IMPLEMENTED
+$ psv in a.csv // table-
+$ psv in a.csv // table- --fs='|'
 
   :suffixes: .txt
   '''
-  def format_out(self, _inp, _env, _writeable):
-    not_implemented()
+  def format_out(self, inp, _env, writeable):
+    fsep = self.opt('fs', ' ')
+    rsep = self.opt('rs', '\n')
+    cols = self.args or inp.columns
+    if self.opt('header', True):
+      writeable.write(fsep.join(map(str, cols)))
+      writeable.write(rsep)
+    for _ind, row in inp.iterrows():
+      row = [str(row[col]) for col in cols]
+      writeable.write(fsep.join(row))
+      writeable.write(rsep)

@@ -41,7 +41,7 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
 #=======================================
 
 #----------------------------------------
-#    -table
+#    table-in
 #----------------------------------------
 
 # -table: Parse generic table:
@@ -91,6 +91,9 @@ $ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
 8  nobody  x  65534  65534  nobody    /nonexistent  /usr/sbin/nologin
 9    sshd  x    122  65534               /run/sshd  /usr/sbin/nologin
 
+# Convert text data to CSV:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // csv- // o us-states.csv
+
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 |   Rank | State        |   FIPS Code | Population   |
@@ -116,7 +119,25 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
 9    sshd  x    122           65534::/run/sshd:/usr/sbin/nologin
 
 #----------------------------------------
-#    -tsv
+#    table-out
+#----------------------------------------
+
+$ psv in a.csv // table-
+a b c d
+1 b1 23.763 xspdf
+2 b2 -98.73 qwer
+3 b3 3451.0 bixop
+1 b4 1.234 zxy
+
+$ psv in a.csv // table- --fs='|'
+a|b|c|d
+1|b1|23.763|xspdf
+2|b2|-98.73|qwer
+3|b3|3451.0|bixop
+1|b4|1.234|zxy
+
+#----------------------------------------
+#    tsv-in
 #----------------------------------------
 
 # -tsv, csv: Convert TSV to CSV:
@@ -146,10 +167,27 @@ $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 |   1 | b4  |    1.234 | zxy   |
 
 #----------------------------------------
-#    -csv
+#    csv-in
 #----------------------------------------
 
-# csv, json: Convert CSV to JSON:
+# Use first row as header:
+$ psv in a.csv // -csv
+   a   b         c      d
+0  1  b1    23.763  xspdf
+1  2  b2   -98.730   qwer
+2  3  b3  3451.000  bixop
+3  1  b4     1.234    zxy
+
+# Generate arbitrary columns:
+$ psv in a.csv // -csv --no-header
+  c1  c2      c3     c4
+0  a   b       c      d
+1  1  b1  23.763  xspdf
+2  2  b2  -98.73   qwer
+3  3  b3  3451.0  bixop
+4  1  b4   1.234    zxy
+
+# Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 [
   {
@@ -179,7 +217,7 @@ $ psv in a.csv // -csv // json-
 ]
 
 #----------------------------------------
-#    csv-
+#    csv-out
 #----------------------------------------
 
 # tsv, csv: Convert TSV to CSV:
@@ -191,10 +229,10 @@ a,b,c,d
 1,b4,1.234,zxy
 
 #----------------------------------------
-#    markdown
+#    markdown-out
 #----------------------------------------
 
-# md: Convert TSV on STDIN to Markdown:
+# Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
 |   a | b   |        c | d     |
 |----:|:----|---------:|:------|
@@ -204,7 +242,7 @@ $ cat a.tsv | psv -tsv // md
 |   1 | b4  |    1.234 | zxy   |
 
 #----------------------------------------
-#    json-
+#    json-out
 #----------------------------------------
 
 # csv, json: Convert CSV to JSON:
@@ -237,7 +275,7 @@ $ psv in a.csv // -csv // json-
 ]
 
 #----------------------------------------
-#    html-
+#    html-out
 #----------------------------------------
 
 $ psv in a.csv // html // o a.html
@@ -351,7 +389,7 @@ CREATE TABLE "__table__" (
   "d" TEXT
 )
 #----------------------------------------
-#    yaml-
+#    yaml-out
 #----------------------------------------
 
 $ psv in a.csv // yaml
@@ -750,6 +788,42 @@ $ psv in a.tsv // stats // cut name,count,min,max
 3    d      4  bixop     zxy
 
 #========================================
+#  Types
+#=======================================
+
+#----------------------------------------
+#    coerce
+#----------------------------------------
+
+$ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
+
+$ psv in us-states-sample.csv // sort Population
+            State  Population
+8        Delaware   1,018,396
+9        Nebraska   1,967,923
+2        Illinois  12,582,032
+5        Arkansas   3,045,637
+6        Kentucky   4,512,310
+0         Alabama   5,074,296
+4  South Carolina   5,282,634
+7       Minnesota   5,717,184
+1        Maryland   6,164,660
+3      Washington   7,785,786
+
+$ psv in us-states-sample.csv // coerce Population:int // sort Population
+            State  Population
+8        Delaware     1018396
+9        Nebraska     1967923
+5        Arkansas     3045637
+6        Kentucky     4512310
+0         Alabama     5074296
+4  South Carolina     5282634
+7       Minnesota     5717184
+1        Maryland     6164660
+3      Washington     7785786
+2        Illinois    12582032
+
+#========================================
 #  Metadata
 #=======================================
 
@@ -863,7 +937,7 @@ $ psv in a.tsv // show-columns // md // env-
       null
     ],
     [
-      "<< MarkdownOut: markdown >>",
+      "<< MarkdownOut: markdown-out >>",
       "<< str: | name   | dtype.name   | dtype.kind  ... >>",
       null,
       null
