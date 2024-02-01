@@ -1,7 +1,6 @@
 import subprocess
 import time
 import re
-import tempfile
 from devdriven import util  # type: ignore
 
 def test_maybe_decode_bytes():
@@ -34,17 +33,6 @@ def test_exec_command():
     ex = err
   assert ex is not None
 
-def test_read_file():
-  assert len(util.read_file('Makefile')) > 0
-  assert len(util.read_file('Makefile', default=b'DEFAULT')) > 10
-  assert len(util.read_file('UNKNOWN-FILE', default=b'DEFAULT')) == 7
-
-def test_file_size():
-  assert util.file_size('Makefile') > 99
-  assert util.file_size('Makefile', default=7) > 7
-  assert util.file_size('UNKNOWN-FILE') is None
-  assert util.file_size('UNKNOWN-FILE', default=7) == 7
-
 def test_partition():
   assert util.partition(['a', 1, 'b', 2], lambda e: isinstance(e, str)) == (['a', 'b'], [1, 2])
 
@@ -67,32 +55,20 @@ def test_parse_commands():
   assert util.parse_commands(['cmd1', 'a', 'b;;', 'cmd2', 'c'], r'^(.*);$') == \
     [['cmd1', 'a', 'b;'], ['cmd2', 'c']]
 
-def test_file_md5():
-  assert util.file_md5('/dev/null') == 'd41d8cd98f00b204e9800998ecf8427e'
-  assert util.file_md5('Does-Not-Exist') is None
+##########################################################
 
-def test_file_nlines():
-  def fut(buf, expected, *args):
-    with tempfile.NamedTemporaryFile() as tmp:
-      tmp.write(buf)
-      tmp.flush()
-      actual = util.file_nlines(tmp.name, *args)
-      tmp.close()
-    assert (buf, actual) == (buf, expected)
-  fut(b'', 0)
-  fut(b'\n', 1)
-  fut(b'\n\n', 2)
-  fut(b'1', 1)
-  fut(b'1\n', 1)
-  fut(b'1\n2', 2)
-  fut(b'1\n2\n', 2)
-  fut(b'1\n2\n\3', 3)
-  fut(b'1\n2\n\n', 3)
-  fut(b'1\n2\n\n ', 4)
-  assert util.file_nlines('tests/devdriven/data/expected.txt', default=2) == 11
-  assert util.file_nlines('/dev/null', default=3) == 0
-  assert util.file_nlines('Does-Not-Exist', default=5) == 5
-  assert util.file_nlines('Does-Not-Exist') is None
+def test_splitkeep():
+  def fut(inp, sep='|'):
+    return util.splitkeep(inp, sep)
+  assert fut('') == []
+  assert fut('abc') == ['abc']
+  assert fut('abc|') == ['abc|']
+  assert fut('abc||') == ['abc|', '|']
+  assert fut(b'', b'|') == []
+  assert fut(b'abc', b'|') == [b'abc']
+  assert fut(b'abc|', b'|') == [b'abc|']
+  assert fut(b'abc||', b'|') == [b'abc|', b'|']
+
 
 ##########################################################
 
