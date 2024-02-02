@@ -4,6 +4,8 @@ import devdriven.file as sut  # type: ignore
 def test_read_file():
   assert len(sut.read_file('Makefile')) > 0
   assert len(sut.read_file('Makefile')) > 10
+  assert isinstance(sut.read_file('Makefile'), bytes)
+  assert isinstance(sut.read_file('Makefile', 'utf-8'), str)
   assert sut.read_file('Does-Not-Exist') is None
 
 def test_file_size():

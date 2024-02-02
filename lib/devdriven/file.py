@@ -4,15 +4,18 @@ from .util import exec_command
 
 def read_file(name: str, encoding: Optional[str] = None) -> Optional[Union[bytes, str]]:
   try:
-    with open(name, 'r', encoding=encoding) as input_io:
-      return input_io.read()
+    if encoding:
+      with open(name, 'r', encoding=encoding) as input_io:
+        return input_io.read()
+    else:
+      with open(name, 'rb') as input_io:
+        return input_io.read()
   except OSError:
     return None
 
 def read_file_lines(name: str, encoding: str = 'utf-8') -> Optional[List[str]]:
   try:
-    with open(name, 'rb') as input_io:
-      return input_io.read().decode(encoding).splitlines()
+    return str(read_file(name, encoding=encoding)).splitlines()
   except (OSError, UnicodeDecodeError):
     return None
 
