@@ -6,7 +6,6 @@ from devdriven.to_dict import to_dict
 # https://docs.python.org/3.9/library/logging.html#formatter-objects
 # https://docs.python.org/3.9/library/logging.html#logging.LogRecord
 
-
 # ???: subclass logging.Formatter so Formmatter(fmt, datafmt) are honored.
 class JsonFormatter:  # (logging.Formatter):
   # pylint: disable=too-many-arguments
@@ -72,7 +71,6 @@ def trim_message(msg, max_len, suffix='...'):
 
 def setup_logging():
   logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
 
 def numeric_level(loglevel):
   if isinstance(loglevel, int):
