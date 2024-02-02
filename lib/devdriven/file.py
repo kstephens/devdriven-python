@@ -11,7 +11,8 @@ def read_file(name: str) -> Optional[bytes]:
 
 def read_file_lines(name: str) -> Optional[List[str]]:
   try:
-    return read_file(name).decode('utf-8').splitlines()
+    with open(name, 'rb') as input_io:
+      return input_io.read().decode('utf-8').splitlines()
   # pylint: disable=broad-except
   except Exception:
     return None

@@ -42,7 +42,9 @@ $ psv in https://tinyurl.com/4sscj338
     if not self.args:
       self.args.append('-')
     env['input.paths'] = [self.args[0]]
-    content = Content(url=self.args[0])
+    content = Content(url=self.args[0],
+                      stdin=self.main.stdin,
+                      stdout=self.main.stdout)
     infer = True
     infer = infer or self.opt('auto', False)
     infer = infer and not self.next_xform_is_format_in(env)
@@ -100,5 +102,7 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
     else:
       body = json.dumps(to_dict(inp), indent=2)
     for uri in self.args:
-      Content(url=uri).put(body, headers=headers)
+      Content(url=uri,
+              stdin=self.main.stdin,
+              stdout=self.main.stdout).put(body, headers=headers)
     return inp

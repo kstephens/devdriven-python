@@ -28,6 +28,8 @@ class UserAgent():
 
   # pylint: disable-next=too-many-arguments
   def _request_scheme_http(self, method, url, headers, body, kwargs):
+    kwargs.pop('stdin', None)
+    kwargs.pop('stdout', None)
     return self.http_pool_manager.request(method, url_to_str(url), headers=headers, body=body, **kwargs)
 
   # pylint: disable-next=too-many-arguments

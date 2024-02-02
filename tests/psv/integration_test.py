@@ -1,5 +1,6 @@
 import shlex
 from pathlib import Path
+from io import StringIO
 import psv
 import psv.main
 
@@ -31,12 +32,16 @@ def test_help_raw():
   run('psv help --raw sort')
 
 def test_parse_subpipe():
-  run('psv i /dev/null // null a b {{ null c d }}')
+  run('psv i /dev/null // null a b {{ null c d }}', -1)
 
-def run(cmdline):
-  args = shlex.split(cmdline)
+def run(cmdline, min_len=0):
+  argv = shlex.split(cmdline)
   main = psv.main.Main()
+  main.stdout = StringIO()
+  main.stderr = StringIO()
   main.prog_path = str(Path('bin/psv').absolute())
-  main.run(args)
+  main.run(argv)
   assert main.exit_code == 0
+  assert len(main.stdout.getvalue()) > min_len
+  assert len(main.stderr.getvalue()) == 0
   return main

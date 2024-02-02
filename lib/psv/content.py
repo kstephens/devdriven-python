@@ -10,13 +10,13 @@ class Content():
   content() - the decoded body, defaults to utf-8.
   body() - the bytes of HTTP body or file contents.
   '''
-  def __init__(self, url=None, headers=None, encoding=None):
+  # pylint: disable-next=too-many-arguments
+  def __init__(self, url=None, headers=None, encoding=None, stdin=None, stdout=None):
     self.url = url_normalize(url)
     self.headers = headers or {}
     self._encoding = encoding
-    self._body = None
-    self._content = None
-    self._response = None
+    self.stdin, self.stdout = stdin, stdout
+    self._body = self._content = self._response = None
 
   def __repr__(self):
     return f'Content(url={self.url!r})'
@@ -85,7 +85,11 @@ The decoded body, defaults to utf-8.
       return self._response
 
     def do_get(url):
-      return UserAgent().request('get', url, headers=self.headers, preload_content=False)
+      return UserAgent().request('get', url,
+                                 headers=self.headers,
+                                 preload_content=False,
+                                 stdin=self.stdin,
+                                 stdout=self.stdout)
 
     response = with_http_redirects(do_get, self.url)
     if not response.status == 200:
@@ -99,7 +103,11 @@ The decoded body, defaults to utf-8.
     headers = self.headers | (headers or {})
 
     def do_put(url, body):
-      return UserAgent().request('put', url, body=body, headers=headers)
+      return UserAgent().request('put', url,
+                                 body=body,
+                                 headers=headers,
+                                 stdin=self.stdin,
+                                 stdout=self.stdout)
 
     self._response = with_http_redirects(do_put, self.url, body)
     if not 200 <= self._response.status <= 299:
