@@ -11,6 +11,10 @@ Paths = Sequence[Pathish]
 class Resources:
   search_paths: List[str] = field(default_factory=list)
 
+  def rel_path(self, path: Pathish) -> Path:
+    assert self.search_paths
+    return Path(self.search_paths[0]).joinpath(path)
+
   def read(self, names: Paths, default=None, encoding=None) -> Any:
     file = self.find(names, None)
     if file is None:
