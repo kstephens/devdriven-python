@@ -28,9 +28,9 @@ class FormatIn(FormatBase):
     # ???: handle streaming:
     if isinstance(inp, str):
       if encoding := self.default_encoding():
-        readable = StringIO(inp)
-      else:
         readable = BytesIO(inp.decode(encoding))
+      else:
+        readable = StringIO(inp)
     if isinstance(inp, Content):
       readable = inp.response()
     return self.format_in(readable, env)
