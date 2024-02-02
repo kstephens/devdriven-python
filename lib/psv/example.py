@@ -6,14 +6,17 @@ from io import StringIO
 # from icecream import ic
 from devdriven.cli.application import app
 from devdriven.util import cwd
-from devdriven.html import resources
+import devdriven.html
+from devdriven.combinator import re_pred
 from devdriven.io import BroadcastIO
 from devdriven.cache import PickleCache
-
+from devdriven.resource import Resources
 # from icecream import ic
 from .command import Command, section, command
 
 section('Documentation', 200)
+
+resources = Resources([]).add_file_dir(__file__, 'resources')
 
 @command
 class Example(Command):
@@ -29,7 +32,7 @@ class Example(Command):
   '''
   def xform(self, _inp, _env):
     all_examples = PickleCache(
-      path='lib/psv/resources/example.pickle',
+      path=resources.rel_path('example.pickle'),
       generate=self.generate_all)
     if self.opt('generate'):
       all_examples.set_data(self.generate_all())

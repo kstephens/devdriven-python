@@ -4,6 +4,9 @@ from io import StringIO
 import psv
 import psv.main
 
+def test_example_generate():
+  run('psv example --generate')
+
 def test_example():
   run('psv example')
 
