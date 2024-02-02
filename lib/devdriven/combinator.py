@@ -1,4 +1,5 @@
 from typing import Any, List, Iterable, Callable
+import re
 # from functools import reduce
 
 def compose(*funcs) -> Callable:
@@ -27,3 +28,10 @@ def compose_2(g: Callable, f: Callable) -> Callable:
 
 def compose_basic(g: Callable, f: Callable) -> Callable:
   return lambda arg: g(f(arg))
+
+def re_pred(pat: str) -> Callable[[str], bool]:
+  rx = re.compile(pat)
+
+  def pred(x):
+    return re.match(rx, x) is not None
+  return pred

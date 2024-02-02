@@ -155,19 +155,11 @@ class Example(Command):
     output.write(result.stderr.decode('utf-8'))
 
   def fix_command_line(self, cmd):
-    w3m_conf = resources.find(['w3m.conf'])
+    w3m_conf = devdriven.html.resources.find(['w3m.conf'])
+    assert w3m_conf
     cmd = re.sub(r'^(w3m -dump )', f'TERM=xterm-256color \\1 -config {w3m_conf} ', cmd, count=1)
     return cmd
 
 
 def header(x: str, tick: str) -> str:
   return f'\n{x}\n{tick * len(x)}'
-
-# ???: move this.
-def re_pred(pat: str) -> re.Pattern:
-  pat = re.compile(pat)
-
-  def pred(x):
-    return re.match(pat, x)
-
-  return pred
