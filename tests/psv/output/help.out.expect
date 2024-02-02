@@ -56,11 +56,17 @@
 |                |                                                                                                                  |
 |                | Aliases: csv-, csv                                                                                               |
 |                |                                                                                                                  |
+| markdown-in    | Parse Markdown.                                                                                                  |
+|                |                                                                                                                  |
+|                |   psv markdown-in                                                                                                |
+|                |                                                                                                                  |
+|                | Aliases: -markdown, -md, md-in                                                                                   |
+|                |                                                                                                                  |
 | markdown-out   | Generate Markdown.                                                                                               |
 |                |                                                                                                                  |
 |                |   psv markdown-out                                                                                               |
 |                |                                                                                                                  |
-|                | Aliases: markdown-, md-, md                                                                                      |
+|                | Aliases: markdown-, markdown, md-out, md-, md                                                                    |
 |                |                                                                                                                  |
 | json-in        | Parse JSON.                                                                                                      |
 |                |                                                                                                                  |
@@ -278,7 +284,7 @@
 |                |                                                                                                                  |
 | example        | Show examples.                                                                                                   |
 |                |                                                                                                                  |
-|                |   psv example [--run] SEARCH-STRING                                                                              |
+|                |   psv example [--run] [--generate] SEARCH-STRING                                                                 |
 |                |                                                                                                                  |
 |                | Aliases: ex, examples                                                                                            |
 |                |                                                                                                                  |

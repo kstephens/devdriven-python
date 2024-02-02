@@ -1,11 +1,9 @@
-#========================================
-#  I/O
-#=======================================
 
-#----------------------------------------
-#    in
-#----------------------------------------
+ I/O  
+======
 
+    in    
+----------
 # in: read from STDIN:
 $ cat a.tsv | psv in -
 a	b	c	d
@@ -29,21 +27,18 @@ a	b	c	d
 3	b3	3451	bixop
 1	b4	1.234	zxy
 
-#----------------------------------------
-#    out
-#----------------------------------------
 
+    out    
+-----------
 # out: Convert TSV to CSV and save to a file:
 $ psv in a.tsv // -tsv // csv- // out a.csv
 
-#========================================
-#  Format
-#=======================================
 
-#----------------------------------------
-#    table-in
-#----------------------------------------
+ Format  
+=========
 
+    table-in    
+----------------
 # -table: Parse generic table:
 $ psv in users.txt // -table --fs=':'
        c1 c2     c3     c4      c5              c6                 c7
@@ -118,10 +113,9 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
 8  nobody  x  65534  65534:nobody:/nonexistent:/usr/sbin/nologin
 9    sshd  x    122           65534::/run/sshd:/usr/sbin/nologin
 
-#----------------------------------------
-#    table-out
-#----------------------------------------
 
+    table-out    
+-----------------
 $ psv in a.csv // table-
 a b c d
 1 b1 23.763 xspdf
@@ -136,11 +130,10 @@ a|b|c|d
 3|b3|3451.0|bixop
 1|b4|1.234|zxy
 
-#----------------------------------------
-#    tsv-in
-#----------------------------------------
 
-# -tsv, csv: Convert TSV to CSV:
+    tsv-in    
+--------------
+# Convert TSV stdin to CSV stdout:
 $ cat a.tsv | psv -tsv // csv-
 a,b,c,d
 1,b1,23.763,xspdf
@@ -148,7 +141,7 @@ a,b,c,d
 3,b3,3451.0,bixop
 1,b4,1.234,zxy
 
-# -tsv, md: Convert TSV to Markdown:
+# Convert TSV to Markdown:
 $ psv in a.tsv // md
 |   a | b   |        c | d     |
 |----:|:----|---------:|:------|
@@ -157,7 +150,7 @@ $ psv in a.tsv // md
 |   3 | b3  | 3451     | bixop |
 |   1 | b4  |    1.234 | zxy   |
 
-# -tsv: Convert HTTP TSV content to Markdown.
+# Convert HTTP TSV content to Markdown:
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 |   a | b   |        c | d     |
 |----:|:----|---------:|:------|
@@ -166,10 +159,20 @@ $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 |   3 | b3  | 3451     | bixop |
 |   1 | b4  |    1.234 | zxy   |
 
-#----------------------------------------
-#    csv-in
-#----------------------------------------
 
+    tsv-out    
+---------------
+# Convert CSV to TSV:
+$ psv in a.csv // tsv-
+a	b	c	d
+1	b1	23.763	xspdf
+2	b2	-98.73	qwer
+3	b3	3451.0	bixop
+1	b4	1.234	zxy
+
+
+    csv-in    
+--------------
 # Use first row as header:
 $ psv in a.csv // -csv
    a   b         c      d
@@ -216,10 +219,9 @@ $ psv in a.csv // -csv // json-
   }
 ]
 
-#----------------------------------------
-#    csv-out
-#----------------------------------------
 
+    csv-out    
+---------------
 # tsv, csv: Convert TSV to CSV:
 $ psv in a.tsv // -tsv // csv-
 a,b,c,d
@@ -228,10 +230,22 @@ a,b,c,d
 3,b3,3451.0,bixop
 1,b4,1.234,zxy
 
-#----------------------------------------
-#    markdown-out
-#----------------------------------------
 
+    markdown-in    
+-------------------
+# Convert TSV to Markdown to CSV:
+$ psv in a.tsv // md- // out a.md
+
+$ psv in a.md // -md // csv
+a,b,c,d
+1,b1,23.763,xspdf
+2,b2,-98.73,qwer
+3,b3,3451,bixop
+1,b4,1.234,zxy
+
+
+    markdown-out    
+--------------------
 # Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
 |   a | b   |        c | d     |
@@ -241,10 +255,9 @@ $ cat a.tsv | psv -tsv // md
 |   3 | b3  | 3451     | bixop |
 |   1 | b4  |    1.234 | zxy   |
 
-#----------------------------------------
-#    json-out
-#----------------------------------------
 
+    json-out    
+----------------
 # csv, json: Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 [
@@ -274,10 +287,9 @@ $ psv in a.csv // -csv // json-
   }
 ]
 
-#----------------------------------------
-#    html-out
-#----------------------------------------
 
+    html-out    
+----------------
 $ psv in a.csv // html // o a.html
 
 $ w3m -dump a.html
@@ -375,10 +387,9 @@ $ w3m -dump users.html
 │sshd  │x │122  │65534│      │/run/sshd     │/usr/sbin/nologin│
 └──────┴──┴─────┴─────┴──────┴──────────────┴─────────────────┘
 
-#----------------------------------------
-#    sql-
-#----------------------------------------
 
+    sql-    
+------------
 # sql: Convert TSV to SQL schema:
 $ psv in a.tsv // sql
 CREATE TABLE "__table__" (
@@ -388,10 +399,9 @@ CREATE TABLE "__table__" (
   "c" REAL,
   "d" TEXT
 )
-#----------------------------------------
-#    yaml-out
-#----------------------------------------
 
+    yaml-out    
+----------------
 $ psv in a.csv // yaml
 - a: 1
   b: b1
@@ -410,10 +420,9 @@ $ psv in a.csv // yaml
   c: 1.234
   d: zxy
 
-#----------------------------------------
-#    xls-in
-#----------------------------------------
 
+    xls-in    
+--------------
 $ psv in a.xlsx // -xls // md
 |   a | b   |        c | d     |
 |----:|:----|---------:|:------|
@@ -431,19 +440,17 @@ $ psv in a.xlsx // -xls --no-header // md
 | 3    | b3   | 3451   | bixop |
 | 1    | b4   | 1.234  | zxy   |
 
-#----------------------------------------
-#    xls-out
-#----------------------------------------
 
+    xls-out    
+---------------
 $ psv in a.csv // xls // o a.xlsx
 
 $ file a.xlsx
 a.xlsx: Microsoft Excel 2007+
 
-#----------------------------------------
-#    extract
-#----------------------------------------
 
+    extract    
+---------------
 # Extract by names:
 $ psv in users.txt // extract '^(?P<login>[^:]+)' // md
 | login   |
@@ -503,14 +510,12 @@ $ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
 | nobody  | :x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin |
 | sshd    | :x:122:65534::/run/sshd:/usr/sbin/nologin            |
 
-#========================================
-#  Manipulation
-#=======================================
 
-#----------------------------------------
-#    range
-#----------------------------------------
+ Manipulation  
+===============
 
+    range    
+-------------
 # range: select a range of rows:
 $ psv in a.tsv // seq --start=0 // range 1 3 // md
 |   a | b   |       c | d     |   __i__ |
@@ -525,10 +530,9 @@ $ psv in a.tsv // seq --start=0 // range --step=2 // md
 |   1 | b1  |   23.763 | xspdf |       0 |
 |   3 | b3  | 3451     | bixop |       2 |
 
-#----------------------------------------
-#    head
-#----------------------------------------
 
+    head    
+------------
 # head:
 $ psv in us-states.txt // -table // head 5 // md
 | c1   | c2         | c3    | c4         | c5         | c6   |
@@ -539,10 +543,9 @@ $ psv in us-states.txt // -table // head 5 // md
 | 3    | Florida    | 12000 | 22,244,823 |            |      |
 | 4    | New        | York  | 36000      | 19,677,151 |      |
 
-#----------------------------------------
-#    tail
-#----------------------------------------
 
+    tail    
+------------
 # tail: last 3 rows:
 $ psv in us-states.txt // -table // tail 3 // md
 |   c1 | c2       | c3    | c4       | c5    | c6      |
@@ -551,19 +554,17 @@ $ psv in us-states.txt // -table // tail 3 // md
 |   50 | Vermont  | 50000 | 647,064  |       |         |
 |   51 | Wyoming  | 56000 | 581,381  |       |         |
 
-#----------------------------------------
-#    reverse
-#----------------------------------------
 
+    reverse    
+---------------
 # reverse:
 $ psv in a.tsv // seq // tac // md
 | a   | b   | c   | d   | __i__   |
 |-----|-----|-----|-----|---------|
 
-#----------------------------------------
-#    shuffle
-#----------------------------------------
 
+    shuffle    
+---------------
 $ psv in a.tsv // shuffle --seed=5 // md
 |   a | b   |        c | d     |
 |----:|:----|---------:|:------|
@@ -572,10 +573,9 @@ $ psv in a.tsv // shuffle --seed=5 // md
 |   3 | b3  | 3451     | bixop |
 |   1 | b4  |    1.234 | zxy   |
 
-#----------------------------------------
-#    cut
-#----------------------------------------
 
+    cut    
+-----------
 # cut: select columns by index and name:
 # cut: remove c, put d before other columns,
 $ psv in a.tsv // cut d '*' c:- // md
@@ -586,34 +586,47 @@ $ psv in a.tsv // cut d '*' c:- // md
 | bixop |   3 | b3  |
 | zxy   |   1 | b4  |
 
-#----------------------------------------
-#    sort
-#----------------------------------------
+
+    sort    
+------------
+# sort: increasing:
+$ psv in a.tsv // seq i // sort c // md
+|   a | b   |        c | d     |   i |
+|----:|:----|---------:|:------|----:|
+|   2 | b2  |  -98.73  | qwer  |   2 |
+|   1 | b4  |    1.234 | zxy   |   4 |
+|   1 | b1  |   23.763 | xspdf |   1 |
+|   3 | b3  | 3451     | bixop |   3 |
 
 # sort: decreasing:
-$ psv in a.tsv // sort -r a // md
-|   a | b   |        c | d     |
-|----:|:----|---------:|:------|
-|   3 | b3  | 3451     | bixop |
-|   2 | b2  |  -98.73  | qwer  |
-|   1 | b1  |   23.763 | xspdf |
-|   1 | b4  |    1.234 | zxy   |
+$ psv in a.tsv // seq i // sort -r c // md
+|   a | b   |        c | d     |   i |
+|----:|:----|---------:|:------|----:|
+|   3 | b3  | 3451     | bixop |   3 |
+|   1 | b1  |   23.763 | xspdf |   1 |
+|   1 | b4  |    1.234 | zxy   |   4 |
+|   2 | b2  |  -98.73  | qwer  |   2 |
 
-# sort: by a decreasing, c increasing,
-# remove c, put d before other columns,
-# create a column i with a seqence
-$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
-| d     |   a | b   |   i |
-|:------|----:|:----|----:|
-| bixop |   3 | b3  |  10 |
-| qwer  |   2 | b2  |  15 |
-| zxy   |   1 | b4  |  20 |
-| xspdf |   1 | b1  |  25 |
+# sort: by a decreasing, c increasing:
+$ psv in a.tsv // seq i // md
+|   a | b   |        c | d     |   i |
+|----:|:----|---------:|:------|----:|
+|   1 | b1  |   23.763 | xspdf |   1 |
+|   2 | b2  |  -98.73  | qwer  |   2 |
+|   3 | b3  | 3451     | bixop |   3 |
+|   1 | b4  |    1.234 | zxy   |   4 |
 
-#----------------------------------------
-#    grep
-#----------------------------------------
+$ psv in a.tsv // seq i // sort a:- c // md
+|   a | b   |        c | d     |   i |
+|----:|:----|---------:|:------|----:|
+|   3 | b3  | 3451     | bixop |   3 |
+|   2 | b2  |  -98.73  | qwer  |   2 |
+|   1 | b4  |    1.234 | zxy   |   4 |
+|   1 | b1  |   23.763 | xspdf |   1 |
 
+
+    grep    
+------------
 # grep: match columns by regex:
 $ psv in a.tsv // grep d 'x' // md
 |   a | b   |        c | d     |
@@ -639,10 +652,9 @@ $ psv in a.tsv // grep d 'x' b '3$' // md
 |----:|:----|-----:|:------|
 |   3 | b3  | 3451 | bixop |
 
-#----------------------------------------
-#    translate
-#----------------------------------------
 
+    translate    
+-----------------
 # translate: change characters in specific field:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
 |   Rank | State          |   FIPS Code |   Population |
@@ -673,10 +685,9 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head //
 |      9 | NorthCarolina |       37000 |     10698973 |
 |     10 | Michigan      |       26000 |     10034113 |
 
-#----------------------------------------
-#    null
-#----------------------------------------
 
+    null    
+------------
 # null: does nothing:
 $ psv in a.tsv // null IGNORED --OPTION=VALUE // md
 |   a | b   |        c | d     |
@@ -686,14 +697,12 @@ $ psv in a.tsv // null IGNORED --OPTION=VALUE // md
 |   3 | b3  | 3451     | bixop |
 |   1 | b4  |    1.234 | zxy   |
 
-#========================================
-#  Summaries
-#=======================================
 
-#----------------------------------------
-#    count
-#----------------------------------------
+ Summaries  
+============
 
+    count    
+-------------
 # Count the number of transfers by Payer:
 $ psv in transfers.csv // count Payer // md
 | Payer   |   count |
@@ -721,10 +730,9 @@ $ psv in transfers.csv // count --column=PayeeTransfers Payee // md
 | Joe     |                2 |
 | Rich    |                1 |
 
-#----------------------------------------
-#    summary
-#----------------------------------------
 
+    summary    
+---------------
 # Summary of transfers by Payer and Payee:
 $ psv in transfers.csv // summary Amount '*' Payer,Payee
      Payer  Payee  Amount_count  ...  Amount_std  Amount_max  Amount_skew
@@ -759,10 +767,9 @@ $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
 
 [2 rows x 17 columns]
 
-#----------------------------------------
-#    stats
-#----------------------------------------
 
+    stats    
+-------------
 $ psv in a.tsv // stats // cols // cut name,dtype.name // md
 | name   | dtype.name   |
 |:-------|:-------------|
@@ -787,14 +794,12 @@ $ psv in a.tsv // stats // cut name,count,min,max
 2    c      4 -98.73  3451.0
 3    d      4  bixop     zxy
 
-#========================================
-#  Types
-#=======================================
 
-#----------------------------------------
-#    coerce
-#----------------------------------------
+ Types  
+========
 
+    coerce    
+--------------
 $ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
 
 $ psv in us-states-sample.csv // sort Population
@@ -823,14 +828,12 @@ $ psv in us-states-sample.csv // coerce Population:int // sort Population
 3      Washington     7785786
 2        Illinois    12582032
 
-#========================================
-#  Metadata
-#=======================================
 
-#----------------------------------------
-#    add-sequence
-#----------------------------------------
+ Metadata  
+===========
 
+    add-sequence    
+--------------------
 # add-sequence (seq): add a column with a sequence:
 $ psv in a.tsv // seq // md
 |   a | b   |        c | d     |   __i__ |
@@ -867,10 +870,9 @@ $ psv in a.tsv // seq --start=5 --step=-2 // md
 |   3 | b3  | 3451     | bixop |       1 |
 |   1 | b4  |    1.234 | zxy   |      -1 |
 
-#----------------------------------------
-#    rename-columns
-#----------------------------------------
 
+    rename-columns    
+----------------------
 # rename-columns: rename column 'b' to 'B':
 $ psv in a.tsv // rename b B // md
 |   a | None   |        c | d     |
@@ -880,10 +882,9 @@ $ psv in a.tsv // rename b B // md
 |   3 | b3     | 3451     | bixop |
 |   1 | b4     |    1.234 | zxy   |
 
-#----------------------------------------
-#    show-columns
-#----------------------------------------
 
+    show-columns    
+--------------------
 # Column metadata columns:
 $ psv in a.tsv // cols // cols // cut name,dtype.name // md
 | name            | dtype.name   |
@@ -916,10 +917,9 @@ $ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
 | c      | float64      | f            |                1 |
 | d      | object       | O            |                1 |
 
-#----------------------------------------
-#    env-
-#----------------------------------------
 
+    env-    
+------------
 # env: display proccessing info:
 $ psv in a.tsv // show-columns // md // env-
 {
@@ -976,14 +976,12 @@ $ psv in a.tsv // show-columns // md // env-
     "a.tsv"
   ]
 }
-#========================================
-#  Expression Evaluation
-#=======================================
 
-#----------------------------------------
-#    eval
-#----------------------------------------
+ Expression Evaluation  
+========================
 
+    eval    
+------------
 $ psv in a.tsv // eval "c *= 2"
    a   b       c      d
 0  1  b1  47.526  xspdf
@@ -1025,10 +1023,9 @@ $ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
 2  3  b3  3451.0  bixopbixop
 3  1  b4   1.234      zxyzxy
 
-#----------------------------------------
-#    select
-#----------------------------------------
 
+    select    
+--------------
 $ psv in a.tsv // select "c > 0"
    a   b       c      d
 0  1  b1  23.763  xspdf

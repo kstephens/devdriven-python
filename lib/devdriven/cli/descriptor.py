@@ -9,6 +9,7 @@ from icecream import ic
 class Example:
   command: str
   comments: List[str]
+  output: Optional[str] = field(default=None)
 
 @dataclass
 class Descriptor:
@@ -92,3 +93,4 @@ class SectionDescriptorExample:
   section: Section
   descriptor: Descriptor
   example: Optional[Example]
+  output: Optional[str] = field(default=None)

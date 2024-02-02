@@ -149,13 +149,13 @@ Options:
 
 Examples:
 
-# -tsv, csv: Convert TSV to CSV:
+# Convert TSV stdin to CSV stdout:
 $ cat a.tsv | psv -tsv // csv-
 
-# -tsv, md: Convert TSV to Markdown:
+# Convert TSV to Markdown:
 $ psv in a.tsv // md
 
-# -tsv: Convert HTTP TSV content to Markdown.
+# Convert HTTP TSV content to Markdown:
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 
 
@@ -166,6 +166,12 @@ tsv-out - Generate TSV.
   psv tsv-out
 
 Aliases: tsv-
+
+Examples:
+
+# Convert CSV to TSV:
+$ psv in a.csv // tsv-
+
 
 ==========================================================
 
@@ -208,11 +214,27 @@ $ psv in a.tsv // -tsv // csv-
 
 ==========================================================
 
+markdown-in - Parse Markdown.
+
+  psv markdown-in
+
+Aliases: -markdown, -md, md-in
+
+Examples:
+
+# Convert TSV to Markdown to CSV:
+$ psv in a.tsv // md- // out a.md
+
+$ psv in a.md // -md // csv
+
+
+==========================================================
+
 markdown-out - Generate Markdown.
 
   psv markdown-out
 
-Aliases: markdown-, md-, md
+Aliases: markdown-, markdown, md-out, md-, md
 
 Examples:
 
@@ -549,13 +571,16 @@ Options:
 
 Examples:
 
-# sort: decreasing:
-$ psv in a.tsv // sort -r a // md
+# sort: increasing:
+$ psv in a.tsv // seq i // sort c // md
 
-# sort: by a decreasing, c increasing,
-# remove c, put d before other columns,
-# create a column i with a seqence
-$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+# sort: decreasing:
+$ psv in a.tsv // seq i // sort -r c // md
+
+# sort: by a decreasing, c increasing:
+$ psv in a.tsv // seq i // md
+
+$ psv in a.tsv // seq i // sort a:- c // md
 
 
 ==========================================================
@@ -924,7 +949,7 @@ Options:
 
 example - Show examples.
 
-  psv example [--run] SEARCH-STRING
+  psv example [--run] [--generate] SEARCH-STRING
 
 Aliases: ex, examples
 
@@ -934,7 +959,8 @@ Arguments:
 
 Options:
 
-  --run, -r | Run examples.
+  --run, -r  | Run examples.
+  --generate | Generate and save examples.
 
 ==========================================================
 
