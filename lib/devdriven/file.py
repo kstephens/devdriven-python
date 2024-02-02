@@ -1,20 +1,19 @@
-from typing import Optional, List, Tuple
+from typing import Optional, Union, List, Tuple
 import os
 from .util import exec_command
 
-def read_file(name: str) -> Optional[bytes]:
+def read_file(name: str, encoding: Optional[str] = None) -> Optional[Union[bytes, str]]:
   try:
-    with open(name, 'rb') as input_io:
+    with open(name, 'r', encoding=encoding) as input_io:
       return input_io.read()
   except OSError:
     return None
 
-def read_file_lines(name: str) -> Optional[List[str]]:
+def read_file_lines(name: str, encoding: str = 'utf-8') -> Optional[List[str]]:
   try:
     with open(name, 'rb') as input_io:
-      return input_io.read().decode('utf-8').splitlines()
-  # pylint: disable=broad-except
-  except Exception:
+      return input_io.read().decode(encoding).splitlines()
+  except (OSError, UnicodeDecodeError):
     return None
 
 def delete_file(path: str) -> bool:
