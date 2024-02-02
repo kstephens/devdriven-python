@@ -12,13 +12,13 @@ class TsvIn(FormatIn):
 
 --header  |  First row is header.  Default: True.
 
-# -tsv, csv: Convert TSV to CSV:
+# Convert TSV stdin to CSV stdout:
 $ cat a.tsv | psv -tsv // csv-
 
-# -tsv, md: Convert TSV to Markdown:
+# Convert TSV to Markdown:
 $ psv in a.tsv // md
 
-# -tsv: Convert HTTP TSV content to Markdown.
+# Convert HTTP TSV content to Markdown:
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 
   :suffixes: .tsv
@@ -33,6 +33,9 @@ class TsvOut(FormatOut):
   '''
   tsv-out - Generate TSV.
   aliases: tsv-
+
+# Convert CSV to TSV:
+$ psv in a.csv // tsv-
 
   :suffixes: .tsv
   '''

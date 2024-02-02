@@ -167,13 +167,15 @@ class Sort(Command):
   --numeric, -n     |  Sort as numeric.
   --coerce=TYPE     |  Sort by coerced value.
 
-# sort: decreasing:
-$ psv in a.tsv // sort -r a // md
+# sort: increasing:
+$ psv in a.tsv // seq i // sort c // md
 
-# sort: by a decreasing, c increasing,
-# remove c, put d before other columns,
-# create a column i with a seqence
-$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+# sort: decreasing:
+$ psv in a.tsv // seq i // sort -r c // md
+
+# sort: by a decreasing, c increasing:
+$ psv in a.tsv // seq i // md
+$ psv in a.tsv // seq i // sort a:- c // md
 
   '''
   def xform(self, inp, _env):
