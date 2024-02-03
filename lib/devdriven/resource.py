@@ -50,7 +50,7 @@ class Resources:
   def add_module_dir(self, module_name: str, rel: PathishMaybe = None) -> Self:
     return self.append_search_path(self.module_dir(module_name), rel)
 
-  def add_file_dir(self, file: str, rel: PathishMaybe = None) -> Self:
+  def add_file_dir(self, file: Pathish, rel: PathishMaybe = None) -> Self:
     return self.append_search_path(Path(file).parent, rel)
 
   def append_search_path(self, path: Pathish, rel: PathishMaybe = None) -> Self:
