@@ -341,6 +341,7 @@ THEAD_FILTERING = '''
         type="text"
         id="cx-filter-input"
         class="cx-filter-input"
+        name="cx-filter-input"
         onkeyup="cx_filter.filter_rows(event)"
         placeholder="${unicode['search']} Filter..." />
       %if opt('filtering_tooltip'):
