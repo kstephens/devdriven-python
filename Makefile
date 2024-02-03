@@ -123,14 +123,14 @@ run-test:
 
 # Resources:
 
-HTML_DIR=lib/devdriven/resources/html
-JS_FILES:=$(shell find $(HTML_DIR)/*.js $(HTML_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort)
+RESOURCES_DIR=lib/devdriven/resources
+JS_FILES:=$(shell find $(RESOURCES_DIR)/js $(RESOURCES_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort)
 MIN_JS_FILES:=$(patsubst %.js,%.min.js,$(JS_FILES))
 
 minify: $(MIN_JS_FILES) Makefile
 %.min.js: %.js
 	python -mrjsmin < $< > $@
-	# slimit < $< > $@ # ModuleNotFoundError: No module named 'minifier'
+# slimit < $< > $@ # ModuleNotFoundError: No module named 'minifier'
 
 minify-clean:
 	rm -f $(MIN_JS_FILES)
@@ -153,8 +153,8 @@ very-clean: clean
 env:
 	. venv/bin/activate; env | sort
 
-var:
-	@echo '$($(v))'
+var v:
+	@$(foreach var,$(v),echo '$(var)=$($(var))';)
 
 vars:
 	@$(foreach v,BIN_FILES LIB_FILES TEST_FILES LINT_FILES MYPY_FILES,echo '$(v)=$($(v))'; )

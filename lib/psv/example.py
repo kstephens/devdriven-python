@@ -158,7 +158,7 @@ class Example(Command):
     output.write(result.stderr.decode('utf-8'))
 
   def fix_command_line(self, cmd):
-    w3m_conf = devdriven.html.resources.find(['w3m.conf'])
+    w3m_conf = devdriven.html.res_html.find(['w3m.conf'])
     assert w3m_conf
     cmd = re.sub(r'^(w3m -dump )', f'TERM=xterm-256color \\1 -config {w3m_conf} ', cmd, count=1)
     return cmd
