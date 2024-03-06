@@ -1,4 +1,5 @@
 import re
+import os
 from devdriven.util import get_safe, chunks, split_flat, parse_range, make_range
 from .command import Command, section, command
 from .coerce import Coerce
@@ -109,7 +110,7 @@ $ psv in a.tsv // shuffle --seed=5 // md
 
   '''
   def xform(self, inp, _env):
-    if seed := self.opt('seed'):
+    if seed := self.opt('seed', os.environ.get('PSV_RAND_SEED')):
       seed = int(seed)
     return inp.sample(frac=1, random_state=seed)
 
@@ -166,13 +167,15 @@ class Sort(Command):
   --numeric, -n     |  Sort as numeric.
   --coerce=TYPE     |  Sort by coerced value.
 
-# sort: decreasing:
-$ psv in a.tsv // sort -r a // md
+# sort: increasing:
+$ psv in a.tsv // seq i // sort c // md
 
-# sort: by a decreasing, c increasing,
-# remove c, put d before other columns,
-# create a column i with a seqence
-$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+# sort: decreasing:
+$ psv in a.tsv // seq i // sort -r c // md
+
+# sort: by a decreasing, c increasing:
+$ psv in a.tsv // seq i // md
+$ psv in a.tsv // seq i // sort a:- c // md
 
   '''
   def xform(self, inp, _env):

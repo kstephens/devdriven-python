@@ -1,6 +1,6 @@
 in - Read input.
 
-  psv in [--raw] [FILE] [file:///FILE] [https?://URL] [-]
+  psv in [--auto] [--raw] [FILE] [file:///FILE] [https?://URL] [-]
 
 Aliases: i, -i
 
@@ -15,7 +15,8 @@ Arguments:
 
 Options:
 
-  --raw, -r | Do not infer format from suffix.
+  --auto, -a | Attempt to infer format from suffix.
+  --raw, -r  | Do not attempt infer format.
 
 Examples:
 
@@ -32,7 +33,7 @@ $ psv in https://tinyurl.com/4sscj338
 
 out - write output to URLs.
 
-  psv out [FILE] [file///FILE] [https?://...] [-]
+  psv out [--encoding] [FILE] [file///FILE] [https?://...] [-]
 
 Aliases: o, o-
 
@@ -45,6 +46,11 @@ Arguments:
   https?://... | PUT URL.
   -            | Write STDOUT.
 
+Options:
+
+  --encoding | Use encoding.
+             | Default: 'UTF-8'.
+
 Examples:
 
 # out: Convert TSV to CSV and save to a file:
@@ -53,11 +59,11 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
 
 ==========================================================
 
--table - Parse table.
+table-in - Parse table.
 
-  psv -table [--fs] [--rs] [--max-cols] [--columns] [--header] [--column] [--encoding] [--skip]
+  psv table-in [--fs] [--rs] [--max-cols] [--columns] [--header] [--column] [--encoding] [--skip]
 
-Aliases: table-in
+Aliases: -table
 
 Options:
 
@@ -92,6 +98,9 @@ $ psv in users.txt // -table --fs=':' --column='col%02d'
 # -table: Set column names or generate them:
 $ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
 
+# Convert text data to CSV:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // csv- // o us-states.csv
+
 # -table: Split fields by 2 or more whitespace chars:
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 
@@ -101,55 +110,101 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
 
 ==========================================================
 
-table- - Generate table.
+table-out - Generate table.
 
-  psv table-
+  psv table-out [--fs] [--rs] [--header]
 
-Aliases: table-out
+Aliases: table-
 
-NOT IMPLEMENTED
+Options:
 
-==========================================================
-
--tsv - Parse TSV.
-
-  psv -tsv
+  --fs     | Field separator.
+           | Default: " ".
+           |
+  --rs     | Record separator.
+           | Default: "\n".
+           |
+  --header | Emit header.
+           | Default: True.
 
 Examples:
 
-# -tsv, csv: Convert TSV to CSV:
+$ psv in a.csv // table-
+
+$ psv in a.csv // table- --fs='|'
+
+
+==========================================================
+
+tsv-in - Parse TSV.
+
+  psv tsv-in [--header]
+
+Aliases: -tsv
+
+Options:
+
+  --header | First row is header.
+           | Default: True.
+
+Examples:
+
+# Convert TSV stdin to CSV stdout:
 $ cat a.tsv | psv -tsv // csv-
 
-# -tsv, md: Convert TSV to Markdown:
+# Convert TSV to Markdown:
 $ psv in a.tsv // md
 
-# -tsv: Convert HTTP TSV content to Markdown.
+# Convert HTTP TSV content to Markdown:
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 
 
 ==========================================================
 
-tsv- - Generate TSV.
+tsv-out - Generate TSV.
 
-  psv tsv-
+  psv tsv-out
 
-==========================================================
-
--csv - Parse CSV.
-
-  psv -csv
+Aliases: tsv-
 
 Examples:
 
-# csv, json: Convert CSV to JSON:
+# Convert CSV to TSV:
+$ psv in a.csv // tsv-
+
+
+==========================================================
+
+csv-in - Parse CSV.
+
+  psv csv-in [--header]
+
+Aliases: -csv
+
+Options:
+
+  --header | First row is header.
+           | Default: True.
+
+Examples:
+
+# Use first row as header:
+$ psv in a.csv // -csv
+
+# Generate arbitrary columns:
+$ psv in a.csv // -csv --no-header
+
+# Convert CSV to JSON:
 $ psv in a.csv // -csv // json-
 
 
 ==========================================================
 
-csv- - Generate CSV.
+csv-out - Generate CSV.
 
-  psv csv-
+  psv csv-out
+
+Aliases: csv-, csv
 
 Examples:
 
@@ -159,23 +214,41 @@ $ psv in a.tsv // -tsv // csv-
 
 ==========================================================
 
-markdown - Generate Markdown.
+markdown-in - Parse Markdown.
 
-  psv markdown
+  psv markdown-in
 
-Aliases: md, md-, markdown-
+Aliases: -markdown, -md, md-in
 
 Examples:
 
-# md: Convert TSV on STDIN to Markdown:
+# Convert TSV to Markdown to CSV:
+$ psv in a.tsv // md- // out a.md
+
+$ psv in a.md // -md // csv
+
+
+==========================================================
+
+markdown-out - Generate Markdown.
+
+  psv markdown-out
+
+Aliases: markdown-, markdown, md-out, md-, md
+
+Examples:
+
+# Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
 
 
 ==========================================================
 
--json - Parse JSON.
+json-in - Parse JSON.
 
-  psv -json [--orient]
+  psv json-in [--orient]
+
+Aliases: -json, -js
 
 Options:
 
@@ -183,11 +256,11 @@ Options:
 
 ==========================================================
 
-json- - Generate JSON array of objects.
+json-out - Generate JSON array of objects.
 
-  psv json-
+  psv json-out
 
-Aliases: json, js-
+Aliases: json-, json, js-, js
 
 Examples:
 
@@ -197,27 +270,27 @@ $ psv in a.csv // -csv // json-
 
 ==========================================================
 
--pickle - Read Pandas Dataframe pickle.
+dataframe-in - Read Pandas Dataframe pickle.
 
-  psv -pickle
+  psv dataframe-in
 
 Aliases: -dataframe
 
 ==========================================================
 
-pickle- - Write Pandas DataFrame pickle.
+dataframe-out - Write Pandas DataFrame pickle.
 
-  psv pickle-
+  psv dataframe-out
 
-Aliases: dataframe-
+Aliases: dataframe-, dataframe
 
 ==========================================================
 
-html- - Generate HTML.
+html-out - Generate HTML.
 
-  psv html- [--title] [--header] [--simple] [--filtering] [--sorting] [--row-index] [--table-only] [--styled]
+  psv html-out [--title] [--header] [--simple] [--filtering] [--sorting] [--row-index] [--table-only] [--styled]
 
-Aliases: html
+Aliases: html-, html
 
 Options:
 
@@ -271,11 +344,11 @@ $ psv in a.tsv // sql
 
 ==========================================================
 
-yaml- - Generate YAML.
+yaml-out - Generate YAML.
 
-  psv yaml-
+  psv yaml-out
 
-Aliases: yaml, yml-, yml
+Aliases: yaml-, yaml, yml-, yml
 
 Examples:
 
@@ -299,7 +372,9 @@ Options:
 
 Examples:
 
-$ psv in a.xlsx // -xls // csv-
+$ psv in a.xlsx // -xls // md
+
+$ psv in a.xlsx // -xls --no-header // md
 
 
 ==========================================================
@@ -330,7 +405,7 @@ extract - Extract fields by Regexp.
 
   psv extract
 
-Aliases: rx, re
+Aliases: rx, re, rex
 
 Examples:
 
@@ -496,13 +571,16 @@ Options:
 
 Examples:
 
-# sort: decreasing:
-$ psv in a.tsv // sort -r a // md
+# sort: increasing:
+$ psv in a.tsv // seq i // sort c // md
 
-# sort: by a decreasing, c increasing,
-# remove c, put d before other columns,
-# create a column i with a seqence
-$ psv in a.tsv // sort a:- c // cut d '*' c:- // seq i 10 5 // md
+# sort: decreasing:
+$ psv in a.tsv // seq i // sort -r c // md
+
+# sort: by a decreasing, c increasing:
+$ psv in a.tsv // seq i // md
+
+$ psv in a.tsv // seq i // sort a:- c // md
 
 
 ==========================================================
@@ -677,6 +755,15 @@ Arguments:
 
   COL:TYPE ... | Column to coerce to TYPE.
 
+Examples:
+
+$ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
+
+$ psv in us-states-sample.csv // sort Population
+
+$ psv in us-states-sample.csv // coerce Population:int // sort Population
+
+
 ==========================================================
 
 add-sequence - Add a column with a sequence of numbers.
@@ -848,22 +935,23 @@ Arguments:
 
 help - This help document.
 
-  psv help [--verbose] [--plain] [--raw] [--sections]
+  psv help [--verbose] [--list] [--plain] [--raw] [--sections]
 
 Options:
 
   --verbose, -v  | Show more detail.
+  --list, -l     | List commands.
   --plain, -p    | Show plain docs.
   --raw, -r      | Raw detail.
   --sections, -s | List sections.
 
 ==========================================================
 
-examples - Show examples.
+example - Show examples.
 
-  psv examples [--run] SEARCH-STRING
+  psv example [--run] [--generate] SEARCH-STRING
 
-Aliases: ex, example
+Aliases: ex, examples
 
 Arguments:
 
@@ -871,7 +959,8 @@ Arguments:
 
 Options:
 
-  --run, -r | Run examples.
+  --run, -r  | Run examples.
+  --generate | Generate and save examples.
 
 ==========================================================
 

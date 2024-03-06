@@ -11,14 +11,17 @@ Paths = Sequence[Pathish]
 class Resources:
   search_paths: List[str] = field(default_factory=list)
 
-  def read(self, names: Paths, default=None) -> Any:
+  def rel_path(self, path: Pathish) -> Path:
+    assert self.search_paths
+    return Path(self.search_paths[0]).joinpath(path)
+
+  def read(self, names: Paths, default=None, encoding=None) -> Any:
     file = self.find(names, None)
     if file is None:
       if default is not None:
         return default
       raise Exception(f'cannot locate resource {names!r} in {self.search_paths!r}')
-    # pylint: disable-next=unspecified-encoding
-    with open(file, 'r') as file:
+    with open(file, 'r', encoding=encoding) as file:
       return file.read()
 
   def find(self, names: Paths, default=None) -> Any:
@@ -33,25 +36,24 @@ class Resources:
       return [str(p) for p in path_names if p.is_file()]
     return sum(map(path_names, self.search_paths), [])
 
-  def module_path(self, module_name: str) -> Optional[Path]:
+  def module_path(self, module_name: str) -> Path:
     if spec := importlib.util.find_spec(module_name, None):
       if spec.origin:
         return Path(spec.origin)
-    return None
+    raise Exception(f'module_path : {module_name!r}')
 
-  def module_dir(self, module_name: str) -> Optional[Path]:
-    file = self.module_path(module_name)
-    return file and file.parent
+  def module_dir(self, module_name: str) -> Path:
+    if origin := self.module_path(module_name):
+      return origin.parent
+    raise Exception(f'module_dir : {module_name!r}')
 
   def add_module_dir(self, module_name: str, rel: PathishMaybe = None) -> Self:
     return self.append_search_path(self.module_dir(module_name), rel)
 
-  def add_file_dir(self, file: str, rel: PathishMaybe = None) -> Self:
+  def add_file_dir(self, file: Pathish, rel: PathishMaybe = None) -> Self:
     return self.append_search_path(Path(file).parent, rel)
 
-  def append_search_path(self, path: PathishMaybe, rel: PathishMaybe = None) -> Self:
-    if not path:
-      return self
+  def append_search_path(self, path: Pathish, rel: PathishMaybe = None) -> Self:
     path = Path(path)
     if rel:
       path = path / rel

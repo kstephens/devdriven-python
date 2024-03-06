@@ -4,13 +4,13 @@ from devdriven.util import not_implemented
 from .content import Content
 from .command import Command, section, command
 
-section('Formats', 20)
+section('Format', 20)
 
 @command
 class Extract(Command):
   '''
   extract - Extract fields by Regexp.
-  aliases: rx, re
+  aliases: rx, re, rex
 
   Examples:
 

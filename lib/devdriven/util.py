@@ -76,9 +76,16 @@ def wrap_words(words, width, _punctuation=r'[.,?;:]'):
     result.append(current)
   return result
 
+def splitkeep(s, delimiter):
+  split = s.split(delimiter)
+  datums = [substr + delimiter for substr in split[:-1]]
+  if split[-1]:
+    datums.append(split[-1])
+  return datums
 
 #####################################################################
 # Time
+
 
 # See: https://en.wikipedia.org/wiki/ISO_8601
 DATETIME_ISO8601_FMT = '%Y-%m-%d %H:%M:%S.%f%z'
@@ -163,59 +170,6 @@ def exec_command_unless_dry_run(cmd_line: List[str], dry_run: bool, **options: A
     logging.info('DRY-RUN : exec_command : %s', repr(cmd_line))
     return None
   return exec_command(cmd_line, **options)
-
-#####################################################################
-# File
-
-def read_file(name: str, default: Any = None) -> Union[bytes, Any]:
-  try:
-    with open(name, 'rb') as input_io:
-      return input_io.read()
-  except OSError:
-    return default
-
-def read_file_lines(name: str, default: Any = None) -> Union[List[str], Any]:
-  try:
-    return read_file(name).decode('utf-8').splitlines()
-  # pylint: disable=broad-except
-  except Exception:
-    return default
-
-def delete_file(path: str) -> bool:
-  try:
-    os.remove(path)
-    return True
-  except OSError:
-    return False
-
-def file_md5(file: str) -> Optional[str]:
-  result = exec_command(['md5sum', file], check=False, capture_output=True)
-  if result.returncode == 0:
-    return str(result.stdout.decode('utf-8').split(' ')[0])
-  return None
-
-def file_size(path: str, default: Any = None) -> Any:
-  try:
-    return os.stat(path).st_size
-  except FileNotFoundError:  # might be a symlink to bad file.
-    return default
-
-def file_nlines(path: str, default: Any = None) -> Union[int, Any]:
-  last_byte = None
-  count = byte_count = 0
-  try:
-    with open(path, 'rb') as input_io:
-      while buf := input_io.read(8192):
-        last_byte = buf[-1]
-        count += buf.count(b'\n')
-        byte_count += len(buf)
-  except OSError:
-    return default
-  if byte_count == 0:
-    return 0
-  if last_byte == b'\n'[0]:
-    return count
-  return count + 1
 
 #####################################################################
 # Sequence

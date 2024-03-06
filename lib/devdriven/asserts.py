@@ -2,7 +2,7 @@ from typing import Any, Optional, Iterable, Callable, Tuple
 import os
 import sys
 from pathlib import Path
-from .util import file_md5
+from .file import file_md5
 
 FilterFunc = Optional[Callable]
 

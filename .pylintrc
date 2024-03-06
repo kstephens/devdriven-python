@@ -575,6 +575,8 @@ good-names=i,j,k,m,n,
            f,g,h,
            # Numbers:
            x,y,z,w,
+           # Strings:
+           s,t,
            # I/O:
            io,
            # Pandas:

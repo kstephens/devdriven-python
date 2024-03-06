@@ -2,7 +2,7 @@ from pprint import pprint
 from devdriven.repl import start_repl
 from .command import Command, section, command
 
-section('Expression Evaluation', 60)
+section('Expression Evaluation', 70)
 
 @command
 class Repl(Command):

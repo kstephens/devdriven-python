@@ -1,10 +1,10 @@
-from itertools import islice
 import pandas as pd
+# from icecream import ic
 from devdriven.tempfile import tempfile_to_writeable, tempfile_from_readable
 from .command import section, command
 from .formats import FormatIn, FormatOut
 
-section('Formats', 20)
+section('Format', 20)
 
 @command
 class XlsIn(FormatIn):
@@ -15,11 +15,14 @@ class XlsIn(FormatIn):
   --sheet-name=NAME  |  Sheet name
   --header, -h       |  Generate header.  Default: True.
 
-  :suffix=.xls
+  :suffixes: .xlsx
 
   Examples:
 
-$ psv in a.xlsx // -xls // csv-
+$ psv in a.xlsx // -xls // md
+
+$ psv in a.xlsx // -xls --no-header // md
+
   '''
   def format_in(self, readable, _env):
     # pylint: disable-next=import-outside-toplevel
@@ -31,16 +34,17 @@ $ psv in a.xlsx // -xls // csv-
     workbook = tempfile_from_readable(readable, '.xlsx', read_workbook)
     sheet_id = self.opt('sheet-name', 0)
     worksheet = workbook.worksheets[sheet_id]
+    data = worksheet.values
     if self.opt('header', True):
-      data = worksheet.values
-      cols = next(data)[1:]
+      cols = list(next(data))
       data = list(data)
-      idx = [r[0] for r in data]
-      data = (islice(r, 1, None) for r in data)
-      out = pd.DataFrame(data, index=idx, columns=cols)
     else:
-      out = pd.DataFrame(worksheet.values)
-    return out
+      data = list(data)
+      cols = [f'c{i}' for i in range(0, len(data[0]))]
+    return pd.DataFrame(data, columns=cols)
+
+  def wants_input_file(self):
+    return False
 
   def default_encoding(self):
     return None
@@ -54,7 +58,7 @@ class XlsOut(FormatOut):
   --sheet-name=NAME  |  Sheet name
   --header, -h       |  Generate header.  Default: True.
 
-  :suffix=.xls
+  :suffix=.xlsx
 
   Examples:
 
@@ -78,9 +82,12 @@ $ file a.xlsx
     if isinstance(inp, pd.DataFrame):
       for row in dataframe_to_rows(inp, index=index, header=header):
         worksheet.append(row)
-      tempfile_to_writeable(writeable, '.xls', save_workbook)
+      tempfile_to_writeable(writeable, '.xlsx', save_workbook)
     else:
       raise Exception("xls-out: cannot format {type(inp)}")
+
+  def wants_output_file(self):
+    return False
 
   def default_encoding(self):
     return None

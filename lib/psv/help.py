@@ -1,11 +1,15 @@
+from typing import Iterable, List
 import re
-import pandas as pd
-import tabulate
+import pandas as pd  # type: ignore
+import tabulate  # type: ignore
 # from icecream import ic
 from devdriven.to_dict import to_dict
-from devdriven.cli.application import app, DEFAULTS
+from devdriven.cli.application import app
+from devdriven.cli.descriptor import Descriptor
+from devdriven.cli.option import Option
 from .command import Command, section, command
-from .formats import MarkdownOut, JsonOut
+from .markdown import MarkdownOut
+from .json import JsonOut
 
 section('Documentation', 200)
 
@@ -15,6 +19,7 @@ class Help(Command):
   help - This help document.
 
   --verbose, -v   |  Show more detail.
+  --list, -l      |  List commands.
   --plain, -p     |  Show plain docs.
   --raw, -r       |  Raw detail.
   --sections, -s  |  List sections.
@@ -64,7 +69,20 @@ class Help(Command):
       return self.do_commands_raw(commands, env)
     if self.opt('plain', False) or len(self.args) == 1:
       return self.do_commands_plain(commands, env)
+    if self.opt('list', False):
+      return self.do_commands_list(commands, env)
     return self.do_commands_table(commands, env)
+
+  def do_commands_list(self, commands, env):
+    tab = pd.DataFrame(columns=['command', 'description'])
+
+    def row(*cols):
+      tab.loc[len(tab.index)] = cols
+
+    for desc in commands:
+      row(desc.name, desc.brief)
+
+    return MarkdownOut().xform(tab, env)
 
   def do_commands_table(self, commands, env):
     tab = pd.DataFrame(columns=['command', 'description'])
@@ -124,8 +142,8 @@ class Help(Command):
           line = line[1:]
           row('  ', line)
 
-    attrs = list(DEFAULTS.keys())
     for desc in commands:
+      attrs = list(desc.metadata.keys())
       # row('', "'''")
       row('', desc.name, ' - ', desc.brief)
       row('', '')
@@ -175,8 +193,11 @@ class Help(Command):
       rows.extend(item_rows)
     return rows
 
-  def args_table(self, desc):
+  def args_table(self, desc: Descriptor) -> Iterable:
     return desc.options.arg_by_name.items()
 
-  def opts_table(self, desc):
-    return [opt.table_row() for opt in desc.options.opts]
+  def opts_table(self, desc: Descriptor) -> List[List[str]]:
+    return [self.opt_row(opt) for opt in desc.options.opts]
+
+  def opt_row(self, opt: Option) -> List[str]:
+    return [opt.synopsis(), opt.description]

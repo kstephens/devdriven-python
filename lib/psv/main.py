@@ -51,9 +51,9 @@ class Main(devdriven.cli.Main):
       pipe = self.main.parse_pipeline('main', argv)
       if pipe.xforms:
         if not isinstance(pipe.xforms[0], io.IoIn):
-          pipe.xforms.insert(0, io.IoIn())
+          pipe.xforms.insert(0, io.IoIn().set_main(self.main))
         if not isinstance(pipe.xforms[-1], io.IoOut):
-          pipe.xforms.append(io.IoOut())
+          pipe.xforms.append(io.IoOut().set_main(self.main))
       self.pipeline = pipe
       return self
 

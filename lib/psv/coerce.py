@@ -32,6 +32,13 @@ class Coerce(Command):
   hour         - string to timedelta64[ns] to float hours.
   day          - string to timedelta64[ns] to float days.
   ipaddr       - string to ipaddress.  See python ipaddress module.
+
+  Examples:
+
+  $ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
+  $ psv in us-states-sample.csv // sort Population
+  $ psv in us-states-sample.csv // coerce Population:int // sort Population
+
   '''
   def xform(self, inp, _env):
     inp_cols = list(inp.columns)
@@ -69,13 +76,16 @@ class Coerce(Command):
   }
 
   def _convert_to_numeric(self, seq, _col):
-    return pd.to_numeric(seq, errors='ignore')
+    seq = remove_commas(seq)
+    return pd.to_numeric(seq, errors='coerce')
 
   def _convert_to_int(self, seq, _col):
-    return pd.to_numeric(seq, downcast='integer', errors='ignore')
+    seq = remove_commas(seq)
+    return pd.to_numeric(seq, downcast='integer', errors='coerce')
 
   def _convert_to_float(self, seq, _col):
-    return pd.to_numeric(seq, downcast='float', errors='ignore')
+    seq = remove_commas(seq)
+    return pd.to_numeric(seq, downcast='float', errors='coerce')
 
   def _convert_to_str(self, seq, _col):
     return map(str, seq.tolist())
@@ -115,3 +125,6 @@ class Coerce(Command):
       except ValueError:
         return None
     return seq.apply(to_ipaddr)
+
+def remove_commas(seq):
+  return seq.apply(lambda x: str(x).replace(',', ''))

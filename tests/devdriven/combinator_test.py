@@ -29,3 +29,7 @@ def test_compose():
   assert sut.compose(g, f)(5, 7) == 24
   assert sut.compose(identity, g, f)(5, 7) == 24
   assert sut.compose(h, g, f)(11, 13) == 149
+
+def test_re_pred():
+  assert sut.re_pred("ab")("abc") is True
+  assert sut.re_pred("ab")("bc") is False

@@ -42,8 +42,8 @@ class FileResponse():
     self.request_method = method.upper()
     self.url = url = url_normalize(url)
     headers = (headers or {}).copy()
-    self.stdin = headers.pop("X-STDIN", (FileResponse.default_stdin or sys.stdin))
-    self.stdout = headers.pop("X-STDOUT", (FileResponse.default_stdout or sys.stdout))
+    self.stdin = headers.pop("X-STDIN", kwargs.get("stdin", (FileResponse.default_stdin or sys.stdin)))
+    self.stdout = headers.pop("X-STDOUT", kwargs.get("stdout", (FileResponse.default_stdout or sys.stdout)))
     self._headers = HTTPHeaderDict(headers)
     if url.path == '-':
       self.is_stream = self.is_stdio = True

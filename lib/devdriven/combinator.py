@@ -1,4 +1,5 @@
-from typing import Any, List, Iterable, Callable
+from typing import Any, Union, List, Iterable, Callable
+import re
 
 def constantly(x: Any) -> Callable:
   """
@@ -57,3 +58,20 @@ def compose_2(g: Callable, f: Callable) -> Callable:
 
 def compose_basic(g: Callable, f: Callable) -> Callable:
   return lambda arg: g(f(arg))
+
+def re_pred(rx: str) -> Callable[Union[re.Pattern, str], bool]:
+  """
+  A function that takes a regular expression pattern as input and returns a predicate function.
+
+  Parameters:
+    - rx (Union[re.Pattern, str]): A re.Pattern or regular expression pattern str to be compiled.
+
+  Returns:
+    - Callable[[str], bool]: A predicate function that takes a string as input and returns True if the string matches the regular expression pattern, False otherwise.
+  """
+  if not isinstance(rx, re.Pattern):
+    rx = re.compile(str(rx))
+
+  def pred(x):
+    return re.match(rx, x) is not None
+  return pred

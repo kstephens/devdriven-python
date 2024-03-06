@@ -2,15 +2,15 @@ import pandas as pd
 from .command import section, command
 from .formats import FormatOut
 
-section('Formats', 20)
+section('Format', 20)
 
 @command
 class YamlOut(FormatOut):
   '''
-  yaml- - Generate YAML.
-  alias: yaml, yml-, yml
+  yaml-out - Generate YAML.
+  aliases: yaml-, yaml, yml-, yml
 
-  :suffix=.yml,.yaml
+  :suffixes: .yaml, .yml
 
   Examples:
 

@@ -1,9 +1,10 @@
 from typing import Any, Dict, Optional
-from devdriven.util import file_nlines, exec_command
+from devdriven.util import exec_command
+from devdriven.file import file_nlines
 
 def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
-  expected = file_nlines(expected_file, None)
-  actual = file_nlines(actual_file, None)
+  expected = file_nlines(expected_file)
+  actual = file_nlines(actual_file)
   command = [
     'diff',
     '--minimal',

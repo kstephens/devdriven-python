@@ -1,9 +1,15 @@
-from typing import Optional, Self, Type, List
+from typing import Any, Optional, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
 from devdriven.cli.options import Options
 from devdriven.util import set_from_match, unpad_lines
 from icecream import ic
+
+@dataclass
+class Example:
+  command: str
+  comments: List[str]
+  output: Optional[str] = field(default=None)
 
 @dataclass
 class Descriptor:
@@ -12,15 +18,20 @@ class Descriptor:
   brief: str
   synopsis: str
   aliases: list
-  detail: list
+  detail: List[str]
   options: Options
-  examples: list
+  examples: List[Example]
   section: str
-  content_type: str      # = None
-  content_encoding: str  # = None
-  suffixes: str          # ".csv,.txt,...""
-  suffix_list: list
-  data: object
+  metadata: Dict[str, Any]
+
+  def __post_init__(self):
+    self.brief = ''
+    self.synposis = ''
+    self.detail = []
+    self.aliases = []
+    self.options = Options()
+    self.examples = []
+    self.metadata = {}
 
   def parse_docstring(self, docstr: str) -> Self:
     found_aliases = False
@@ -33,7 +44,7 @@ class Descriptor:
         ic(line)
       m = None
       if m := re.match(r'^:(?P<name>[a-z_]+)[:=] *(?P<value>.*)', line):
-        setattr(self, m.group('name'), m.group('value').strip())
+        self.metadata[m.group('name')] = m.group('value').strip()
       elif m := re.match(r'^(?P<name>[-a-z]+) +- +(?P<brief>.+)', line) if not self.name else None:
         set_from_match(self, m)
       elif m := re.match(r'(?i)^Alias(?:es)?: +(.+)', line) if not found_aliases else None:
@@ -54,14 +65,9 @@ class Descriptor:
         self.detail.append(line)
       if debug:
         ic(m and m.groupdict())
-    if self.suffixes:
-      self.suffix_list = [x.strip() for x in re.split(r'\s*,\s*', self.suffixes)]
     self.build_synopsis()
     self.trim_detail()
     return self
-
-  def preferred_suffix(self) -> Optional[str]:
-    return self.suffix_list[0] if self.suffix_list else None
 
   def get_opt_aliases(self, opt):
     return self.options.get_opt_aliases(opt)
@@ -77,12 +83,14 @@ class Descriptor:
       self.detail.pop(-1)
 
 @dataclass
-class Example:
-  command: str
-  comments: List[str]
-
-@dataclass
 class Section:
   name: str = 'UNKNOWN'
   order: int = -1
   descriptors: List[Descriptor] = field(default_factory=list)
+
+@dataclass
+class SectionDescriptorExample:
+  section: Section
+  descriptor: Descriptor
+  example: Optional[Example]
+  output: Optional[str] = field(default=None)
