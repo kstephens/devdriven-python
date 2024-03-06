@@ -1,7 +1,39 @@
 from typing import Any, List, Iterable, Callable
-# from functools import reduce
+
+def constantly(x: Any) -> Callable:
+  """
+  Returns a callable that takes any number of positional and keyword arguments and always returns the value of `x`.
+
+  Parameters:
+    x (Any): The value to be returned by the callable.
+
+  Returns:
+    Callable: A callable that takes any number of positional and keyword arguments and always returns the value of `x`.
+  """
+  return lambda *args, **kwargs: x
+
+def negate(f: Callable) -> Callable:
+  """
+  A function that takes a callable `f` and returns a new callable that negates the result of `f`.
+
+  Parameters:
+    - f (Callable): The callable to be negated.
+
+  Returns:
+    - Callable: A new callable that negates the result of `f`.
+  """
+  return lambda *args, **kwargs: not f(*args, **kwargs)
 
 def compose(*funcs) -> Callable:
+  """
+  Composes multiple functions into a single function.
+
+  Args:
+      *funcs (Callable): The functions to be composed.
+
+  Returns:
+      Callable: The composed function.
+  """
   return compose_each(list(funcs))
 
 def compose_each(funcs: List[Callable]) -> Callable:
@@ -14,8 +46,6 @@ def compose_each(funcs: List[Callable]) -> Callable:
     return compose_2(compose_basic(funcs[0], funcs[1]), funcs[2])
   funcs = list(reversed(funcs))
   return lambda *args, **kwargs: compose_reduce(funcs[1:], funcs[0](*args, **kwargs))
-  # !!! reduce funcs
-  # raise AttributeError "too many funcs"
 
 def compose_reduce(funcs: Iterable[Callable], result: Any) -> Any:
   for f in funcs:
