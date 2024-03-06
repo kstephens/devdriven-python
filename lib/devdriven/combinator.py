@@ -67,7 +67,8 @@ def re_pred(rx: str) -> Callable[Union[re.Pattern, str], bool]:
     - rx (Union[re.Pattern, str]): A re.Pattern or regular expression pattern str to be compiled.
 
   Returns:
-    - Callable[[str], bool]: A predicate function that takes a string as input and returns True if the string matches the regular expression pattern, False otherwise.
+    - Callable[[str], bool]: A predicate function that takes a string as input and
+    returns True if the string matches the regular expression pattern, False otherwise.
   """
   if not isinstance(rx, re.Pattern):
     rx = re.compile(str(rx))
