@@ -59,7 +59,7 @@ def compose_2(g: Callable, f: Callable) -> Callable:
 def compose_basic(g: Callable, f: Callable) -> Callable:
   return lambda arg: g(f(arg))
 
-def re_pred(rx: str) -> Callable[Union[re.Pattern, str], bool]:
+def re_pred(rx_or_string: Union[re.Pattern, str]) -> Callable[[str], bool]:
   """
   A function that takes a regular expression pattern as input and returns a predicate function.
 
@@ -70,8 +70,11 @@ def re_pred(rx: str) -> Callable[Union[re.Pattern, str], bool]:
     - Callable[[str], bool]: A predicate function that takes a string as input and
     returns True if the string matches the regular expression pattern, False otherwise.
   """
-  if not isinstance(rx, re.Pattern):
-    rx = re.compile(str(rx))
+  rx: re.Pattern
+  if not isinstance(rx_or_string, re.Pattern):
+    rx = re.compile(str(rx_or_string))
+  else:
+    rx = rx_or_string
 
   def pred(x):
     return re.match(rx, x) is not None
