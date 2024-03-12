@@ -98,3 +98,16 @@ def test_re_pred():
   assert sut.re_pred("ab")("bc") is False
   assert sut.re_pred(12)("123") is True
   assert sut.re_pred(12)(123) is True
+
+def test_op_pred():
+  assert sut.op_pred("==", 1)(1) is True
+  assert sut.op_pred("=", 1)(1) is True
+  assert sut.op_pred("==", 1)(2) is False
+  assert sut.op_pred("!=", 1)(2) is True
+  assert sut.op_pred("<", 1)(2) is False
+  assert sut.op_pred(">", 1)(2) is True
+  assert sut.op_pred("<=", 1)(1) is True
+  assert sut.op_pred(">=", 2)(2) is True
+  assert sut.op_pred("=~", "foo")("foo") is True
+  assert sut.op_pred("=~", "foo")("bar") is False
+  assert sut.op_pred("~=", "foo")("foo") is True

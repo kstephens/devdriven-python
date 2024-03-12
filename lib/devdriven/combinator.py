@@ -1,13 +1,17 @@
-from typing import Any, Optional, Union, List, Iterable, Callable
+from typing import Any, Optional, Union, List, Callable
 import re
 
 Predicate = Callable[[Any], Any]
 PredicateBool = Callable[[Any], bool]
 
+Callable1 = Callable[[Any], Any]
+CallableN = Callable[..., Any]
+CallableNBool = Callable[..., bool]
+
 def identity(x: Any) -> Any:
   return x
 
-def constantly(x: Any) -> Callable:
+def constantly(x: Any) -> CallableN:
   """
   Returns a callable that takes any number of positional and keyword arguments and always returns the value of `x`.
 
@@ -19,7 +23,7 @@ def constantly(x: Any) -> Callable:
   """
   return lambda *args, **kwargs: x
 
-def predicate(f: Callable) -> PredicateBool:
+def predicate(f: CallableN) -> CallableNBool:
   """
   Returns a predicate function that takes any number of arguments and keyword arguments and returns a boolean value.
   The returned function applies the given function `f` to the provided arguments and keyword arguments,
@@ -34,7 +38,7 @@ def predicate(f: Callable) -> PredicateBool:
   """
   return lambda *args, **kwargs: (not f(*args, **kwargs)) is False
 
-def negate(f: Callable) -> PredicateBool:
+def negate(f: CallableN) -> CallableNBool:
   """
   A function that takes a callable `f` and returns a new callable that negates the result of `f`.
 
@@ -46,7 +50,7 @@ def negate(f: Callable) -> PredicateBool:
   """
   return lambda *args, **kwargs: not f(*args, **kwargs)
 
-def and_comp(f: Callable, g: Callable) -> Callable:
+def and_comp(f: CallableN, g: CallableN) -> CallableNBool:
   """
     A function that takes two callable objects, `f` and `g and returns a new callable object.
     The returned callable object takes an input `x` and any additional positional or keyword arguments.
@@ -55,7 +59,7 @@ def and_comp(f: Callable, g: Callable) -> Callable:
   """
   return lambda *args, **kwargs: f(*args, **kwargs) and g(*args, **kwargs)
 
-def or_comp(f: Callable, g: Callable) -> Callable:
+def or_comp(f: CallableN, g: CallableN) -> Callable:
   """
     A function that takes two callable objects, `f` and `g`, and returns a new callable object.
     The returned callable object takes an input `x` and any additional positional or keyword arguments.
@@ -64,13 +68,13 @@ def or_comp(f: Callable, g: Callable) -> Callable:
   """
   return lambda *args, **kwargs: f(*args, **kwargs) or g(*args, **kwargs)
 
-def if_comp(f: Callable, g: Callable, h: Callable) -> Callable:
+def if_comp(f: CallableN, g: CallableN, h: CallableN) -> Callable:
   return lambda *args, **kwargs: g(*args, **kwargs) if f(*args, **kwargs) else h(*args, **kwargs)
 
-def is_none(f: Callable) -> Predicate:
+def is_none(f: CallableN) -> CallableNBool:
   return lambda *args, **kwargs: f(*args, **kwargs) is None
 
-def is_not_none(f: Callable) -> Predicate:
+def is_not_none(f: CallableN) -> CallableNBool:
   """
   Returns a predicate that checks if the result of applying the given function to the given arguments is not None.
 
@@ -82,7 +86,7 @@ def is_not_none(f: Callable) -> Predicate:
   """
   return lambda *args, **kwargs: f(*args, **kwargs) is not None
 
-def compose(*funcs) -> Callable:
+def compose(*funcs) -> CallableN:
   """
   Composes multiple functions into a single function.
 
@@ -94,7 +98,7 @@ def compose(*funcs) -> Callable:
   """
   return compose_each(list(funcs))
 
-def compose_each(funcs: List[Callable]) -> Callable:
+def compose_each(funcs: List[Callable]) -> CallableN:
   assert funcs
   if len(funcs) == 1:
     return funcs[0]
@@ -102,18 +106,24 @@ def compose_each(funcs: List[Callable]) -> Callable:
     return compose_2(*funcs)
   if len(funcs) == 3:
     return compose_2(compose_basic(funcs[0], funcs[1]), funcs[2])
-  funcs = list(reversed(funcs))
-  return lambda *args, **kwargs: compose_reduce(funcs[1:], funcs[0](*args, **kwargs))
+  return compose_n(funcs)
 
-def compose_reduce(funcs: Iterable[Callable], result: Any) -> Any:
-  for f in funcs:
-    result = f(result)
-  return result
+def compose_n(funcs: List[Callable]) -> CallableN:
+  funcs = list(funcs)
+  funcs.reverse()
+  g = funcs.pop(0)
 
-def compose_2(g: Callable, f: Callable) -> Callable:
+  def h(*args, **kwargs):
+    result = g(*args, **kwargs)
+    for f in funcs:
+      result = f(result)
+    return result
+  return h
+
+def compose_2(g: Callable1, f: CallableN) -> CallableN:
   return lambda *args, **kwargs: g(f(*args, **kwargs))
 
-def compose_basic(g: Callable, f: Callable) -> Callable:
+def compose_basic(g: Callable1, f: Callable1) -> Callable:
   return lambda arg: g(f(arg))
 
 def re_pred(rx_or_string: Union[re.Pattern, str]) -> PredicateBool:
@@ -134,23 +144,22 @@ def re_pred(rx_or_string: Union[re.Pattern, str]) -> PredicateBool:
     rx = re.compile(str(rx_or_string))
   return lambda x: re.match(rx, str(x)) is not None
 
-def op_pred(f: Callable, operator: str, b: Any) -> Optional[PredicateBool]:
+def op_pred(operator: str, b: Any) -> Optional[PredicateBool]:
   if operator in ('==', '='):
-    return lambda x: f(x) == b
+    return lambda a: a == b
   if operator in ("!="):
-    return lambda x: f(x) != b
+    return lambda a: a != b
   if operator in ("<"):
-    return lambda x: f(x) < b
+    return lambda a: a < b
   if operator in (">"):
-    return lambda x: f(x) > b
+    return lambda a: a > b
   if operator in ("<="):
-    return lambda x: f(x) <= b
+    return lambda a: a <= b
   if operator in (">="):
-    return lambda x: f(x) >= b
+    return lambda a: a >= b
   if operator in ("~=", "=~"):
-    pred = re_pred(f'.*{b}.*')
-    return lambda x: pred(f(x))
+    return re_pred(f'.*{b}.*')
   if operator in ("~!", "!~"):
     pred = re_pred(f'.*{b}.*')
-    return lambda x: not pred(f(x))
+    return lambda a: not pred(a)
   return None
