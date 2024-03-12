@@ -1,5 +1,11 @@
-from typing import Any, Union, List, Iterable, Callable
+from typing import Any, Optional, Union, List, Iterable, Callable
 import re
+
+Predicate = Callable[[Any], Any]
+PredicateBool = Callable[[Any], bool]
+
+def identity(x: Any) -> Any:
+  return x
 
 def constantly(x: Any) -> Callable:
   """
@@ -13,7 +19,22 @@ def constantly(x: Any) -> Callable:
   """
   return lambda *args, **kwargs: x
 
-def negate(f: Callable) -> Callable:
+def predicate(f: Callable) -> PredicateBool:
+  """
+  Returns a predicate function that takes any number of arguments and keyword arguments and returns a boolean value.
+  The returned function applies the given function `f` to the provided arguments and keyword arguments,
+  and returns the boolean value of the result.
+
+  Parameters:
+  - `f` (Callable): The function to be applied to the arguments and keyword arguments.
+
+  Returns:
+  - `PredicateBool`: A predicate function that takes any number of arguments and
+  keyword arguments and returns a boolean value.
+  """
+  return lambda *args, **kwargs: (not f(*args, **kwargs)) is False
+
+def negate(f: Callable) -> PredicateBool:
   """
   A function that takes a callable `f` and returns a new callable that negates the result of `f`.
 
@@ -24,6 +45,42 @@ def negate(f: Callable) -> Callable:
     - Callable: A new callable that negates the result of `f`.
   """
   return lambda *args, **kwargs: not f(*args, **kwargs)
+
+def and_comp(f: Callable, g: Callable) -> Callable:
+  """
+    A function that takes two callable objects, `f` and `g and returns a new callable object.
+    The returned callable object takes an input `x` and any additional positional or keyword arguments.
+    If `f(x)` is falsy it returns the result.
+    Otherwise it returns `g(x)`.
+  """
+  return lambda *args, **kwargs: f(*args, **kwargs) and g(*args, **kwargs)
+
+def or_comp(f: Callable, g: Callable) -> Callable:
+  """
+    A function that takes two callable objects, `f` and `g`, and returns a new callable object.
+    The returned callable object takes an input `x` and any additional positional or keyword arguments.
+    If `f(x)` is truthy it returns the result.
+    Otherwise it returns `g(x)`.
+  """
+  return lambda *args, **kwargs: f(*args, **kwargs) or g(*args, **kwargs)
+
+def if_comp(f: Callable, g: Callable, h: Callable) -> Callable:
+  return lambda *args, **kwargs: g(*args, **kwargs) if f(*args, **kwargs) else h(*args, **kwargs)
+
+def is_none(f: Callable) -> Predicate:
+  return lambda *args, **kwargs: f(*args, **kwargs) is None
+
+def is_not_none(f: Callable) -> Predicate:
+  """
+  Returns a predicate that checks if the result of applying the given function to the given arguments is not None.
+
+  :param f: A callable that takes in any number of positional and keyword arguments and returns a value.
+  :type f: Callable
+  :return: A predicate that takes in any number of positional and keyword arguments and
+  returns True if the result of applying the given function to the given arguments is not None, False otherwise.
+  :rtype: Predicate
+  """
+  return lambda *args, **kwargs: f(*args, **kwargs) is not None
 
 def compose(*funcs) -> Callable:
   """
@@ -59,7 +116,7 @@ def compose_2(g: Callable, f: Callable) -> Callable:
 def compose_basic(g: Callable, f: Callable) -> Callable:
   return lambda arg: g(f(arg))
 
-def re_pred(rx_or_string: Union[re.Pattern, str]) -> Callable[[str], bool]:
+def re_pred(rx_or_string: Union[re.Pattern, str]) -> PredicateBool:
   """
   A function that takes a regular expression pattern as input and returns a predicate function.
 
@@ -71,11 +128,29 @@ def re_pred(rx_or_string: Union[re.Pattern, str]) -> Callable[[str], bool]:
     returns True if the string matches the regular expression pattern, False otherwise.
   """
   rx: re.Pattern
-  if not isinstance(rx_or_string, re.Pattern):
-    rx = re.compile(str(rx_or_string))
-  else:
+  if isinstance(rx_or_string, re.Pattern):
     rx = rx_or_string
+  else:
+    rx = re.compile(str(rx_or_string))
+  return lambda x: re.match(rx, str(x)) is not None
 
-  def pred(x):
-    return re.match(rx, x) is not None
-  return pred
+def op_pred(f: Callable, operator: str, b: Any) -> Optional[PredicateBool]:
+  if operator in ('==', '='):
+    return lambda x: f(x) == b
+  if operator in ("!="):
+    return lambda x: f(x) != b
+  if operator in ("<"):
+    return lambda x: f(x) < b
+  if operator in (">"):
+    return lambda x: f(x) > b
+  if operator in ("<="):
+    return lambda x: f(x) <= b
+  if operator in (">="):
+    return lambda x: f(x) >= b
+  if operator in ("~=", "=~"):
+    pred = re_pred(f'.*{b}.*')
+    return lambda x: pred(f(x))
+  if operator in ("~!", "!~"):
+    pred = re_pred(f'.*{b}.*')
+    return lambda x: not pred(f(x))
+  return None
