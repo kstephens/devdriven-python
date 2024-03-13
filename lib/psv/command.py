@@ -26,8 +26,8 @@ def main_make_xform(main, klass_or_name: Union[str, Type], argv: Argv) -> Option
   assert main
   if desc := app.descriptor(klass_or_name):
     xform = desc.klass()
-    xform.set_main(main)
-    xform.set_name(desc.name)
+    xform.main = main
+    xform.name = desc.name
     xform.parse_argv(argv)
     return xform
   main.fatal(f'psv: unknown command {klass_or_name!r} : see {"psv help -s"!r}.')

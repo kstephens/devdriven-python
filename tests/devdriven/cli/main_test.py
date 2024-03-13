@@ -2,8 +2,9 @@ from devdriven.cli import Main, Command
 
 class MainTest(Main):
   def make_command(self, argv):
-    name = argv.pop(0)
-    return ExampleTest().parse_argv(argv).set_name(name)
+    instance = ExampleTest()
+    instance.name = argv.pop(0)
+    return instance.parse_argv(argv)
 
   def capture_exceptions(self, _command):
     return True

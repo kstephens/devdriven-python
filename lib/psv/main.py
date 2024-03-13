@@ -21,7 +21,9 @@ class Main(devdriven.cli.Main):
     return super().parse_argv(argv)
 
   def make_command(self, argv: Argv) -> devdriven.cli.Command:
-    cmd = Main.MainCommand().set_main(self).parse_argv(argv)
+    cmd = Main.MainCommand()
+    cmd.main = self
+    cmd.parse_argv(argv)
     cmd.env = self.env
     return cmd
 
@@ -37,7 +39,10 @@ class Main(devdriven.cli.Main):
     return self.stdout
 
   def parse_pipeline(self, name: str, argv: Argv) -> pipeline.Pipeline:
-    return pipeline.Pipeline().set_main(self).set_name(name).parse_argv(argv)
+    obj = pipeline.Pipeline()
+    obj.main = self
+    obj.name = name
+    return obj.parse_argv(argv)
 
   class MainCommand(devdriven.cli.Command):
     def __init__(self, *args):
@@ -51,9 +56,13 @@ class Main(devdriven.cli.Main):
       pipe = self.main.parse_pipeline('main', argv)
       if pipe.xforms:
         if not isinstance(pipe.xforms[0], io.IoIn):
-          pipe.xforms.insert(0, io.IoIn().set_main(self.main))
+          cmd = io.IoIn()
+          cmd.main = self.main
+          pipe.xforms.insert(0, cmd)
         if not isinstance(pipe.xforms[-1], io.IoOut):
-          pipe.xforms.append(io.IoOut().set_main(self.main))
+          cmd = io.IoOut()
+          cmd.main = self.main
+          pipe.xforms.append(cmd)
       self.pipeline = pipe
       return self
 

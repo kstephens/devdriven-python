@@ -42,14 +42,6 @@ class Command:
         self.args.append(arg)
     return self
 
-  def set_name(self, name: str) -> Self:
-    self.name = name
-    return self
-
-  def set_main(self, main) -> Self:
-    self.main = main
-    return self
-
   def set_opt(self, name: str, val: Any) -> None:
     key = self.opt_name_key(name)
     if self.opt_valid(key, val):
