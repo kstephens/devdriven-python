@@ -1,6 +1,5 @@
 import re
 import pandas as pd
-# from icecream import ic
 from .command import section, command
 from .formats import FormatIn, FormatOut
 
@@ -111,7 +110,6 @@ def format_rows(writeable, inp,
     writeable.write(row)
 
   assert columns
-  ic(columns)
   if header:
     format_row(columns)
   for _ind, row in inp.iterrows():
