@@ -23,20 +23,20 @@ $ psv in a.md // -md // csv
     lines = readable.read().decode('utf-8')
     lines = lines.split('\n')
     want_header = self.opt('header', True)
-    header = None
+    cols = None
     records = []
     for line in lines:
       line = line.strip()
       if re.match(r'^\|[-:]-.*?-[-:]\|$', line):
-        if not header and want_header:
-          header = records.pop(0)
+        if not cols and want_header:
+          cols = records.pop(0)
       elif line:
         line = re.sub(r'^\|\s*|\s*\|$', '', line)
         record = re.split(r'\s+\|\s+', line)
         records.append(record)
-    if not header and records:
-      header = [f'c{i}' for i in range(0, len(records[0]))]
-    return pd.DataFrame(data=records, columns=header)
+    if not cols and records:
+      cols = [f'c{i + 1}' for i in range(0, len(records[0]))]
+    return pd.DataFrame(data=records, columns=cols)
 
 
 @command
