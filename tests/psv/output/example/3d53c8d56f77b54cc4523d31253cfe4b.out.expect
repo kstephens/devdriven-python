@@ -1,0 +1,8 @@
+# 3d53c8d56f77b54cc4523d31253cfe4b
+$ psv in a.tsv // cut d '*' c:- // md
+| d     |   a | b   |
+|:------|----:|:----|
+| xspdf |   1 | b1  |
+| qwer  |   2 | b2  |
+| bixop |   3 | b3  |
+| zxy   |   1 | b4  |

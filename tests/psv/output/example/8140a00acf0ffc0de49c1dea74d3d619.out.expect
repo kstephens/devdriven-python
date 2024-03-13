@@ -1,0 +1,22 @@
+# 8140a00acf0ffc0de49c1dea74d3d619
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+| name            | dtype.name   |
+|:----------------|:-------------|
+| name            | object       |
+| dtype.name      | object       |
+| dtype.kind      | object       |
+| dtype.char      | object       |
+| dtype.num       | int64        |
+| dtype.str       | object       |
+| dtype.itemsize  | int64        |
+| dtype.byteorder | object       |
+| dtype.subdtype  | object       |
+| dtype.shape     | object       |
+| dtype.hasobject | bool         |
+| dtype.flags     | int64        |
+| dtype.isbuiltin | int64        |
+| dtype.isnative  | int64        |
+| dtype.descr     | object       |
+| dtype.alignment | int64        |
+| dtype.base      | object       |
+| dtype.metadata  | object       |

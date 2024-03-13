@@ -1,0 +1,18 @@
+# a9c05c64b1dd6e8fa1b3cdef00ed9156
+$ psv in a.csv // yaml
+- a: 1
+  b: b1
+  c: 23.763
+  d: xspdf
+- a: 2
+  b: b2
+  c: -98.73
+  d: qwer
+- a: 3
+  b: b3
+  c: 3451.0
+  d: bixop
+- a: 1
+  b: b4
+  c: 1.234
+  d: zxy

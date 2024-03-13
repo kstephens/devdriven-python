@@ -1,0 +1,7 @@
+# 1225a00d405942ff197c57f6a6f916a0
+$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+    index  Amount_count  Amount_sum  ...   Fee_std  Fee_max  Fee_skew
+0  Amount           7.0      210.13  ...       NaN      NaN       NaN
+1     Fee           NaN         NaN  ...  5.369561     15.0  2.527704
+
+[2 rows x 17 columns]

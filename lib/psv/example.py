@@ -1,8 +1,10 @@
+from typing import Any
 import re
 import os
 import subprocess
 import shlex
 from io import StringIO
+from dataclasses import dataclass
 # from icecream import ic
 from devdriven.cli.application import app
 from devdriven.util import cwd
@@ -37,14 +39,14 @@ class Example(Command):
     if self.opt('generate'):
       all_examples.set_data(self.generate_all())
     selected = self.find_examples(all_examples.data())
-    output = BroadcastIO()
-    output.push(StringIO())
-    self.print_examples(selected, output)
+    runner, output = self.make_runner()
+    runner.print_examples(selected)
     return output.pop().getvalue()
 
   def generate_all(self):
     all_examples = app.enumerate_examples()
-    self.run_examples(all_examples)
+    runner, _output = self.make_runner()
+    runner.run_examples(all_examples)
     return all_examples
 
   # pylint: disable-next=too-many-locals
@@ -83,79 +85,97 @@ class Example(Command):
     # ic(list(map(lambda sdc: (sdc.descriptor.name, sdc.example.command), result)))
     return result
 
-  def print_examples(self, examples: list, output: BroadcastIO):
+  def make_runner(self):
+    output = BroadcastIO()
+    output.push(StringIO())
+    return (ExampleRunner(output=output,
+                          main=self.main,
+                          run=self.opt('run')),
+            output)
+
+
+@dataclass
+class ExampleRunner:
+  output: BroadcastIO
+  main: Any
+  run: bool
+
+  def print_examples(self, examples: list):
     sec = cmd = None
     for sdc in examples:
       if sec != sdc.section.name:
         sec = sdc.section.name
-        output.print(header(f' {sec}  ', '='))
+        self.output.print(header(f' {sec}  ', '='))
       if cmd != sdc.descriptor.name:
         cmd = sdc.descriptor.name
-        output.print(header(f'    {cmd}    ', '-'))
-      self.print_example(sdc.example, output)
+        self.output.print(header(f'    {cmd}    ', '-'))
+      self.print_example(sdc.example)
 
-  def print_example(self, ex, output: BroadcastIO):
+  def print_example(self, ex):
     for comment in ex.comments:
-      output.print('# ' + comment)
-    output.print('$ ' + ex.command)
-    if self.opt('run'):
-      output.write(ex.output)
-    output.print('')
+      self.output.print('# ' + comment)
+    self.output.print('$ ' + ex.command)
+    if self.run:
+      self.output.write(ex.output)
+    self.output.print('')
 
   def run_examples(self, examples: list) -> StringIO:
-    os.environ['PSV_RAND_SEED'] = '12345678'
-    output = BroadcastIO()
-    output.push(StringIO())
+    self.output.push(StringIO())
     for sdc in examples:
-      output.push(StringIO())
-      self.run_example(sdc.example, output)
-      sdc.output = output.pop().getvalue()
+      self.output.push(StringIO())
+      self.run_example(sdc.example)
+      sdc.output = self.output.pop().getvalue()
       # ic(sdc.output)
-    return output.pop()
+    return self.output.pop()
 
-  def run_example(self, ex, output: BroadcastIO):
-    output.push(StringIO())
-    self.run_example_command(ex, output)
-    ex.output = output.pop().getvalue()
+  def run_example(self, ex):
+    self.output.push(StringIO())
+    self.run_example_command(ex)
+    ex.output = self.output.pop().getvalue()
     # ic(ex.output)
 
-  def run_example_command(self, ex, output: BroadcastIO):
-    with cwd(f'{self.main.root_dir}/example'):
-      tokens = shlex.split(ex.command)
-      shell_tokens = {'|', '>', '<', ';'}
-      shell_meta = [token for token in tokens if token in shell_tokens]
-      if re.match(r'^psv ', ex.command) and not shell_meta:
-        self.run_main(ex, output)
-      else:
-        self.run_command(ex, output)
+  def run_example_command(self, ex):
+    tokens = shlex.split(ex.command)
+    shell_tokens = {'|', '>', '<', ';'}
+    shell_meta = [token for token in tokens if token in shell_tokens]
+    if re.match(r'^psv ', ex.command) and not shell_meta:
+      self.run_main(ex, self.main.root_dir, self.main.bin_dir)
+    else:
+      self.run_command(ex, self.main.root_dir, self.main.bin_dir)
 
-  def run_main(self, ex, output: BroadcastIO):
-    cmd = ex.command
-    # logging.warning('run_main: %s', repr(cmd))
-    cmd_argv = shlex.split(cmd)
-    instance = self.main.__class__()
-    instance.stdout = instance.stderr = output
-    instance.prog_path = self.main.prog_path
-    result = instance.run(cmd_argv)
-    if result.exit_code != 0:
-      raise Exception(f'example run failed: {cmd}')
-    return result
+  def run_main(self, ex, root_dir, _bin_dir):
+    os.environ['PSV_RAND_SEED'] = '12345678'
+    with cwd(f'{root_dir}/example'):
+      cmd = ex.command
+      # logging.warning('run_main: %s', repr(cmd))
+      cmd_argv = shlex.split(cmd)
+      instance = self.main.__class__()
+      instance.stdout = instance.stderr = self.output
+      instance.prog_path = self.main.prog_path
+      result = instance.run(cmd_argv)
+      if result.exit_code != 0:
+        raise Exception(f'example run failed: {cmd}')
+      return result
 
-  def run_command(self, ex, output: BroadcastIO):
-    cmd = ex.command
-    # logging.warning('run_command: %s', repr(cmd))
-    env = os.environ
-    if env.get('PSV_RUNNING'):
-      return
-    env = env | {
-      "PSV_RUNNING": '1',
-      'PATH': f'{self.main.bin_dir}:{env["PATH"]}',
-    }
-    cmd = self.fix_command_line(cmd)
-    result = subprocess.run(cmd, check=True, shell=True, env=env, capture_output=True)
-    assert result.returncode == 0
-    output.write(result.stdout.decode('utf-8'))
-    output.write(result.stderr.decode('utf-8'))
+  def run_command(self, ex, root_dir, bin_dir):
+    os.environ['PSV_RAND_SEED'] = '12345678'
+    with cwd(f'{root_dir}/example'):
+      cmd = ex.command
+      # logging.warning('run_command: %s', repr(cmd))
+      env = os.environ
+      if env.get('PSV_RUNNING'):
+        return
+      env = env | {
+        "PSV_RUNNING": '1',
+        'PATH': f'{bin_dir}:{env["PATH"]}',
+        'LC_ALL': 'en_US.UTF-8',
+        'LC_COLLATE': 'C',
+      }
+      cmd = self.fix_command_line(cmd)
+      result = subprocess.run(cmd, check=True, shell=True, env=env, capture_output=True)
+      self.output.write(result.stdout.decode('utf-8'))
+      self.output.write(result.stderr.decode('utf-8'))
+      assert result.returncode == 0
 
   def fix_command_line(self, cmd):
     w3m_conf = devdriven.html.res_html.find(['w3m.conf'])

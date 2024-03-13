@@ -1,0 +1,7 @@
+# b1c98d7f6927696899cfa19cbdf41531
+$ psv in a.tsv // eval "return {'i': offset, 'd_length': 2}"
+   a   b         c      d  i  d_length
+0  1  b1    23.763  xspdf  0         2
+1  2  b2   -98.730   qwer  1         2
+2  3  b3  3451.000  bixop  2         2
+3  1  b4     1.234    zxy  3         2

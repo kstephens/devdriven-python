@@ -1,0 +1,7 @@
+# f08c7237d93b87bde1c709df464140fe
+$ psv in transfers.csv // count Payer // md
+| Payer   |   count |
+|:--------|--------:|
+| Alice   |       2 |
+| Bob     |       4 |
+| William |       1 |

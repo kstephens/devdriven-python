@@ -1,0 +1,2 @@
+# eb94fccca119cab4d52cce7441e9c381
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // csv- // o us-states.csv

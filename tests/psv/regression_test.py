@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 from devdriven.asserts import assert_command_output, log
+from devdriven.cli.application import app
 
 PROG = str(Path('bin/psv').absolute())
 
@@ -27,3 +28,4 @@ def test_example_r():
   assert_command_output('tests/psv/output/example-r',
                         command,
                         fix_line=fix_line, context_line=context_line)
+

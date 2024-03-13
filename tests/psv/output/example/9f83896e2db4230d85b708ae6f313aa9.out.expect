@@ -1,0 +1,8 @@
+# 9f83896e2db4230d85b708ae6f313aa9
+$ psv in https://tinyurl.com/4sscj338 // -tsv // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |

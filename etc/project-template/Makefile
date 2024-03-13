@@ -75,9 +75,11 @@ mypy:
 test: run-tests
 
 TESTS=
+PYTEST_OPTS=
+# PYTEST_OPTS=--capture=fd --show-capture
 run-tests:
 	rm -rf coverage/*
-	coverage run -m pytest --capture=fd --show-capture all $(TESTS) -vv -rpP
+	coverage run -m pytest $(PYTEST_OPTS) all $(TESTS) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json

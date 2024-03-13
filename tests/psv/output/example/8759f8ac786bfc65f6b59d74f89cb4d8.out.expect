@@ -1,0 +1,17 @@
+# 8759f8ac786bfc65f6b59d74f89cb4d8
+$ psv in a.tsv // stats // cols // cut name,dtype.name // md
+| name   | dtype.name   |
+|:-------|:-------------|
+| name   | object       |
+| count  | int64        |
+| first  | object       |
+| middle | object       |
+| last   | object       |
+| min    | object       |
+| mean   | float64      |
+| median | float64      |
+| max    | object       |
+| std    | float64      |
+| q25    | float64      |
+| q50    | float64      |
+| q75    | float64      |

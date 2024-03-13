@@ -1,0 +1,9 @@
+# 7fbbd6471ad3768cdc60a7ed7d2fe8c4
+$ psv in transfers.csv // count Payer,Payee // md
+| Payer   | Payee   |   count |
+|:--------|:--------|--------:|
+| Alice   | Frank   |       1 |
+| Alice   | Joe     |       1 |
+| Bob     | Alice   |       3 |
+| Bob     | Joe     |       1 |
+| William | Rich    |       1 |

@@ -10,12 +10,20 @@ def assert_command_output(file: str,
                           command: str,
                           fix_line: FilterFunc = None,
                           context_line: FilterFunc = None):
+  def run(actual_out):
+    system_command = f'exec 2>&1; set -x; {command} > {actual_out!r}'
+    os.system(system_command)
+    log(f'assert_command_output : {command!r}')
+  assert_output(file, run, fix_line, context_line)
+
+def assert_output(file: str,
+                  proc: Callable,
+                  fix_line: FilterFunc = None,
+                  context_line: FilterFunc = None):
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
-  system_command = f'exec 2>&1; set -x; {command} > {actual_out}'
-  os.system(system_command)
-  log(f'assert_command_output : {command!r}')
+  proc(actual_out)
   assert_files(actual_out, expect_out,
                fix_line=fix_line, context_line=context_line)
 

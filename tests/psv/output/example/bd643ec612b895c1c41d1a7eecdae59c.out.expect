@@ -1,0 +1,13 @@
+# bd643ec612b895c1c41d1a7eecdae59c
+$ psv in us-states-sample.csv // sort Population
+            State  Population
+8        Delaware   1,018,396
+9        Nebraska   1,967,923
+2        Illinois  12,582,032
+5        Arkansas   3,045,637
+6        Kentucky   4,512,310
+0         Alabama   5,074,296
+4  South Carolina   5,282,634
+7       Minnesota   5,717,184
+1        Maryland   6,164,660
+3      Washington   7,785,786

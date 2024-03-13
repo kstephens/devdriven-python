@@ -1,0 +1,7 @@
+# e8284f683b48c3828ffc051a8d465610
+$ psv in transfers.csv // summary Fee sum Payee
+   Payee  Fee_sum
+0  Alice    15.70
+1  Frank     1.01
+2    Joe     3.75
+3   Rich     0.25

@@ -1,0 +1,14 @@
+# 9b666fb27bf0e11f980503573bf79eec
+$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+| login   | c2                                                   |
+|:--------|:-----------------------------------------------------|
+| root    | :x:0:0:root:/root:/bin/bash                          |
+| daemon  | :x:1:1:daemon:/usr/sbin:/usr/sbin/nologin            |
+| bin     | :x:2:2:bin:/bin:/usr/sbin/nologin                    |
+| sys     | :x:3:3:sys:/dev:/usr/sbin/nologin                    |
+| games   | :x:5:60:games:/usr/games:/usr/sbin/nologin           |
+| man     | :x:6:12:man:/var/cache/man:/usr/sbin/nologin         |
+| mail    | :x:8:8:mail:/var/mail:/usr/sbin/nologin              |
+| backup  | :x:34:34:backup:/var/backups:/usr/sbin/nologin       |
+| nobody  | :x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin |
+| sshd    | :x:122:65534::/run/sshd:/usr/sbin/nologin            |

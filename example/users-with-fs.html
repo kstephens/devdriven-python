@@ -1,0 +1,3454 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style>
+/** generic *****************************************/
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #000;
+  color: #eee;
+}
+
+a:link {
+  color: inherit;
+  text-decoration: none;
+}
+a:active {
+  color: inherit;
+  text-decoration: none;
+}
+a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/** cx-content *****************************************/
+
+.cx-error {
+  background-color: #b08080;
+}
+
+.cx-title {
+  text-align: center;
+}
+div.cx-content {
+  display: inline-block;
+}
+
+/** cx-table *****************************************/
+
+table.cx-table {
+  border-collapse: collapse;
+  background-color: #000;
+}
+.cx-table thead th {
+  background-color: #333;
+  padding: 0.5rem 1rem;
+}
+.cx-table tr:nth-child(odd) {
+  background-color: #111;
+}
+.cx-table tr:nth-child(even) {
+  background-color: #222;
+}
+.cx-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #555;
+}
+.cx-table tr:hover td {
+  background-color: #444;
+}
+
+/** cell alignment *****************************************/
+
+.cx-numeric {
+  text-align: right;
+}
+.cx-right {
+  text-align: right;
+}
+.cx-left {
+  text-align: left;
+}
+.cx-center {
+  text-align: center;
+}
+
+/* https://css-tricks.com/position-sticky-and-table-headers/ */
+table.cx-table {
+  position: relative,
+}
+.cx-table .cx-thead {
+  position: sticky;
+  top: 0;
+}
+
+/** filtering  *****************************************/
+
+.cx-table .cx-filter-row {
+  position: sticky;
+  left: 0; /* needed for sticky? */
+}
+
+.cx-table .cx-filter-th {
+  position: sticky;
+  left: 0;
+}
+
+.cx-filter-input-span {
+  position: sticky;
+  left: 2em;
+  float: left;
+}
+
+.cx-filter-input {
+  width: 20em;
+}
+.cx-filter-input-clear {
+  background-color: inherit; /* black; */
+  color: red;
+  border: none;
+  padding: 2px 2px;
+  vertical-align: middle;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 80%;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+.cx-filter-row-count-span {
+  vertical-align: middle;
+  font-size: 80%;
+}
+
+/** footer  *****************************************/
+
+.cx-footer {
+  position: sticky;
+  left:  1em;
+}
+
+.cx-attribution {
+  font-style: italic;
+  font-size: 80%;
+}
+
+/** tooltip  *****************************************/
+/* https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_tooltip */
+
+.cx-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.cx-tooltip .cx-tooltip-body {
+  padding: 1em;
+  vertical-align: middle;
+  font-size: 80%;
+}
+
+.cx-tooltip .cx-tooltip-text {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 10;
+  top: 100%;
+  left: 100%;
+
+  text-align: left;
+  padding: 1.5em;
+
+  border: solid 0.5em;
+  border-color: rgba(80, 80, 80, 0.95);
+  background: rgba(25, 25, 25, 0.95);
+  color: #fff;
+  transition: opacity 0.3s;
+}
+
+.cx-tooltip .cx-tooltip-text::after {
+  content: "";
+}
+
+.cx-tooltip:hover .cx-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+</style>
+
+
+
+</head>
+<body>
+
+
+<div class="cx-content">
+<table id="cx-table" class="cx-table">
+
+<thead class="cx-thead">
+<tr class="cx-filter-row">
+  <th class="cx-filter-th" colspan="7">
+    <span class="cx-filter-input-span">
+      <input
+        type="text"
+        id="cx-filter-input"
+        class="cx-filter-input"
+        name="cx-filter-input"
+        onkeyup="cx_filter.filter_rows(event)"
+        placeholder="🔍 Filter..." />
+      <!-- Clear filter button: -->
+      <button class="cx-filter-input-clear" onclick="cx_filter.clear_filter()">X</button>
+      <span class="cx-filter-row-count-span">
+        <span class="cx-filter-matched-row-count">10</span>
+        &nbsp;/&nbsp;
+        <span class="cx-filter-row-count">10</span>
+      </span>
+    </span>
+  </th>
+</tr>
+
+<tr class="cx-columms">
+
+<th class="cx-column" title="name: c1; index: 1; type: UNKNOWN" data-column-index="1" data-filter-name="c1" data-filter-name-full="c1">c1</th>
+
+<th class="cx-column" title="name: c2; index: 2; type: UNKNOWN" data-column-index="2" data-filter-name="c2" data-filter-name-full="c2">c2</th>
+
+<th class="cx-column" title="name: c3; index: 3; type: UNKNOWN" data-column-index="3" data-filter-name="c3" data-filter-name-full="c3">c3</th>
+
+<th class="cx-column" title="name: c4; index: 4; type: UNKNOWN" data-column-index="4" data-filter-name="c4" data-filter-name-full="c4">c4</th>
+
+<th class="cx-column" title="name: c5; index: 5; type: UNKNOWN" data-column-index="5" data-filter-name="c5" data-filter-name-full="c5">c5</th>
+
+<th class="cx-column" title="name: c6; index: 6; type: UNKNOWN" data-column-index="6" data-filter-name="c6" data-filter-name-full="c6">c6</th>
+
+<th class="cx-column" title="name: c7; index: 7; type: UNKNOWN" data-column-index="7" data-filter-name="c7" data-filter-name-full="c7">c7</th>
+</tr>
+</thead>
+<tbody class="cx-tbody">
+
+  
+<tr title="1 / 10">
+
+<td title="1 / 10 - c1">root</td>
+
+<td title="1 / 10 - c2">x</td>
+
+<td title="1 / 10 - c3">0</td>
+
+<td title="1 / 10 - c4">0</td>
+
+<td title="1 / 10 - c5">root</td>
+
+<td title="1 / 10 - c6">/root</td>
+
+<td title="1 / 10 - c7">/bin/bash</td>
+</tr>
+  
+<tr title="2 / 10">
+
+<td title="2 / 10 - c1">daemon</td>
+
+<td title="2 / 10 - c2">x</td>
+
+<td title="2 / 10 - c3">1</td>
+
+<td title="2 / 10 - c4">1</td>
+
+<td title="2 / 10 - c5">daemon</td>
+
+<td title="2 / 10 - c6">/usr/sbin</td>
+
+<td title="2 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="3 / 10">
+
+<td title="3 / 10 - c1">bin</td>
+
+<td title="3 / 10 - c2">x</td>
+
+<td title="3 / 10 - c3">2</td>
+
+<td title="3 / 10 - c4">2</td>
+
+<td title="3 / 10 - c5">bin</td>
+
+<td title="3 / 10 - c6">/bin</td>
+
+<td title="3 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="4 / 10">
+
+<td title="4 / 10 - c1">sys</td>
+
+<td title="4 / 10 - c2">x</td>
+
+<td title="4 / 10 - c3">3</td>
+
+<td title="4 / 10 - c4">3</td>
+
+<td title="4 / 10 - c5">sys</td>
+
+<td title="4 / 10 - c6">/dev</td>
+
+<td title="4 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="5 / 10">
+
+<td title="5 / 10 - c1">games</td>
+
+<td title="5 / 10 - c2">x</td>
+
+<td title="5 / 10 - c3">5</td>
+
+<td title="5 / 10 - c4">60</td>
+
+<td title="5 / 10 - c5">games</td>
+
+<td title="5 / 10 - c6">/usr/games</td>
+
+<td title="5 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="6 / 10">
+
+<td title="6 / 10 - c1">man</td>
+
+<td title="6 / 10 - c2">x</td>
+
+<td title="6 / 10 - c3">6</td>
+
+<td title="6 / 10 - c4">12</td>
+
+<td title="6 / 10 - c5">man</td>
+
+<td title="6 / 10 - c6">/var/cache/man</td>
+
+<td title="6 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="7 / 10">
+
+<td title="7 / 10 - c1">mail</td>
+
+<td title="7 / 10 - c2">x</td>
+
+<td title="7 / 10 - c3">8</td>
+
+<td title="7 / 10 - c4">8</td>
+
+<td title="7 / 10 - c5">mail</td>
+
+<td title="7 / 10 - c6">/var/mail</td>
+
+<td title="7 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="8 / 10">
+
+<td title="8 / 10 - c1">backup</td>
+
+<td title="8 / 10 - c2">x</td>
+
+<td title="8 / 10 - c3">34</td>
+
+<td title="8 / 10 - c4">34</td>
+
+<td title="8 / 10 - c5">backup</td>
+
+<td title="8 / 10 - c6">/var/backups</td>
+
+<td title="8 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="9 / 10">
+
+<td title="9 / 10 - c1">nobody</td>
+
+<td title="9 / 10 - c2">x</td>
+
+<td title="9 / 10 - c3">65534</td>
+
+<td title="9 / 10 - c4">65534</td>
+
+<td title="9 / 10 - c5">nobody</td>
+
+<td title="9 / 10 - c6">/nonexistent</td>
+
+<td title="9 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+  
+<tr title="10 / 10">
+
+<td title="10 / 10 - c1">sshd</td>
+
+<td title="10 / 10 - c2">x</td>
+
+<td title="10 / 10 - c3">122</td>
+
+<td title="10 / 10 - c4">65534</td>
+
+<td title="10 / 10 - c5"></td>
+
+<td title="10 / 10 - c6">/run/sshd</td>
+
+<td title="10 / 10 - c7">/usr/sbin/nologin</td>
+</tr>
+</tbody>
+
+</table>
+</div>
+<div class="cx-footer">
+
+
+
+
+</div>
+</body>
+</html>
+<script>
+/* Zepto v1.2.0 - zepto event ajax form ie - zeptojs.com/license */
+(function(global, factory) {
+  if (typeof define === 'function' && define.amd)
+    define(function() { return factory(global) })
+  else
+    factory(global)
+}(this, function(window) {
+  var Zepto = (function() {
+  var undefined, key, $, classList, emptyArray = [], concat = emptyArray.concat, filter = emptyArray.filter, slice = emptyArray.slice,
+    document = window.document,
+    elementDisplay = {}, classCache = {},
+    cssNumber = { 'column-count': 1, 'columns': 1, 'font-weight': 1, 'line-height': 1,'opacity': 1, 'z-index': 1, 'zoom': 1 },
+    fragmentRE = /^\s*<(\w+|!)[^>]*>/,
+    singleTagRE = /^<(\w+)\s*\/?>(?:<\/\1>|)$/,
+    tagExpanderRE = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/ig,
+    rootNodeRE = /^(?:body|html)$/i,
+    capitalRE = /([A-Z])/g,
+
+    // special attributes that should be get/set via method calls
+    methodAttributes = ['val', 'css', 'html', 'text', 'data', 'width', 'height', 'offset'],
+
+    adjacencyOperators = [ 'after', 'prepend', 'before', 'append' ],
+    table = document.createElement('table'),
+    tableRow = document.createElement('tr'),
+    containers = {
+      'tr': document.createElement('tbody'),
+      'tbody': table, 'thead': table, 'tfoot': table,
+      'td': tableRow, 'th': tableRow,
+      '*': document.createElement('div')
+    },
+    readyRE = /complete|loaded|interactive/,
+    simpleSelectorRE = /^[\w-]*$/,
+    class2type = {},
+    toString = class2type.toString,
+    zepto = {},
+    camelize, uniq,
+    tempParent = document.createElement('div'),
+    propMap = {
+      'tabindex': 'tabIndex',
+      'readonly': 'readOnly',
+      'for': 'htmlFor',
+      'class': 'className',
+      'maxlength': 'maxLength',
+      'cellspacing': 'cellSpacing',
+      'cellpadding': 'cellPadding',
+      'rowspan': 'rowSpan',
+      'colspan': 'colSpan',
+      'usemap': 'useMap',
+      'frameborder': 'frameBorder',
+      'contenteditable': 'contentEditable'
+    },
+    isArray = Array.isArray ||
+      function(object){ return object instanceof Array }
+
+  zepto.matches = function(element, selector) {
+    if (!selector || !element || element.nodeType !== 1) return false
+    var matchesSelector = element.matches || element.webkitMatchesSelector ||
+                          element.mozMatchesSelector || element.oMatchesSelector ||
+                          element.matchesSelector
+    if (matchesSelector) return matchesSelector.call(element, selector)
+    // fall back to performing a selector:
+    var match, parent = element.parentNode, temp = !parent
+    if (temp) (parent = tempParent).appendChild(element)
+    match = ~zepto.qsa(parent, selector).indexOf(element)
+    temp && tempParent.removeChild(element)
+    return match
+  }
+
+  function type(obj) {
+    return obj == null ? String(obj) :
+      class2type[toString.call(obj)] || "object"
+  }
+
+  function isFunction(value) { return type(value) == "function" }
+  function isWindow(obj)     { return obj != null && obj == obj.window }
+  function isDocument(obj)   { return obj != null && obj.nodeType == obj.DOCUMENT_NODE }
+  function isObject(obj)     { return type(obj) == "object" }
+  function isPlainObject(obj) {
+    return isObject(obj) && !isWindow(obj) && Object.getPrototypeOf(obj) == Object.prototype
+  }
+
+  function likeArray(obj) {
+    var length = !!obj && 'length' in obj && obj.length,
+      type = $.type(obj)
+
+    return 'function' != type && !isWindow(obj) && (
+      'array' == type || length === 0 ||
+        (typeof length == 'number' && length > 0 && (length - 1) in obj)
+    )
+  }
+
+  function compact(array) { return filter.call(array, function(item){ return item != null }) }
+  function flatten(array) { return array.length > 0 ? $.fn.concat.apply([], array) : array }
+  camelize = function(str){ return str.replace(/-+(.)?/g, function(match, chr){ return chr ? chr.toUpperCase() : '' }) }
+  function dasherize(str) {
+    return str.replace(/::/g, '/')
+           .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+           .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+           .replace(/_/g, '-')
+           .toLowerCase()
+  }
+  uniq = function(array){ return filter.call(array, function(item, idx){ return array.indexOf(item) == idx }) }
+
+  function classRE(name) {
+    return name in classCache ?
+      classCache[name] : (classCache[name] = new RegExp('(^|\\s)' + name + '(\\s|$)'))
+  }
+
+  function maybeAddPx(name, value) {
+    return (typeof value == "number" && !cssNumber[dasherize(name)]) ? value + "px" : value
+  }
+
+  function defaultDisplay(nodeName) {
+    var element, display
+    if (!elementDisplay[nodeName]) {
+      element = document.createElement(nodeName)
+      document.body.appendChild(element)
+      display = getComputedStyle(element, '').getPropertyValue("display")
+      element.parentNode.removeChild(element)
+      display == "none" && (display = "block")
+      elementDisplay[nodeName] = display
+    }
+    return elementDisplay[nodeName]
+  }
+
+  function children(element) {
+    return 'children' in element ?
+      slice.call(element.children) :
+      $.map(element.childNodes, function(node){ if (node.nodeType == 1) return node })
+  }
+
+  function Z(dom, selector) {
+    var i, len = dom ? dom.length : 0
+    for (i = 0; i < len; i++) this[i] = dom[i]
+    this.length = len
+    this.selector = selector || ''
+  }
+
+  // `$.zepto.fragment` takes a html string and an optional tag name
+  // to generate DOM nodes from the given html string.
+  // The generated DOM nodes are returned as an array.
+  // This function can be overridden in plugins for example to make
+  // it compatible with browsers that don't support the DOM fully.
+  zepto.fragment = function(html, name, properties) {
+    var dom, nodes, container
+
+    // A special case optimization for a single tag
+    if (singleTagRE.test(html)) dom = $(document.createElement(RegExp.$1))
+
+    if (!dom) {
+      if (html.replace) html = html.replace(tagExpanderRE, "<$1></$2>")
+      if (name === undefined) name = fragmentRE.test(html) && RegExp.$1
+      if (!(name in containers)) name = '*'
+
+      container = containers[name]
+      container.innerHTML = '' + html
+      dom = $.each(slice.call(container.childNodes), function(){
+        container.removeChild(this)
+      })
+    }
+
+    if (isPlainObject(properties)) {
+      nodes = $(dom)
+      $.each(properties, function(key, value) {
+        if (methodAttributes.indexOf(key) > -1) nodes[key](value)
+        else nodes.attr(key, value)
+      })
+    }
+
+    return dom
+  }
+
+  // `$.zepto.Z` swaps out the prototype of the given `dom` array
+  // of nodes with `$.fn` and thus supplying all the Zepto functions
+  // to the array. This method can be overridden in plugins.
+  zepto.Z = function(dom, selector) {
+    return new Z(dom, selector)
+  }
+
+  // `$.zepto.isZ` should return `true` if the given object is a Zepto
+  // collection. This method can be overridden in plugins.
+  zepto.isZ = function(object) {
+    return object instanceof zepto.Z
+  }
+
+  // `$.zepto.init` is Zepto's counterpart to jQuery's `$.fn.init` and
+  // takes a CSS selector and an optional context (and handles various
+  // special cases).
+  // This method can be overridden in plugins.
+  zepto.init = function(selector, context) {
+    var dom
+    // If nothing given, return an empty Zepto collection
+    if (!selector) return zepto.Z()
+    // Optimize for string selectors
+    else if (typeof selector == 'string') {
+      selector = selector.trim()
+      // If it's a html fragment, create nodes from it
+      // Note: In both Chrome 21 and Firefox 15, DOM error 12
+      // is thrown if the fragment doesn't begin with <
+      if (selector[0] == '<' && fragmentRE.test(selector))
+        dom = zepto.fragment(selector, RegExp.$1, context), selector = null
+      // If there's a context, create a collection on that context first, and select
+      // nodes from there
+      else if (context !== undefined) return $(context).find(selector)
+      // If it's a CSS selector, use it to select nodes.
+      else dom = zepto.qsa(document, selector)
+    }
+    // If a function is given, call it when the DOM is ready
+    else if (isFunction(selector)) return $(document).ready(selector)
+    // If a Zepto collection is given, just return it
+    else if (zepto.isZ(selector)) return selector
+    else {
+      // normalize array if an array of nodes is given
+      if (isArray(selector)) dom = compact(selector)
+      // Wrap DOM nodes.
+      else if (isObject(selector))
+        dom = [selector], selector = null
+      // If it's a html fragment, create nodes from it
+      else if (fragmentRE.test(selector))
+        dom = zepto.fragment(selector.trim(), RegExp.$1, context), selector = null
+      // If there's a context, create a collection on that context first, and select
+      // nodes from there
+      else if (context !== undefined) return $(context).find(selector)
+      // And last but no least, if it's a CSS selector, use it to select nodes.
+      else dom = zepto.qsa(document, selector)
+    }
+    // create a new Zepto collection from the nodes found
+    return zepto.Z(dom, selector)
+  }
+
+  // `$` will be the base `Zepto` object. When calling this
+  // function just call `$.zepto.init, which makes the implementation
+  // details of selecting nodes and creating Zepto collections
+  // patchable in plugins.
+  $ = function(selector, context){
+    return zepto.init(selector, context)
+  }
+
+  function extend(target, source, deep) {
+    for (key in source)
+      if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
+        if (isPlainObject(source[key]) && !isPlainObject(target[key]))
+          target[key] = {}
+        if (isArray(source[key]) && !isArray(target[key]))
+          target[key] = []
+        extend(target[key], source[key], deep)
+      }
+      else if (source[key] !== undefined) target[key] = source[key]
+  }
+
+  // Copy all but undefined properties from one or more
+  // objects to the `target` object.
+  $.extend = function(target){
+    var deep, args = slice.call(arguments, 1)
+    if (typeof target == 'boolean') {
+      deep = target
+      target = args.shift()
+    }
+    args.forEach(function(arg){ extend(target, arg, deep) })
+    return target
+  }
+
+  // `$.zepto.qsa` is Zepto's CSS selector implementation which
+  // uses `document.querySelectorAll` and optimizes for some special cases, like `#id`.
+  // This method can be overridden in plugins.
+  zepto.qsa = function(element, selector){
+    var found,
+        maybeID = selector[0] == '#',
+        maybeClass = !maybeID && selector[0] == '.',
+        nameOnly = maybeID || maybeClass ? selector.slice(1) : selector, // Ensure that a 1 char tag name still gets checked
+        isSimple = simpleSelectorRE.test(nameOnly)
+    return (element.getElementById && isSimple && maybeID) ? // Safari DocumentFragment doesn't have getElementById
+      ( (found = element.getElementById(nameOnly)) ? [found] : [] ) :
+      (element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11) ? [] :
+      slice.call(
+        isSimple && !maybeID && element.getElementsByClassName ? // DocumentFragment doesn't have getElementsByClassName/TagName
+          maybeClass ? element.getElementsByClassName(nameOnly) : // If it's simple, it could be a class
+          element.getElementsByTagName(selector) : // Or a tag
+          element.querySelectorAll(selector) // Or it's not simple, and we need to query all
+      )
+  }
+
+  function filtered(nodes, selector) {
+    return selector == null ? $(nodes) : $(nodes).filter(selector)
+  }
+
+  $.contains = document.documentElement.contains ?
+    function(parent, node) {
+      return parent !== node && parent.contains(node)
+    } :
+    function(parent, node) {
+      while (node && (node = node.parentNode))
+        if (node === parent) return true
+      return false
+    }
+
+  function funcArg(context, arg, idx, payload) {
+    return isFunction(arg) ? arg.call(context, idx, payload) : arg
+  }
+
+  function setAttribute(node, name, value) {
+    value == null ? node.removeAttribute(name) : node.setAttribute(name, value)
+  }
+
+  // access className property while respecting SVGAnimatedString
+  function className(node, value){
+    var klass = node.className || '',
+        svg   = klass && klass.baseVal !== undefined
+
+    if (value === undefined) return svg ? klass.baseVal : klass
+    svg ? (klass.baseVal = value) : (node.className = value)
+  }
+
+  // "true"  => true
+  // "false" => false
+  // "null"  => null
+  // "42"    => 42
+  // "42.5"  => 42.5
+  // "08"    => "08"
+  // JSON    => parse if valid
+  // String  => self
+  function deserializeValue(value) {
+    try {
+      return value ?
+        value == "true" ||
+        ( value == "false" ? false :
+          value == "null" ? null :
+          +value + "" == value ? +value :
+          /^[\[\{]/.test(value) ? $.parseJSON(value) :
+          value )
+        : value
+    } catch(e) {
+      return value
+    }
+  }
+
+  $.type = type
+  $.isFunction = isFunction
+  $.isWindow = isWindow
+  $.isArray = isArray
+  $.isPlainObject = isPlainObject
+
+  $.isEmptyObject = function(obj) {
+    var name
+    for (name in obj) return false
+    return true
+  }
+
+  $.isNumeric = function(val) {
+    var num = Number(val), type = typeof val
+    return val != null && type != 'boolean' &&
+      (type != 'string' || val.length) &&
+      !isNaN(num) && isFinite(num) || false
+  }
+
+  $.inArray = function(elem, array, i){
+    return emptyArray.indexOf.call(array, elem, i)
+  }
+
+  $.camelCase = camelize
+  $.trim = function(str) {
+    return str == null ? "" : String.prototype.trim.call(str)
+  }
+
+  // plugin compatibility
+  $.uuid = 0
+  $.support = { }
+  $.expr = { }
+  $.noop = function() {}
+
+  $.map = function(elements, callback){
+    var value, values = [], i, key
+    if (likeArray(elements))
+      for (i = 0; i < elements.length; i++) {
+        value = callback(elements[i], i)
+        if (value != null) values.push(value)
+      }
+    else
+      for (key in elements) {
+        value = callback(elements[key], key)
+        if (value != null) values.push(value)
+      }
+    return flatten(values)
+  }
+
+  $.each = function(elements, callback){
+    var i, key
+    if (likeArray(elements)) {
+      for (i = 0; i < elements.length; i++)
+        if (callback.call(elements[i], i, elements[i]) === false) return elements
+    } else {
+      for (key in elements)
+        if (callback.call(elements[key], key, elements[key]) === false) return elements
+    }
+
+    return elements
+  }
+
+  $.grep = function(elements, callback){
+    return filter.call(elements, callback)
+  }
+
+  if (window.JSON) $.parseJSON = JSON.parse
+
+  // Populate the class2type map
+  $.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
+    class2type[ "[object " + name + "]" ] = name.toLowerCase()
+  })
+
+  // Define methods that will be available on all
+  // Zepto collections
+  $.fn = {
+    constructor: zepto.Z,
+    length: 0,
+
+    // Because a collection acts like an array
+    // copy over these useful array functions.
+    forEach: emptyArray.forEach,
+    reduce: emptyArray.reduce,
+    push: emptyArray.push,
+    sort: emptyArray.sort,
+    splice: emptyArray.splice,
+    indexOf: emptyArray.indexOf,
+    concat: function(){
+      var i, value, args = []
+      for (i = 0; i < arguments.length; i++) {
+        value = arguments[i]
+        args[i] = zepto.isZ(value) ? value.toArray() : value
+      }
+      return concat.apply(zepto.isZ(this) ? this.toArray() : this, args)
+    },
+
+    // `map` and `slice` in the jQuery API work differently
+    // from their array counterparts
+    map: function(fn){
+      return $($.map(this, function(el, i){ return fn.call(el, i, el) }))
+    },
+    slice: function(){
+      return $(slice.apply(this, arguments))
+    },
+
+    ready: function(callback){
+      // need to check if document.body exists for IE as that browser reports
+      // document ready when it hasn't yet created the body element
+      if (readyRE.test(document.readyState) && document.body) callback($)
+      else document.addEventListener('DOMContentLoaded', function(){ callback($) }, false)
+      return this
+    },
+    get: function(idx){
+      return idx === undefined ? slice.call(this) : this[idx >= 0 ? idx : idx + this.length]
+    },
+    toArray: function(){ return this.get() },
+    size: function(){
+      return this.length
+    },
+    remove: function(){
+      return this.each(function(){
+        if (this.parentNode != null)
+          this.parentNode.removeChild(this)
+      })
+    },
+    each: function(callback){
+      emptyArray.every.call(this, function(el, idx){
+        return callback.call(el, idx, el) !== false
+      })
+      return this
+    },
+    filter: function(selector){
+      if (isFunction(selector)) return this.not(this.not(selector))
+      return $(filter.call(this, function(element){
+        return zepto.matches(element, selector)
+      }))
+    },
+    add: function(selector,context){
+      return $(uniq(this.concat($(selector,context))))
+    },
+    is: function(selector){
+      return this.length > 0 && zepto.matches(this[0], selector)
+    },
+    not: function(selector){
+      var nodes=[]
+      if (isFunction(selector) && selector.call !== undefined)
+        this.each(function(idx){
+          if (!selector.call(this,idx)) nodes.push(this)
+        })
+      else {
+        var excludes = typeof selector == 'string' ? this.filter(selector) :
+          (likeArray(selector) && isFunction(selector.item)) ? slice.call(selector) : $(selector)
+        this.forEach(function(el){
+          if (excludes.indexOf(el) < 0) nodes.push(el)
+        })
+      }
+      return $(nodes)
+    },
+    has: function(selector){
+      return this.filter(function(){
+        return isObject(selector) ?
+          $.contains(this, selector) :
+          $(this).find(selector).size()
+      })
+    },
+    eq: function(idx){
+      return idx === -1 ? this.slice(idx) : this.slice(idx, + idx + 1)
+    },
+    first: function(){
+      var el = this[0]
+      return el && !isObject(el) ? el : $(el)
+    },
+    last: function(){
+      var el = this[this.length - 1]
+      return el && !isObject(el) ? el : $(el)
+    },
+    find: function(selector){
+      var result, $this = this
+      if (!selector) result = $()
+      else if (typeof selector == 'object')
+        result = $(selector).filter(function(){
+          var node = this
+          return emptyArray.some.call($this, function(parent){
+            return $.contains(parent, node)
+          })
+        })
+      else if (this.length == 1) result = $(zepto.qsa(this[0], selector))
+      else result = this.map(function(){ return zepto.qsa(this, selector) })
+      return result
+    },
+    closest: function(selector, context){
+      var nodes = [], collection = typeof selector == 'object' && $(selector)
+      this.each(function(_, node){
+        while (node && !(collection ? collection.indexOf(node) >= 0 : zepto.matches(node, selector)))
+          node = node !== context && !isDocument(node) && node.parentNode
+        if (node && nodes.indexOf(node) < 0) nodes.push(node)
+      })
+      return $(nodes)
+    },
+    parents: function(selector){
+      var ancestors = [], nodes = this
+      while (nodes.length > 0)
+        nodes = $.map(nodes, function(node){
+          if ((node = node.parentNode) && !isDocument(node) && ancestors.indexOf(node) < 0) {
+            ancestors.push(node)
+            return node
+          }
+        })
+      return filtered(ancestors, selector)
+    },
+    parent: function(selector){
+      return filtered(uniq(this.pluck('parentNode')), selector)
+    },
+    children: function(selector){
+      return filtered(this.map(function(){ return children(this) }), selector)
+    },
+    contents: function() {
+      return this.map(function() { return this.contentDocument || slice.call(this.childNodes) })
+    },
+    siblings: function(selector){
+      return filtered(this.map(function(i, el){
+        return filter.call(children(el.parentNode), function(child){ return child!==el })
+      }), selector)
+    },
+    empty: function(){
+      return this.each(function(){ this.innerHTML = '' })
+    },
+    // `pluck` is borrowed from Prototype.js
+    pluck: function(property){
+      return $.map(this, function(el){ return el[property] })
+    },
+    show: function(){
+      return this.each(function(){
+        this.style.display == "none" && (this.style.display = '')
+        if (getComputedStyle(this, '').getPropertyValue("display") == "none")
+          this.style.display = defaultDisplay(this.nodeName)
+      })
+    },
+    replaceWith: function(newContent){
+      return this.before(newContent).remove()
+    },
+    wrap: function(structure){
+      var func = isFunction(structure)
+      if (this[0] && !func)
+        var dom   = $(structure).get(0),
+            clone = dom.parentNode || this.length > 1
+
+      return this.each(function(index){
+        $(this).wrapAll(
+          func ? structure.call(this, index) :
+            clone ? dom.cloneNode(true) : dom
+        )
+      })
+    },
+    wrapAll: function(structure){
+      if (this[0]) {
+        $(this[0]).before(structure = $(structure))
+        var children
+        // drill down to the inmost element
+        while ((children = structure.children()).length) structure = children.first()
+        $(structure).append(this)
+      }
+      return this
+    },
+    wrapInner: function(structure){
+      var func = isFunction(structure)
+      return this.each(function(index){
+        var self = $(this), contents = self.contents(),
+            dom  = func ? structure.call(this, index) : structure
+        contents.length ? contents.wrapAll(dom) : self.append(dom)
+      })
+    },
+    unwrap: function(){
+      this.parent().each(function(){
+        $(this).replaceWith($(this).children())
+      })
+      return this
+    },
+    clone: function(){
+      return this.map(function(){ return this.cloneNode(true) })
+    },
+    hide: function(){
+      return this.css("display", "none")
+    },
+    toggle: function(setting){
+      return this.each(function(){
+        var el = $(this)
+        ;(setting === undefined ? el.css("display") == "none" : setting) ? el.show() : el.hide()
+      })
+    },
+    prev: function(selector){ return $(this.pluck('previousElementSibling')).filter(selector || '*') },
+    next: function(selector){ return $(this.pluck('nextElementSibling')).filter(selector || '*') },
+    html: function(html){
+      return 0 in arguments ?
+        this.each(function(idx){
+          var originHtml = this.innerHTML
+          $(this).empty().append( funcArg(this, html, idx, originHtml) )
+        }) :
+        (0 in this ? this[0].innerHTML : null)
+    },
+    text: function(text){
+      return 0 in arguments ?
+        this.each(function(idx){
+          var newText = funcArg(this, text, idx, this.textContent)
+          this.textContent = newText == null ? '' : ''+newText
+        }) :
+        (0 in this ? this.pluck('textContent').join("") : null)
+    },
+    attr: function(name, value){
+      var result
+      return (typeof name == 'string' && !(1 in arguments)) ?
+        (0 in this && this[0].nodeType == 1 && (result = this[0].getAttribute(name)) != null ? result : undefined) :
+        this.each(function(idx){
+          if (this.nodeType !== 1) return
+          if (isObject(name)) for (key in name) setAttribute(this, key, name[key])
+          else setAttribute(this, name, funcArg(this, value, idx, this.getAttribute(name)))
+        })
+    },
+    removeAttr: function(name){
+      return this.each(function(){ this.nodeType === 1 && name.split(' ').forEach(function(attribute){
+        setAttribute(this, attribute)
+      }, this)})
+    },
+    prop: function(name, value){
+      name = propMap[name] || name
+      return (1 in arguments) ?
+        this.each(function(idx){
+          this[name] = funcArg(this, value, idx, this[name])
+        }) :
+        (this[0] && this[0][name])
+    },
+    removeProp: function(name){
+      name = propMap[name] || name
+      return this.each(function(){ delete this[name] })
+    },
+    data: function(name, value){
+      var attrName = 'data-' + name.replace(capitalRE, '-$1').toLowerCase()
+
+      var data = (1 in arguments) ?
+        this.attr(attrName, value) :
+        this.attr(attrName)
+
+      return data !== null ? deserializeValue(data) : undefined
+    },
+    val: function(value){
+      if (0 in arguments) {
+        if (value == null) value = ""
+        return this.each(function(idx){
+          this.value = funcArg(this, value, idx, this.value)
+        })
+      } else {
+        return this[0] && (this[0].multiple ?
+           $(this[0]).find('option').filter(function(){ return this.selected }).pluck('value') :
+           this[0].value)
+      }
+    },
+    offset: function(coordinates){
+      if (coordinates) return this.each(function(index){
+        var $this = $(this),
+            coords = funcArg(this, coordinates, index, $this.offset()),
+            parentOffset = $this.offsetParent().offset(),
+            props = {
+              top:  coords.top  - parentOffset.top,
+              left: coords.left - parentOffset.left
+            }
+
+        if ($this.css('position') == 'static') props['position'] = 'relative'
+        $this.css(props)
+      })
+      if (!this.length) return null
+      if (document.documentElement !== this[0] && !$.contains(document.documentElement, this[0]))
+        return {top: 0, left: 0}
+      var obj = this[0].getBoundingClientRect()
+      return {
+        left: obj.left + window.pageXOffset,
+        top: obj.top + window.pageYOffset,
+        width: Math.round(obj.width),
+        height: Math.round(obj.height)
+      }
+    },
+    css: function(property, value){
+      if (arguments.length < 2) {
+        var element = this[0]
+        if (typeof property == 'string') {
+          if (!element) return
+          return element.style[camelize(property)] || getComputedStyle(element, '').getPropertyValue(property)
+        } else if (isArray(property)) {
+          if (!element) return
+          var props = {}
+          var computedStyle = getComputedStyle(element, '')
+          $.each(property, function(_, prop){
+            props[prop] = (element.style[camelize(prop)] || computedStyle.getPropertyValue(prop))
+          })
+          return props
+        }
+      }
+
+      var css = ''
+      if (type(property) == 'string') {
+        if (!value && value !== 0)
+          this.each(function(){ this.style.removeProperty(dasherize(property)) })
+        else
+          css = dasherize(property) + ":" + maybeAddPx(property, value)
+      } else {
+        for (key in property)
+          if (!property[key] && property[key] !== 0)
+            this.each(function(){ this.style.removeProperty(dasherize(key)) })
+          else
+            css += dasherize(key) + ':' + maybeAddPx(key, property[key]) + ';'
+      }
+
+      return this.each(function(){ this.style.cssText += ';' + css })
+    },
+    index: function(element){
+      return element ? this.indexOf($(element)[0]) : this.parent().children().indexOf(this[0])
+    },
+    hasClass: function(name){
+      if (!name) return false
+      return emptyArray.some.call(this, function(el){
+        return this.test(className(el))
+      }, classRE(name))
+    },
+    addClass: function(name){
+      if (!name) return this
+      return this.each(function(idx){
+        if (!('className' in this)) return
+        classList = []
+        var cls = className(this), newName = funcArg(this, name, idx, cls)
+        newName.split(/\s+/g).forEach(function(klass){
+          if (!$(this).hasClass(klass)) classList.push(klass)
+        }, this)
+        classList.length && className(this, cls + (cls ? " " : "") + classList.join(" "))
+      })
+    },
+    removeClass: function(name){
+      return this.each(function(idx){
+        if (!('className' in this)) return
+        if (name === undefined) return className(this, '')
+        classList = className(this)
+        funcArg(this, name, idx, classList).split(/\s+/g).forEach(function(klass){
+          classList = classList.replace(classRE(klass), " ")
+        })
+        className(this, classList.trim())
+      })
+    },
+    toggleClass: function(name, when){
+      if (!name) return this
+      return this.each(function(idx){
+        var $this = $(this), names = funcArg(this, name, idx, className(this))
+        names.split(/\s+/g).forEach(function(klass){
+          (when === undefined ? !$this.hasClass(klass) : when) ?
+            $this.addClass(klass) : $this.removeClass(klass)
+        })
+      })
+    },
+    scrollTop: function(value){
+      if (!this.length) return
+      var hasScrollTop = 'scrollTop' in this[0]
+      if (value === undefined) return hasScrollTop ? this[0].scrollTop : this[0].pageYOffset
+      return this.each(hasScrollTop ?
+        function(){ this.scrollTop = value } :
+        function(){ this.scrollTo(this.scrollX, value) })
+    },
+    scrollLeft: function(value){
+      if (!this.length) return
+      var hasScrollLeft = 'scrollLeft' in this[0]
+      if (value === undefined) return hasScrollLeft ? this[0].scrollLeft : this[0].pageXOffset
+      return this.each(hasScrollLeft ?
+        function(){ this.scrollLeft = value } :
+        function(){ this.scrollTo(value, this.scrollY) })
+    },
+    position: function() {
+      if (!this.length) return
+
+      var elem = this[0],
+        // Get *real* offsetParent
+        offsetParent = this.offsetParent(),
+        // Get correct offsets
+        offset       = this.offset(),
+        parentOffset = rootNodeRE.test(offsetParent[0].nodeName) ? { top: 0, left: 0 } : offsetParent.offset()
+
+      // Subtract element margins
+      // note: when an element has margin: auto the offsetLeft and marginLeft
+      // are the same in Safari causing offset.left to incorrectly be 0
+      offset.top  -= parseFloat( $(elem).css('margin-top') ) || 0
+      offset.left -= parseFloat( $(elem).css('margin-left') ) || 0
+
+      // Add offsetParent borders
+      parentOffset.top  += parseFloat( $(offsetParent[0]).css('border-top-width') ) || 0
+      parentOffset.left += parseFloat( $(offsetParent[0]).css('border-left-width') ) || 0
+
+      // Subtract the two offsets
+      return {
+        top:  offset.top  - parentOffset.top,
+        left: offset.left - parentOffset.left
+      }
+    },
+    offsetParent: function() {
+      return this.map(function(){
+        var parent = this.offsetParent || document.body
+        while (parent && !rootNodeRE.test(parent.nodeName) && $(parent).css("position") == "static")
+          parent = parent.offsetParent
+        return parent
+      })
+    }
+  }
+
+  // for now
+  $.fn.detach = $.fn.remove
+
+  // Generate the `width` and `height` functions
+  ;['width', 'height'].forEach(function(dimension){
+    var dimensionProperty =
+      dimension.replace(/./, function(m){ return m[0].toUpperCase() })
+
+    $.fn[dimension] = function(value){
+      var offset, el = this[0]
+      if (value === undefined) return isWindow(el) ? el['inner' + dimensionProperty] :
+        isDocument(el) ? el.documentElement['scroll' + dimensionProperty] :
+        (offset = this.offset()) && offset[dimension]
+      else return this.each(function(idx){
+        el = $(this)
+        el.css(dimension, funcArg(this, value, idx, el[dimension]()))
+      })
+    }
+  })
+
+  function traverseNode(node, fun) {
+    fun(node)
+    for (var i = 0, len = node.childNodes.length; i < len; i++)
+      traverseNode(node.childNodes[i], fun)
+  }
+
+  // Generate the `after`, `prepend`, `before`, `append`,
+  // `insertAfter`, `insertBefore`, `appendTo`, and `prependTo` methods.
+  adjacencyOperators.forEach(function(operator, operatorIndex) {
+    var inside = operatorIndex % 2 //=> prepend, append
+
+    $.fn[operator] = function(){
+      // arguments can be nodes, arrays of nodes, Zepto objects and HTML strings
+      var argType, nodes = $.map(arguments, function(arg) {
+            var arr = []
+            argType = type(arg)
+            if (argType == "array") {
+              arg.forEach(function(el) {
+                if (el.nodeType !== undefined) return arr.push(el)
+                else if ($.zepto.isZ(el)) return arr = arr.concat(el.get())
+                arr = arr.concat(zepto.fragment(el))
+              })
+              return arr
+            }
+            return argType == "object" || arg == null ?
+              arg : zepto.fragment(arg)
+          }),
+          parent, copyByClone = this.length > 1
+      if (nodes.length < 1) return this
+
+      return this.each(function(_, target){
+        parent = inside ? target : target.parentNode
+
+        // convert all methods to a "before" operation
+        target = operatorIndex == 0 ? target.nextSibling :
+                 operatorIndex == 1 ? target.firstChild :
+                 operatorIndex == 2 ? target :
+                 null
+
+        var parentInDocument = $.contains(document.documentElement, parent)
+
+        nodes.forEach(function(node){
+          if (copyByClone) node = node.cloneNode(true)
+          else if (!parent) return $(node).remove()
+
+          parent.insertBefore(node, target)
+          if (parentInDocument) traverseNode(node, function(el){
+            if (el.nodeName != null && el.nodeName.toUpperCase() === 'SCRIPT' &&
+               (!el.type || el.type === 'text/javascript') && !el.src){
+              var target = el.ownerDocument ? el.ownerDocument.defaultView : window
+              target['eval'].call(target, el.innerHTML)
+            }
+          })
+        })
+      })
+    }
+
+    // after    => insertAfter
+    // prepend  => prependTo
+    // before   => insertBefore
+    // append   => appendTo
+    $.fn[inside ? operator+'To' : 'insert'+(operatorIndex ? 'Before' : 'After')] = function(html){
+      $(html)[operator](this)
+      return this
+    }
+  })
+
+  zepto.Z.prototype = Z.prototype = $.fn
+
+  // Export internal API functions in the `$.zepto` namespace
+  zepto.uniq = uniq
+  zepto.deserializeValue = deserializeValue
+  $.zepto = zepto
+
+  return $
+})()
+
+window.Zepto = Zepto
+window.$ === undefined && (window.$ = Zepto)
+
+;(function($){
+  var _zid = 1, undefined,
+      slice = Array.prototype.slice,
+      isFunction = $.isFunction,
+      isString = function(obj){ return typeof obj == 'string' },
+      handlers = {},
+      specialEvents={},
+      focusinSupported = 'onfocusin' in window,
+      focus = { focus: 'focusin', blur: 'focusout' },
+      hover = { mouseenter: 'mouseover', mouseleave: 'mouseout' }
+
+  specialEvents.click = specialEvents.mousedown = specialEvents.mouseup = specialEvents.mousemove = 'MouseEvents'
+
+  function zid(element) {
+    return element._zid || (element._zid = _zid++)
+  }
+  function findHandlers(element, event, fn, selector) {
+    event = parse(event)
+    if (event.ns) var matcher = matcherFor(event.ns)
+    return (handlers[zid(element)] || []).filter(function(handler) {
+      return handler
+        && (!event.e  || handler.e == event.e)
+        && (!event.ns || matcher.test(handler.ns))
+        && (!fn       || zid(handler.fn) === zid(fn))
+        && (!selector || handler.sel == selector)
+    })
+  }
+  function parse(event) {
+    var parts = ('' + event).split('.')
+    return {e: parts[0], ns: parts.slice(1).sort().join(' ')}
+  }
+  function matcherFor(ns) {
+    return new RegExp('(?:^| )' + ns.replace(' ', ' .* ?') + '(?: |$)')
+  }
+
+  function eventCapture(handler, captureSetting) {
+    return handler.del &&
+      (!focusinSupported && (handler.e in focus)) ||
+      !!captureSetting
+  }
+
+  function realEvent(type) {
+    return hover[type] || (focusinSupported && focus[type]) || type
+  }
+
+  function add(element, events, fn, data, selector, delegator, capture){
+    var id = zid(element), set = (handlers[id] || (handlers[id] = []))
+    events.split(/\s/).forEach(function(event){
+      if (event == 'ready') return $(document).ready(fn)
+      var handler   = parse(event)
+      handler.fn    = fn
+      handler.sel   = selector
+      // emulate mouseenter, mouseleave
+      if (handler.e in hover) fn = function(e){
+        var related = e.relatedTarget
+        if (!related || (related !== this && !$.contains(this, related)))
+          return handler.fn.apply(this, arguments)
+      }
+      handler.del   = delegator
+      var callback  = delegator || fn
+      handler.proxy = function(e){
+        e = compatible(e)
+        if (e.isImmediatePropagationStopped()) return
+        e.data = data
+        var result = callback.apply(element, e._args == undefined ? [e] : [e].concat(e._args))
+        if (result === false) e.preventDefault(), e.stopPropagation()
+        return result
+      }
+      handler.i = set.length
+      set.push(handler)
+      if ('addEventListener' in element)
+        element.addEventListener(realEvent(handler.e), handler.proxy, eventCapture(handler, capture))
+    })
+  }
+  function remove(element, events, fn, selector, capture){
+    var id = zid(element)
+    ;(events || '').split(/\s/).forEach(function(event){
+      findHandlers(element, event, fn, selector).forEach(function(handler){
+        delete handlers[id][handler.i]
+      if ('removeEventListener' in element)
+        element.removeEventListener(realEvent(handler.e), handler.proxy, eventCapture(handler, capture))
+      })
+    })
+  }
+
+  $.event = { add: add, remove: remove }
+
+  $.proxy = function(fn, context) {
+    var args = (2 in arguments) && slice.call(arguments, 2)
+    if (isFunction(fn)) {
+      var proxyFn = function(){ return fn.apply(context, args ? args.concat(slice.call(arguments)) : arguments) }
+      proxyFn._zid = zid(fn)
+      return proxyFn
+    } else if (isString(context)) {
+      if (args) {
+        args.unshift(fn[context], fn)
+        return $.proxy.apply(null, args)
+      } else {
+        return $.proxy(fn[context], fn)
+      }
+    } else {
+      throw new TypeError("expected function")
+    }
+  }
+
+  $.fn.bind = function(event, data, callback){
+    return this.on(event, data, callback)
+  }
+  $.fn.unbind = function(event, callback){
+    return this.off(event, callback)
+  }
+  $.fn.one = function(event, selector, data, callback){
+    return this.on(event, selector, data, callback, 1)
+  }
+
+  var returnTrue = function(){return true},
+      returnFalse = function(){return false},
+      ignoreProperties = /^([A-Z]|returnValue$|layer[XY]$|webkitMovement[XY]$)/,
+      eventMethods = {
+        preventDefault: 'isDefaultPrevented',
+        stopImmediatePropagation: 'isImmediatePropagationStopped',
+        stopPropagation: 'isPropagationStopped'
+      }
+
+  function compatible(event, source) {
+    if (source || !event.isDefaultPrevented) {
+      source || (source = event)
+
+      $.each(eventMethods, function(name, predicate) {
+        var sourceMethod = source[name]
+        event[name] = function(){
+          this[predicate] = returnTrue
+          return sourceMethod && sourceMethod.apply(source, arguments)
+        }
+        event[predicate] = returnFalse
+      })
+
+      event.timeStamp || (event.timeStamp = Date.now())
+
+      if (source.defaultPrevented !== undefined ? source.defaultPrevented :
+          'returnValue' in source ? source.returnValue === false :
+          source.getPreventDefault && source.getPreventDefault())
+        event.isDefaultPrevented = returnTrue
+    }
+    return event
+  }
+
+  function createProxy(event) {
+    var key, proxy = { originalEvent: event }
+    for (key in event)
+      if (!ignoreProperties.test(key) && event[key] !== undefined) proxy[key] = event[key]
+
+    return compatible(proxy, event)
+  }
+
+  $.fn.delegate = function(selector, event, callback){
+    return this.on(event, selector, callback)
+  }
+  $.fn.undelegate = function(selector, event, callback){
+    return this.off(event, selector, callback)
+  }
+
+  $.fn.live = function(event, callback){
+    $(document.body).delegate(this.selector, event, callback)
+    return this
+  }
+  $.fn.die = function(event, callback){
+    $(document.body).undelegate(this.selector, event, callback)
+    return this
+  }
+
+  $.fn.on = function(event, selector, data, callback, one){
+    var autoRemove, delegator, $this = this
+    if (event && !isString(event)) {
+      $.each(event, function(type, fn){
+        $this.on(type, selector, data, fn, one)
+      })
+      return $this
+    }
+
+    if (!isString(selector) && !isFunction(callback) && callback !== false)
+      callback = data, data = selector, selector = undefined
+    if (callback === undefined || data === false)
+      callback = data, data = undefined
+
+    if (callback === false) callback = returnFalse
+
+    return $this.each(function(_, element){
+      if (one) autoRemove = function(e){
+        remove(element, e.type, callback)
+        return callback.apply(this, arguments)
+      }
+
+      if (selector) delegator = function(e){
+        var evt, match = $(e.target).closest(selector, element).get(0)
+        if (match && match !== element) {
+          evt = $.extend(createProxy(e), {currentTarget: match, liveFired: element})
+          return (autoRemove || callback).apply(match, [evt].concat(slice.call(arguments, 1)))
+        }
+      }
+
+      add(element, event, callback, data, selector, delegator || autoRemove)
+    })
+  }
+  $.fn.off = function(event, selector, callback){
+    var $this = this
+    if (event && !isString(event)) {
+      $.each(event, function(type, fn){
+        $this.off(type, selector, fn)
+      })
+      return $this
+    }
+
+    if (!isString(selector) && !isFunction(callback) && callback !== false)
+      callback = selector, selector = undefined
+
+    if (callback === false) callback = returnFalse
+
+    return $this.each(function(){
+      remove(this, event, callback, selector)
+    })
+  }
+
+  $.fn.trigger = function(event, args){
+    event = (isString(event) || $.isPlainObject(event)) ? $.Event(event) : compatible(event)
+    event._args = args
+    return this.each(function(){
+      // handle focus(), blur() by calling them directly
+      if (event.type in focus && typeof this[event.type] == "function") this[event.type]()
+      // items in the collection might not be DOM elements
+      else if ('dispatchEvent' in this) this.dispatchEvent(event)
+      else $(this).triggerHandler(event, args)
+    })
+  }
+
+  // triggers event handlers on current element just as if an event occurred,
+  // doesn't trigger an actual event, doesn't bubble
+  $.fn.triggerHandler = function(event, args){
+    var e, result
+    this.each(function(i, element){
+      e = createProxy(isString(event) ? $.Event(event) : event)
+      e._args = args
+      e.target = element
+      $.each(findHandlers(element, event.type || event), function(i, handler){
+        result = handler.proxy(e)
+        if (e.isImmediatePropagationStopped()) return false
+      })
+    })
+    return result
+  }
+
+  // shortcut methods for `.bind(event, fn)` for each event type
+  ;('focusin focusout focus blur load resize scroll unload click dblclick '+
+  'mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave '+
+  'change select keydown keypress keyup error').split(' ').forEach(function(event) {
+    $.fn[event] = function(callback) {
+      return (0 in arguments) ?
+        this.bind(event, callback) :
+        this.trigger(event)
+    }
+  })
+
+  $.Event = function(type, props) {
+    if (!isString(type)) props = type, type = props.type
+    var event = document.createEvent(specialEvents[type] || 'Events'), bubbles = true
+    if (props) for (var name in props) (name == 'bubbles') ? (bubbles = !!props[name]) : (event[name] = props[name])
+    event.initEvent(type, bubbles, true)
+    return compatible(event)
+  }
+
+})(Zepto)
+
+;(function($){
+  var jsonpID = +new Date(),
+      document = window.document,
+      key,
+      name,
+      rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      scriptTypeRE = /^(?:text|application)\/javascript/i,
+      xmlTypeRE = /^(?:text|application)\/xml/i,
+      jsonType = 'application/json',
+      htmlType = 'text/html',
+      blankRE = /^\s*$/,
+      originAnchor = document.createElement('a')
+
+  originAnchor.href = window.location.href
+
+  // trigger a custom event and return false if it was cancelled
+  function triggerAndReturn(context, eventName, data) {
+    var event = $.Event(eventName)
+    $(context).trigger(event, data)
+    return !event.isDefaultPrevented()
+  }
+
+  // trigger an Ajax "global" event
+  function triggerGlobal(settings, context, eventName, data) {
+    if (settings.global) return triggerAndReturn(context || document, eventName, data)
+  }
+
+  // Number of active Ajax requests
+  $.active = 0
+
+  function ajaxStart(settings) {
+    if (settings.global && $.active++ === 0) triggerGlobal(settings, null, 'ajaxStart')
+  }
+  function ajaxStop(settings) {
+    if (settings.global && !(--$.active)) triggerGlobal(settings, null, 'ajaxStop')
+  }
+
+  // triggers an extra global event "ajaxBeforeSend" that's like "ajaxSend" but cancelable
+  function ajaxBeforeSend(xhr, settings) {
+    var context = settings.context
+    if (settings.beforeSend.call(context, xhr, settings) === false ||
+        triggerGlobal(settings, context, 'ajaxBeforeSend', [xhr, settings]) === false)
+      return false
+
+    triggerGlobal(settings, context, 'ajaxSend', [xhr, settings])
+  }
+  function ajaxSuccess(data, xhr, settings, deferred) {
+    var context = settings.context, status = 'success'
+    settings.success.call(context, data, status, xhr)
+    if (deferred) deferred.resolveWith(context, [data, status, xhr])
+    triggerGlobal(settings, context, 'ajaxSuccess', [xhr, settings, data])
+    ajaxComplete(status, xhr, settings)
+  }
+  // type: "timeout", "error", "abort", "parsererror"
+  function ajaxError(error, type, xhr, settings, deferred) {
+    var context = settings.context
+    settings.error.call(context, xhr, type, error)
+    if (deferred) deferred.rejectWith(context, [xhr, type, error])
+    triggerGlobal(settings, context, 'ajaxError', [xhr, settings, error || type])
+    ajaxComplete(type, xhr, settings)
+  }
+  // status: "success", "notmodified", "error", "timeout", "abort", "parsererror"
+  function ajaxComplete(status, xhr, settings) {
+    var context = settings.context
+    settings.complete.call(context, xhr, status)
+    triggerGlobal(settings, context, 'ajaxComplete', [xhr, settings])
+    ajaxStop(settings)
+  }
+
+  function ajaxDataFilter(data, type, settings) {
+    if (settings.dataFilter == empty) return data
+    var context = settings.context
+    return settings.dataFilter.call(context, data, type)
+  }
+
+  // Empty function, used as default callback
+  function empty() {}
+
+  $.ajaxJSONP = function(options, deferred){
+    if (!('type' in options)) return $.ajax(options)
+
+    var _callbackName = options.jsonpCallback,
+      callbackName = ($.isFunction(_callbackName) ?
+        _callbackName() : _callbackName) || ('Zepto' + (jsonpID++)),
+      script = document.createElement('script'),
+      originalCallback = window[callbackName],
+      responseData,
+      abort = function(errorType) {
+        $(script).triggerHandler('error', errorType || 'abort')
+      },
+      xhr = { abort: abort }, abortTimeout
+
+    if (deferred) deferred.promise(xhr)
+
+    $(script).on('load error', function(e, errorType){
+      clearTimeout(abortTimeout)
+      $(script).off().remove()
+
+      if (e.type == 'error' || !responseData) {
+        ajaxError(null, errorType || 'error', xhr, options, deferred)
+      } else {
+        ajaxSuccess(responseData[0], xhr, options, deferred)
+      }
+
+      window[callbackName] = originalCallback
+      if (responseData && $.isFunction(originalCallback))
+        originalCallback(responseData[0])
+
+      originalCallback = responseData = undefined
+    })
+
+    if (ajaxBeforeSend(xhr, options) === false) {
+      abort('abort')
+      return xhr
+    }
+
+    window[callbackName] = function(){
+      responseData = arguments
+    }
+
+    script.src = options.url.replace(/\?(.+)=\?/, '?$1=' + callbackName)
+    document.head.appendChild(script)
+
+    if (options.timeout > 0) abortTimeout = setTimeout(function(){
+      abort('timeout')
+    }, options.timeout)
+
+    return xhr
+  }
+
+  $.ajaxSettings = {
+    // Default type of request
+    type: 'GET',
+    // Callback that is executed before request
+    beforeSend: empty,
+    // Callback that is executed if the request succeeds
+    success: empty,
+    // Callback that is executed the the server drops error
+    error: empty,
+    // Callback that is executed on request complete (both: error and success)
+    complete: empty,
+    // The context for the callbacks
+    context: null,
+    // Whether to trigger "global" Ajax events
+    global: true,
+    // Transport
+    xhr: function () {
+      return new window.XMLHttpRequest()
+    },
+    // MIME types mapping
+    // IIS returns Javascript as "application/x-javascript"
+    accepts: {
+      script: 'text/javascript, application/javascript, application/x-javascript',
+      json:   jsonType,
+      xml:    'application/xml, text/xml',
+      html:   htmlType,
+      text:   'text/plain'
+    },
+    // Whether the request is to another domain
+    crossDomain: false,
+    // Default timeout
+    timeout: 0,
+    // Whether data should be serialized to string
+    processData: true,
+    // Whether the browser should be allowed to cache GET responses
+    cache: true,
+    //Used to handle the raw response data of XMLHttpRequest.
+    //This is a pre-filtering function to sanitize the response.
+    //The sanitized response should be returned
+    dataFilter: empty
+  }
+
+  function mimeToDataType(mime) {
+    if (mime) mime = mime.split(';', 2)[0]
+    return mime && ( mime == htmlType ? 'html' :
+      mime == jsonType ? 'json' :
+      scriptTypeRE.test(mime) ? 'script' :
+      xmlTypeRE.test(mime) && 'xml' ) || 'text'
+  }
+
+  function appendQuery(url, query) {
+    if (query == '') return url
+    return (url + '&' + query).replace(/[&?]{1,2}/, '?')
+  }
+
+  // serialize payload and append it to the URL for GET requests
+  function serializeData(options) {
+    if (options.processData && options.data && $.type(options.data) != "string")
+      options.data = $.param(options.data, options.traditional)
+    if (options.data && (!options.type || options.type.toUpperCase() == 'GET' || 'jsonp' == options.dataType))
+      options.url = appendQuery(options.url, options.data), options.data = undefined
+  }
+
+  $.ajax = function(options){
+    var settings = $.extend({}, options || {}),
+        deferred = $.Deferred && $.Deferred(),
+        urlAnchor, hashIndex
+    for (key in $.ajaxSettings) if (settings[key] === undefined) settings[key] = $.ajaxSettings[key]
+
+    ajaxStart(settings)
+
+    if (!settings.crossDomain) {
+      urlAnchor = document.createElement('a')
+      urlAnchor.href = settings.url
+      // cleans up URL for .href (IE only), see https://github.com/madrobby/zepto/pull/1049
+      urlAnchor.href = urlAnchor.href
+      settings.crossDomain = (originAnchor.protocol + '//' + originAnchor.host) !== (urlAnchor.protocol + '//' + urlAnchor.host)
+    }
+
+    if (!settings.url) settings.url = window.location.toString()
+    if ((hashIndex = settings.url.indexOf('#')) > -1) settings.url = settings.url.slice(0, hashIndex)
+    serializeData(settings)
+
+    var dataType = settings.dataType, hasPlaceholder = /\?.+=\?/.test(settings.url)
+    if (hasPlaceholder) dataType = 'jsonp'
+
+    if (settings.cache === false || (
+         (!options || options.cache !== true) &&
+         ('script' == dataType || 'jsonp' == dataType)
+        ))
+      settings.url = appendQuery(settings.url, '_=' + Date.now())
+
+    if ('jsonp' == dataType) {
+      if (!hasPlaceholder)
+        settings.url = appendQuery(settings.url,
+          settings.jsonp ? (settings.jsonp + '=?') : settings.jsonp === false ? '' : 'callback=?')
+      return $.ajaxJSONP(settings, deferred)
+    }
+
+    var mime = settings.accepts[dataType],
+        headers = { },
+        setHeader = function(name, value) { headers[name.toLowerCase()] = [name, value] },
+        protocol = /^([\w-]+:)\/\//.test(settings.url) ? RegExp.$1 : window.location.protocol,
+        xhr = settings.xhr(),
+        nativeSetHeader = xhr.setRequestHeader,
+        abortTimeout
+
+    if (deferred) deferred.promise(xhr)
+
+    if (!settings.crossDomain) setHeader('X-Requested-With', 'XMLHttpRequest')
+    setHeader('Accept', mime || '*/*')
+    if (mime = settings.mimeType || mime) {
+      if (mime.indexOf(',') > -1) mime = mime.split(',', 2)[0]
+      xhr.overrideMimeType && xhr.overrideMimeType(mime)
+    }
+    if (settings.contentType || (settings.contentType !== false && settings.data && settings.type.toUpperCase() != 'GET'))
+      setHeader('Content-Type', settings.contentType || 'application/x-www-form-urlencoded')
+
+    if (settings.headers) for (name in settings.headers) setHeader(name, settings.headers[name])
+    xhr.setRequestHeader = setHeader
+
+    xhr.onreadystatechange = function(){
+      if (xhr.readyState == 4) {
+        xhr.onreadystatechange = empty
+        clearTimeout(abortTimeout)
+        var result, error = false
+        if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && protocol == 'file:')) {
+          dataType = dataType || mimeToDataType(settings.mimeType || xhr.getResponseHeader('content-type'))
+
+          if (xhr.responseType == 'arraybuffer' || xhr.responseType == 'blob')
+            result = xhr.response
+          else {
+            result = xhr.responseText
+
+            try {
+              // http://perfectionkills.com/global-eval-what-are-the-options/
+              // sanitize response accordingly if data filter callback provided
+              result = ajaxDataFilter(result, dataType, settings)
+              if (dataType == 'script')    (1,eval)(result)
+              else if (dataType == 'xml')  result = xhr.responseXML
+              else if (dataType == 'json') result = blankRE.test(result) ? null : $.parseJSON(result)
+            } catch (e) { error = e }
+
+            if (error) return ajaxError(error, 'parsererror', xhr, settings, deferred)
+          }
+
+          ajaxSuccess(result, xhr, settings, deferred)
+        } else {
+          ajaxError(xhr.statusText || null, xhr.status ? 'error' : 'abort', xhr, settings, deferred)
+        }
+      }
+    }
+
+    if (ajaxBeforeSend(xhr, settings) === false) {
+      xhr.abort()
+      ajaxError(null, 'abort', xhr, settings, deferred)
+      return xhr
+    }
+
+    var async = 'async' in settings ? settings.async : true
+    xhr.open(settings.type, settings.url, async, settings.username, settings.password)
+
+    if (settings.xhrFields) for (name in settings.xhrFields) xhr[name] = settings.xhrFields[name]
+
+    for (name in headers) nativeSetHeader.apply(xhr, headers[name])
+
+    if (settings.timeout > 0) abortTimeout = setTimeout(function(){
+        xhr.onreadystatechange = empty
+        xhr.abort()
+        ajaxError(null, 'timeout', xhr, settings, deferred)
+      }, settings.timeout)
+
+    // avoid sending empty string (#319)
+    xhr.send(settings.data ? settings.data : null)
+    return xhr
+  }
+
+  // handle optional data/success arguments
+  function parseArguments(url, data, success, dataType) {
+    if ($.isFunction(data)) dataType = success, success = data, data = undefined
+    if (!$.isFunction(success)) dataType = success, success = undefined
+    return {
+      url: url
+    , data: data
+    , success: success
+    , dataType: dataType
+    }
+  }
+
+  $.get = function(/* url, data, success, dataType */){
+    return $.ajax(parseArguments.apply(null, arguments))
+  }
+
+  $.post = function(/* url, data, success, dataType */){
+    var options = parseArguments.apply(null, arguments)
+    options.type = 'POST'
+    return $.ajax(options)
+  }
+
+  $.getJSON = function(/* url, data, success */){
+    var options = parseArguments.apply(null, arguments)
+    options.dataType = 'json'
+    return $.ajax(options)
+  }
+
+  $.fn.load = function(url, data, success){
+    if (!this.length) return this
+    var self = this, parts = url.split(/\s/), selector,
+        options = parseArguments(url, data, success),
+        callback = options.success
+    if (parts.length > 1) options.url = parts[0], selector = parts[1]
+    options.success = function(response){
+      self.html(selector ?
+        $('<div>').html(response.replace(rscript, "")).find(selector)
+        : response)
+      callback && callback.apply(self, arguments)
+    }
+    $.ajax(options)
+    return this
+  }
+
+  var escape = encodeURIComponent
+
+  function serialize(params, obj, traditional, scope){
+    var type, array = $.isArray(obj), hash = $.isPlainObject(obj)
+    $.each(obj, function(key, value) {
+      type = $.type(value)
+      if (scope) key = traditional ? scope :
+        scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']'
+      // handle data in serializeArray() format
+      if (!scope && array) params.add(value.name, value.value)
+      // recurse into nested objects
+      else if (type == "array" || (!traditional && type == "object"))
+        serialize(params, value, traditional, key)
+      else params.add(key, value)
+    })
+  }
+
+  $.param = function(obj, traditional){
+    var params = []
+    params.add = function(key, value) {
+      if ($.isFunction(value)) value = value()
+      if (value == null) value = ""
+      this.push(escape(key) + '=' + escape(value))
+    }
+    serialize(params, obj, traditional)
+    return params.join('&').replace(/%20/g, '+')
+  }
+})(Zepto)
+
+;(function($){
+  $.fn.serializeArray = function() {
+    var name, type, result = [],
+      add = function(value) {
+        if (value.forEach) return value.forEach(add)
+        result.push({ name: name, value: value })
+      }
+    if (this[0]) $.each(this[0].elements, function(_, field){
+      type = field.type, name = field.name
+      if (name && field.nodeName.toLowerCase() != 'fieldset' &&
+        !field.disabled && type != 'submit' && type != 'reset' && type != 'button' && type != 'file' &&
+        ((type != 'radio' && type != 'checkbox') || field.checked))
+          add($(field).val())
+    })
+    return result
+  }
+
+  $.fn.serialize = function(){
+    var result = []
+    this.serializeArray().forEach(function(elm){
+      result.push(encodeURIComponent(elm.name) + '=' + encodeURIComponent(elm.value))
+    })
+    return result.join('&')
+  }
+
+  $.fn.submit = function(callback) {
+    if (0 in arguments) this.bind('submit', callback)
+    else if (this.length) {
+      var event = $.Event('submit')
+      this.eq(0).trigger(event)
+      if (!event.isDefaultPrevented()) this.get(0).submit()
+    }
+    return this
+  }
+
+})(Zepto)
+
+;(function(){
+  // getComputedStyle shouldn't freak out when called
+  // without a valid element as argument
+  try {
+    getComputedStyle(undefined)
+  } catch(e) {
+    var nativeGetComputedStyle = getComputedStyle
+    window.getComputedStyle = function(element, pseudoElement){
+      try {
+        return nativeGetComputedStyle(element, pseudoElement)
+      } catch(e) {
+        return null
+      }
+    }
+  }
+})()
+  return Zepto
+}))
+
+</script>
+
+<script>
+var parser_combininator
+  = (
+    function () {
+      var state = {};
+      var debug = false;
+      // var debug = true;
+      
+      //////////////////////////////////////
+      // Helpers:
+
+      function zip(arrays) {
+        return arrays[0].map(
+          function(_,i) {
+            return arrays.map(
+              function(array) {
+                return array[i];
+              });
+          });
+      }
+
+      function escape_regexp(str) {
+        return str.replace(/[.*+?^$|{}()\[\]]/g, '\\$&');
+      }
+
+      function regexp_maybe(str, opts) {
+        try {
+          return new RegExp(str, opts);
+        } catch ( err ) {
+          if ( debug )
+            console.log("PC: regexp_maybe: %s", err);
+          return undefined;
+        }
+      }
+      
+      function to_json(x) {
+        return JSON.stringify(x);
+      }
+
+      function constantly(val) {
+        return function () { return val; }
+      }
+
+      //////////////////////////////////////
+      // Documentation:
+
+      var RegExp_proto = Object.getPrototypeOf(/regexp/);
+      
+      function description(x) {
+        switch ( typeof x ) {
+        case 'undefined':
+          return'undefined';
+        case 'number':
+          return x + '';
+        case 'boolean':
+          return x + '';
+        case 'string':
+          return JSON.stringify(x);
+        case 'function':
+          return x.description || 'function(){...}';
+        case 'object':
+          if ( x === null ) {
+            return null;
+          } else if ( x instanceof RegExp ) {
+            return x.toString();
+          }
+          return JSON.stringify(x);
+        default:
+          throw typeof(x);
+        };
+      }
+
+      var debug_indent = '';
+      function wrap_debug(p) {
+        var desc = description(p);
+        var p1 = function (inp) {
+          console.log("  PC:%s %s(%s) => ...",
+                      debug_indent,
+                      desc,
+                      description(inp));
+          var debug_indent_ = debug_indent;
+          try {
+            debug_indent += ' '
+            var result = p(inp);
+          } finally {
+            debug_indent = debug_indent_;
+          }
+          console.log("  PC:%s %s(%s) => %s",
+                      debug_indent,
+                      desc,
+                      description(inp),
+                      description(result));
+          return result;
+        };
+        p1.description = desc;
+        return p1;
+      }
+      function copy_description(src, dst) {
+        return set_description(description(src), dst);
+      }
+      function set_description(s, p) {
+        p.description = s;
+        p = debug ? wrap_debug(p) : p;
+        return p;
+      }
+      function describe(prefix, args, p) {
+        var args_str = typeof(args) == 'string' ? args : '(' + Array.from(args).map(description).join(', ') + ')';
+        return set_description(prefix + args_str, p);
+      }
+      
+      //////////////////////////////////////
+
+      function falsely_or(m) {
+        return m ? false : m;
+      }
+      function matched(m) {
+        return m === false ? false : m;
+      }
+      function match_item(m) {
+        return matched(m) ? m[0] : null;
+      }
+      function match_input(m) {
+        return matched(m) ? m[1] : null;
+      }
+      function match_empty(m) {
+        return matched(m) && m[1].length == 0;
+      }
+
+      //////////////////////////////////////
+      // Logical:
+      
+      function if_(q, t, f) {
+        return describe(
+          'if', arguments,
+          function (inp) {
+            return q(inp) ? t(inp) : f(inp);
+          })
+      }
+      
+      function not_(p, false_value) {
+        return describe(
+          'not_', arguments,
+          function (inp) {
+            var m = matched(m = p(inp));
+            if ( matched(m) ) {
+              return false;
+            } else {
+              return false_value !== null ? false_value : [ null, inp ];
+            }
+          });
+      }
+      
+      function or_() {
+        var ps = Array.from(arguments);
+        return describe(
+          'or_', arguments,
+          function (inp) {
+            var m;
+            for ( var i = 0; i < ps.length; ++ i )
+              if ( matched(m = ps[i](inp)) )
+                return m;
+            return false;
+          });
+      }
+
+      function and_() {
+        var ps = Array.from(arguments);
+        return describe(
+          'and_', arguments,
+          function (inp) {
+            var m;
+            for ( var i = 0; i < ps.length; ++ i )
+              if ( ! matched(m = ps[i](inp)) )
+                return false;
+            return m;
+          });
+      }
+
+
+      //////////////////////////////////////
+      // Sequences:
+      
+      function all(p) {
+        return describe(
+          'all', arguments,
+          function (inp) {
+            var m = p(inp);
+            return matched(m) && match_empty(m) ? m : false;
+          });
+      }
+      
+      function one(p) {
+        return describe(
+          'one', arguments,
+          function (inp) {
+            var m = p(inp);
+            return matched(m) ? [ [ m[0] ], m[1] ] : false;
+          });
+      }
+
+      function zero_or_more(p) {
+        return describe(
+          'zero_or_more', arguments,
+          function (inp) {
+            var items = [ ];
+            var m;
+            while ( matched(m = p(inp)) ) {
+              items.push(m[0]);
+              inp = m[1];
+            }
+            return [ items, inp ];
+          });
+      }
+
+      function at_least(n, p) {
+        var zom = zero_or_more(p);
+        return describe(
+          'at_least', arguments,
+          function (inp) {
+            return matched(m = zom(inp)) && m[0].length >= n ? m : false;
+          });
+      }
+      
+      function one_or_more(p) {
+        return describe(
+          'one_or_more', arguments,
+          at_least(1, p));
+      }
+      
+      function seq() {
+        var ps = Array.from(arguments);
+        return describe(
+          'seq', arguments,
+          function (inp) {
+            var items = [ ];
+            for ( var i = 0; i < ps.length; ++ i ) {
+              var p = ps[i];
+              if ( matched(m = p(inp)) ) {
+                items.push(m[0]);
+                inp = m[1];
+              } else {
+                return false;
+              }
+            }
+            return items.length == ps.length ? [ items, inp ] : false;
+          });
+      }
+
+      //////////////////////////////////////
+      // Leaf fns:
+      
+      function eq(seq) {
+        return describe(
+          'eq', arguments,
+          function (inp) {
+            return inp === seq ? [ seq, seq.slice(0, 0) ] : false;
+          });
+      }
+      function eos() {
+        return describe(
+          'eos', arguments,
+          function (inp) {
+            return inp.length == 0;
+          });
+      }
+      function rx(re, opts) {
+        if ( typeof re === 'string' )
+          re = new Regexp(re, opts);
+        return describe(
+          'rx', [re],
+          function (inp) {
+            var m = inp.match(re);
+            return m ? [ m[1] || m[0], inp.substring(m.index + m[0].length) ] : false;
+          });
+      }
+      function trim(p) {
+        return describe(
+          'trim', arguments,
+          function (inp) {
+            var m = p(inp.trim());
+            return matched(m) ? [ m[0], m[1].trim() ] : false; 
+          });
+      }
+      
+      function safe(p) {
+        return describe(
+          'safe', arguments,
+          function (inp) {
+            try {
+              return p(inp);
+            }
+            catch ( err ) {
+              console.log("safe: error %s: inp %s : parser %s",
+                          description(err.toString()),
+                          description(inp),
+                          description(p));
+              return false;
+            }
+          });
+      }
+
+      //////////////////////////////////////
+      // Conditional binding:
+
+      function with_keys(ns, p) {
+        return describe(
+          'with_keys', arguments,
+          function (inp) {
+            var m;
+            if ( matched(m = p(inp)) ) {
+              m = [
+                Object.fromEntries(zip([ns, m[0]])),
+                m[1]
+              ];
+            }
+            return m;
+          }
+        );
+      }
+
+      function pred(p, f) {
+        return describe(
+          'pred', arguments,
+          function (inp) {
+            var m;
+            return matched(m = p(inp)) && f(m[0], m[1]) ? m : false;
+          }
+        );
+      }
+      
+      function when(p, f) {
+        return describe(
+          'when', arguments,
+          function (inp) {
+            var m;
+            if ( matched(m = p(inp)) ) {
+              m = [
+                f(m[0], m[1]),
+                m[1]
+              ];
+            }
+            return m;
+          }
+        );
+      }
+
+      /////////////////////////////
+      // Top-level:
+      
+      function parse(p, inp, state_) {
+        state = state_ || { };
+        return p(inp);
+      }
+      
+      return {
+        to_json: to_json,
+        parse: parse,
+        matched: matched,
+        match_empty: match_empty,
+        match_input: match_input,
+        match_parsed: match_item,
+        safe: safe,
+        alt: or_,
+        if_, if_,
+        or_: or_,
+        and_: and_,
+        not_: not_,
+        all: all,
+        one: one,
+        zero_or_more: zero_or_more,
+        at_least: at_least,
+        one_or_more: one_or_more,
+        seq: seq,
+        eq: eq,
+        eos: eos,
+        rx: rx,
+        trim: trim,
+        with_keys: with_keys,
+        pred: pred,
+        when: when,
+        escape_regexp: escape_regexp,
+        description: description,
+        set_description: set_description,
+        copy_description: copy_description,
+        describe: describe,
+        constantly: constantly,
+        regexp_maybe: regexp_maybe
+     };
+  }
+)();
+
+
+</script>
+
+<script>
+/*!
+ * Row filtering.
+ */
+var cx_make_filter =
+    function(table_id_) {
+      var debug = false;
+      var debug_init = false || debug;
+      var debug_cols = false || debug;
+      var debug_match = false || debug;
+      var debug_row = false;
+      var debug_row_data = false || debug;
+      var debug_event = false;
+      var debug_history = false;
+      var debug_match_str = true;
+
+      var table_id = table_id_;
+
+      var dom_window, dom_table, dom_rows, dom_cols,
+          dom_filter_input, dom_matched_row_count;
+
+      var col_name_to_idx = new Map();
+      var col_idx_to_name = new Map();
+      var col_to_data_idx = new Map();
+      var col_idxs = [];
+
+      function to_col_idx(x) {
+        return col_name_to_idx.get(x) || col_name_to_idx.get(col_idx_to_name.get(x));
+      }
+
+      function to_data_idx(x) {
+        return col_to_data_idx.get(x) || col_to_data_idx.get(col_idx_to_name.get(x));
+      }
+
+      //////////////////////////////////////////////////
+      // Grammar
+
+      function escapeRegExp(str) {
+        return str.replaceAll(/[.*+?^$|{}()\[\]]/g, '\\$&');
+      }
+
+    var name_word_rx = /^:([^\s:]+)/i;
+    var name_quote_rx = /^:"([^"]+)"/i;
+    var quote_rx = /^"((\\["\\]|[^"])*)("|$)/;
+    var rx_rx = /^\/((\\\/|[^/])*)(\/|$)/;
+    var word_rx = /^([^:"\/\s]+)/;
+
+    function make_parser() {
+        var pc = parser_combininator;
+
+        function with_type(t, p) {
+          return pc.describe(
+            'with_type', arguments,
+            pc.when(p,
+                    function (str, _inp) {
+                      return {type: t,
+                              str: str};
+                    }));
+        }
+
+        var name_word  = pc.pred(pc.trim(pc.rx(name_word_rx)), to_col_idx);
+        var name_quote = pc.pred(pc.trim(pc.rx(name_quote_rx)), to_col_idx);
+        var name       = pc.or_(name_quote, name_word);
+        var pat_quote  = pc.trim(pc.rx(quote_rx));
+        var pat_rx     = pc.pred(pc.trim(pc.rx(rx_rx)), pc.regexp_maybe);
+        var pat_word   = pc.trim(pc.rx(word_rx));
+        var pat_datum  = pc.or_(with_type('quote', pat_quote),
+                                with_type('rx',    pat_rx),
+                                with_type('word',  pat_word));
+
+        var pat_not = pc.seq(pc.trim(pc.rx(/^(NOT)\b/)), pat_datum);
+        pat_not = pc.when(pat_not, function (parsed, _inp) {
+          return Object.assign(parsed[1], {negate: true});
+        });
+
+        var pat = pc.or_(pat_not, pat_datum)
+
+        var col_pat  = pc.with_keys(['name', 'pat'],
+                                    pc.seq(name, pat));
+        col_pat = pc.when(col_pat,
+                          function (pat, _inp) {
+                            return Object.assign({name: pat.name}, pat.pat);
+                          });
+
+        var bare_pat  =
+            pc.when(pat,
+                    function (pat, _inp) {
+                      return Object.assign({name: null}, pat);
+                    });
+
+        var p = pc.all(pc.one_or_more(pc.or_(col_pat, bare_pat)));
+        // trap exceptions in parser:
+        return pc.safe(p);
+      }
+      var parser = make_parser();
+
+      //////////////////////////////////////////////////
+      // Help
+
+      function escapeHtml(unsafe) {
+          return unsafe
+               .replace(/&/g, "&amp;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;")
+               .replace(/'/g, "&#039;");
+      }
+      function make_html(lines) {
+        return lines.map(s => escapeHtml(s.trimEnd())).join(" \n");
+      }
+      help_examples = make_html([
+        '  Examples: ',
+        '           ',
+        'foo        - Any column contains "foo"                       ',
+        'foo bar    - Any column contains "foo" followed by "bar"     ',
+        '/^foo/     - Any column starts with "foo"  ',
+        ':a bar     - Column "a" contains "bar"     ',
+        '',
+      ]);
+
+      help_syntax = make_html([
+        '  Syntax:                              ',
+        '                                       ',
+        '<filter>   = <match> *                 ',
+        '<match>    = <all> | <column>          ',
+        '<all>      = <pattern>                 ',
+        '<column>   = <name> <pattern>          ',
+        '<pattern>  = <word> | <rx> | <quote>   ',
+        '<name>     = <name-quote> | <name-word>  ',
+        '<name-quote>  = ' + name_quote_rx + '           ',
+        '<name-word>   = ' + name_word_rx + '           ',
+        '<word>     = ' + word_rx + '             ',
+        '<rx>       = ' + rx_rx + '                ',
+        '<quote>    = ' + quote_rx + '  ',
+        ''
+      ]);
+
+      //////////////////////////////////////////////////
+      // Filter Predicate
+
+      function parse_filter_fn_(filter_str) {
+        var pc = parser_combininator;
+        var result = parser(filter_str);
+        if ( ! result ) return false;
+        var pats_all = result[0];
+        if ( pats_all.length == 0 ) return false;
+
+        var is_bare_pat = pat => pat.col === null;
+        var bare_pats   = pats_all.filter(is_bare_pat);
+        var pats        = pats_all.filter(pat => ! is_bare_pat(pat))
+
+        // Build a single RX for bare patterns:
+        if ( bare_pats.length > 0 ) {
+          var str    = bare_pats.map(pat => pat.str).join(' ');
+          var rx_str = bare_pats.map(pat => pat.str).join('.+')
+          var desc   = 'THEN(' + bare_pats.map(pat => pc.description(pat)).join(',') + ')';
+          pats.push({name:    false,
+                     type:    'rx',
+                     str:     str,
+                     rx_str:  rx_str,
+                     description:   desc});
+        }
+
+        // Build a rx for each pattern type:
+        pats_all.
+          forEach(function (pat) {
+            pat.description = pat.type.toUpperCase() + '(' + pc.to_json(pat.str) + ')';
+            if ( pat.name ) {
+              pat.col_idx = to_col_idx(pat.name);
+              pat.data_idx = to_data_idx(pat.name);
+              pat.description = 'COLUMN(' + pc.to_json(pat.name) + '=' + pat.col_idx + ',' + pat.data_idx + ',' + pat.description + ')';
+            }
+            if ( pat.negate ) {
+              pat.description = 'NOT(' + pat.description + ')';
+            }
+            switch ( pat.type ) {
+            case 'rx':
+              pat.rx_str = pat.rx_str || pat.str;
+              break;
+            case 'word':
+              pat.rx_str = pc.escape_regexp(pat.str);
+              break;
+            case 'quote':
+              pat.str = pat.str.replace(/\\(["\\])/g, '$1');
+              pat.rx_str = pc.escape_regexp(pat.str);
+              if ( pat.name )
+                pat.rx_str = '^' + pat.rx_str + '$';
+              break;
+            }
+          });
+
+        // Build match_fn for each pat:
+        pats.forEach(function (pat) {
+          pat.extract_fn = make_extract_fn(pat.data_idx);
+          pat.extract_fn_str = pat.extract_fn.toString();
+          if ( pat.rx = pc.regexp_maybe(pat.rx_str) ) {
+            pat.rx_fn = function (str) {
+              result = str.match(pat.rx);
+              if ( debug_match_str )
+                console.log("filter.js : match : %s.match(%s)", JSON.stringify(str), JSON.stringify(pat.rx_str));
+              return result;
+            };
+            pat.match_fn = function (row_data) {
+              return pat.rx_fn(pat.extract_fn(row_data));
+            };
+            if ( pat.negate ) {
+              pat.match_fn = negate_match_fn(pat.match_fn);
+            }
+            pc.set_description(pat.description, pat.match_fn);
+            pat.match_fn_str = pat.match_fn.toString();
+          } else {
+            pat.rx_fn = pat.match_fn = false;
+          }
+          if ( ! pat.col_idx )
+            pc.set_description("ROW(" + pc.description(pat.match_fn) + ")", pat.match_fn)
+        });
+
+        if ( debug_match )
+          console.log("psv : filter.js : pats = %s", JSON.stringify(pats, null, 2));
+
+        var match_fns = pats.map(pat => pat.match_fn);
+        var match_fn  = match_fns.indexOf(false) >= 0 ? false : and_fns(match_fns);
+
+        if ( debug_match ) {
+          console.log("psv : filter.js : match_fns = %s", JSON.stringify(match_fns));
+          console.log("psv : filter.js : match_fn = %s",  JSON.stringify(match_fn));
+          console.log("psv : filter.js : desc = %s", pc.description(match_fn))
+        }
+
+        return match_fn;
+      }
+
+      function parse_filter_fn(filter_str) {
+        var pc = parser_combininator;
+        try {
+          return parse_filter_fn_(filter_str);
+        } catch ( err ) {
+          console.log("psv : filter.js : parse_filter: error %s : filter_str %s",
+                      pc.description(err.toString()),
+                      pc.description(filter_str));
+          return false; // function (row_data) { return false; };
+        }
+      }
+
+      function make_extract_fn(data_idx) {
+        return data_idx ?
+          function (row_data) {
+            return row_data[data_idx];
+          } : extract_row_text_fn;
+      }
+      function extract_row_text_fn(row_data) {
+        return row_data[0];
+      }
+
+      function and_fns(fns) {
+        var pc = parser_combininator;
+        var desc = 'AND(' + fns.map(pc.description).join(',') + ')';
+        var fn  = function (row_data) {
+          for ( var i = 0; i < fns.length; i ++ ) {
+            if ( ! fns[i](row_data) ) {
+              return false;
+            }
+          }
+          return true;
+        }
+        return pc.set_description(desc, fn);
+      }
+      function negate_match_fn(match_fn) {
+        return function (row_data) {
+          return ! match_fn(row_data);
+        };
+      }
+
+      //////////////////////////////////////////////////
+
+      function each_row(row_fn) {
+        if ( debug_row ) console.log("psv : filter.js : each_row : {{{ : %d", dom_rows.length);
+        for (var i = 0; i < dom_rows.length; i++)
+          row_fn(dom_rows[i]);
+        if ( debug_row ) console.log("psv : filter.js : each_row : }}} : %d", dom_rows.length);
+      }
+
+      //////////////////////////////////////////////////
+
+      function reset_rows() {
+        if ( debug_row ) console.log("psv : filter.js : reset_rows : {{{ : %d", dom_rows.length);
+        each_row(function(tr) {
+          tr.style.display = '';
+        });
+        if ( debug_row ) console.log("psv : filter.js : reset_rows : }}} : %d", dom_rows.length);
+        dom_matched_row_count.textContent = dom_rows.length;
+      }
+
+      function clear_filter() {
+        reset_rows();
+        dom_filter_input.value = '';
+      }
+
+      //////////////////////////////////////////////////
+
+      function make_row_data(tr) {
+        var tds = Array.from(tr.getElementsByTagName("td")); //.toArray();
+        var row_data = [''];
+        col_idxs.forEach(function (idx) {
+          var td = tds[idx];
+          var text = (td.textContent || td.innerText).trim();
+          row_data[idx + 1] = text;
+          row_data[0] += text + ' ';
+        });
+        if ( debug_row_data ) console.log("psv : filter.js : make_row_data = " + JSON.stringify(row_data));
+        return row_data;
+      }
+
+      function get_row_data(tr) {
+        var data;
+        if ( ! (data = tr.cx_filter_row_data) )
+          tr.cx_filter_row_data = data = make_row_data(tr);
+        return data;
+      }
+
+      //////////////////////////////////////////////////
+
+      function filter_rows_by_fn(match_row_fn) {
+        var n_rows_visible = 0;
+        each_row(function(tr) {
+          var row_data = get_row_data(tr);
+          var matched = match_row_fn(row_data);
+          if ( matched ) {
+            n_rows_visible ++;
+            tr.style.display = '';
+          } else {
+            tr.style.display = 'none';
+          }
+          return matched;
+        });
+        return dom_matched_row_count.textContent = n_rows_visible;
+      }
+
+      function filter_rows_now() {
+        filter_rows_clear_timeout();
+
+        var filter_str = dom_filter_input.value.trim();
+        var input_ok, row_fn;
+        if ( filter_str === '' ) {
+          input_ok = true;
+        } else {
+          if ( (row_fn = parse_filter_fn(filter_str)) )
+            input_ok = true;
+        }
+
+        if ( input_ok ) {
+          dom_filter_input.classList.remove('cx-error');
+        } else {
+          dom_filter_input.classList.add('cx-error');
+        }
+
+        if ( row_fn ) {
+          filter_rows_by_fn(row_fn);
+        } else {
+          reset_rows();
+        }
+      }
+
+      var filter_history = [];
+      var filter_history_index = -1;
+      function filter_history_save(event) {
+        var value = event.target.value.trim();
+        if ( ! filter_history.includes(value) ) {
+          filter_history_index = filter_history.length;
+          filter_history.push(value);
+        }
+        if ( debug_history ) console.log("psv : filter.js : filter_history_save : event : %s : filter_history %s @ %d", event, filter_history, filter_history_index);
+        return filter_history_index;
+      }
+      function filter_history_navigate(event, dir) {
+        var i = filter_history_index + dir;
+        if ( 0 <= i && i < filter_history.length ) {
+          filter_history_index = i;
+          event.target.value = filter_history[filter_history_index];
+          if ( debug_history ) console.log("psv : filter.js : filter_history_navigate : event : %s : filter_history %s @ %d", event, filter_history, filter_history_index);
+          return true;
+        }
+        return false;
+      }
+
+      function filter_rows_event(event) {
+        // Do nothing if the event was already processed
+        if ( ! event || event.defaultPrevented )
+          return;
+        if ( debug_event ) console.log("psv : filter.js : event : %s : %s", event, event.which);
+        switch ( event.which ) {
+        case 37: // - left arrow
+        case 39: // - right arrow
+          break;
+        case 13: // - enter/return
+          filter_history_save(event);
+          break;
+        case 38: // - up arrow
+          if ( filter_history_navigate(event, -1) )
+            filter_rows_now();
+          break;
+        case 40: // - down arrow
+          if ( filter_history_navigate(event, 1) )
+            filter_rows_now();
+          break;
+        default:
+          filter_rows_after_timeout();
+          return
+        }
+        event.preventDefault();
+      }
+
+      var timeout = null;
+      function filter_rows(event) {
+        if ( debug_event ) console.log("psv : filter.js : filter_rows : event : %s : %s : %s", event, event.which, timeout);
+        filter_rows_event(event);
+      }
+      function filter_rows_after_timeout() {
+        if ( ! timeout ) {
+          timeout = setTimeout(function() {
+            filter_rows_now();
+          }, 500);
+        }
+      }
+      function filter_rows_clear_timeout() {
+        if ( timeout ) {
+          if ( debug_event ) console.log("psv : filter.js : filter_rows_clear_timeout");
+          var tmp = timeout;
+          timeout = null;
+          clearTimeout(tmp);
+        }
+      }
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/style
+      function dump_style(element) {
+        var out = "";
+        var elementStyle = element.style;
+        var computedStyle = window.getComputedStyle(element, null);
+
+        for (prop in elementStyle) {
+          if (elementStyle.hasOwnProperty(prop) || true) {
+            out += "  " + prop + " = '" + elementStyle[prop] + "' > '" + computedStyle[prop] + "'\n";
+          }
+        }
+        console.log(out)
+        return out;
+      }
+
+      function pin_width(element) {
+        var comp_style = dom_window.getComputedStyle(element, null);
+        var style = element.style;
+        style.width  = comp_style.width;
+      }
+      // Construct a map from cx column names to td offsets.
+      function make_col_maps(table, tr, cols) {
+        col_name_to_idx.clear();
+        col_idx_to_name.clear();
+        col_to_data_idx.clear();
+        col_idxs.length = 0;
+        var th_idx = -1;
+        $(tr).find('th').each(function (th) {
+          var th = this;
+          pin_width(th);
+          th_idx += 1;
+          var name = th.getAttribute("data-filter-name");
+          if ( name ) {
+            col_idxs.push(th_idx);
+            var idx  = parseInt(th.getAttribute("data-column-index"));
+            col_to_data_idx.set(name, th_idx + 1);
+            if ( idx ) {
+              col_to_data_idx.set(idx, th_idx + 1);
+              col_to_data_idx.set(idx + "", th_idx + 1);
+              col_name_to_idx.set(name, idx);
+              col_idx_to_name.set(idx, name);
+              col_idx_to_name.set(idx + "", name);
+            }
+
+            if ( debug_cols ) console.log("psv : filter.js : %s", JSON.stringify({th_idx: th_idx, name: name, idx: idx}));
+
+            var name = th.getAttribute('data-filter-name-full');
+            col_name_to_idx.set(name, idx);
+            // dump_style(th);
+          }
+        });
+        // https://stackoverflow.com/a/56795800/1141958
+        function map_to_array(map) {
+          return Array.from(map, ([name, value]) => [name, value])
+        }
+        if ( debug_cols ) {
+          console.log("psv : filter.js : cols = %s", JSON.stringify(cols));
+          console.log("psv : filter.js : col_name_to_idx = %s", JSON.stringify(map_to_array(col_name_to_idx)));
+          console.log("psv : filter.js : col_idx_to_name = %s", JSON.stringify(map_to_array(col_idx_to_name)));
+          console.log("psv : filter.js : col_to_data_idx = %s", JSON.stringify(map_to_array(col_to_data_idx)));
+        }
+      }
+
+      function initalize(table_id_) {
+        table_id = table_id_;
+        dom_window = window;
+        var table = dom_table = $("#" + table_id);
+        // var cols = dom_cols   = table.find(".cx-thead .cx-columns .cx-column").toArray();
+        var cols = dom_cols   = table.find(".cx-thead .cx-column").toArray();
+        var tr = cols && cols[0].parentElement;
+        var rows = dom_rows   = table.find(".cx-tbody tr").toArray();
+        dom_filter_input      = table.find(".cx-thead .cx-filter-input").toArray()[0]
+        dom_matched_row_count = table.find(".cx-filter-matched-row-count").toArray()[0];
+        if ( tr )
+          make_col_maps(table, tr, cols);
+
+        pin_width(dom_table.toArray()[0]);
+
+        var tooltips = table.find(".cx-filter-row .cx-tooltip .cx-tooltip-text");
+        tooltips.forEach(function (item, index, array) {
+          item.innerHTML =
+            '<pre>' +
+            help_examples + "\n" +
+            help_syntax +
+            '</pre>';
+        });
+
+        if ( debug_init ) {
+          console.log("psv : filter.js : DEBUG: table : %s", dom_table);
+          console.log("psv : filter.js : DEBUG: tr : %d", tr);
+          console.log("psv : filter.js : DEBUG: cols : %d", cols.length);
+          console.log("psv : filter.js : DEBUG: rows : %d", rows.length);
+        }
+        if ( dom_cols.length == 0 )
+          console.log("psv : filter.js : ERROR: no columns were found!")
+        if ( dom_rows.length == 0 )
+          console.log("psv : filter.js : WARNING: no rows were found.")
+
+        return {
+          table_id: table_id,
+          col_name_to_idx: col_name_to_idx,
+          col_idx_to_name: col_idx_to_name,
+          filter_rows: filter_rows,
+          filter_rows_now: filter_rows_now,
+          filter_rows_event: filter_rows_event,
+          clear_filter: clear_filter,
+          help_examples: help_examples,
+          help_syntax:   help_syntax
+        };
+      }
+
+      return initalize(table_id_);
+    };
+
+</script>
+
+<script>
+;(function() {
+  function Tablesort(el, options) {
+    if (!(this instanceof Tablesort)) return new Tablesort(el, options);
+
+    if (!el || el.tagName !== 'TABLE') {
+      throw new Error('Element must be a table');
+    }
+    this.init(el, options || {});
+  }
+
+  var sortOptions = [];
+
+  var createEvent = function(name) {
+    var evt;
+
+    if (!window.CustomEvent || typeof window.CustomEvent !== 'function') {
+      evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent(name, false, false, undefined);
+    } else {
+      evt = new CustomEvent(name);
+    }
+
+    return evt;
+  };
+
+  var getInnerText = function(el,options) {
+    return el.getAttribute(options.sortAttribute || 'data-sort') || el.textContent || el.innerText || '';
+  };
+
+  // Default sort method if no better sort method is found
+  var caseInsensitiveSort = function(a, b) {
+    a = a.trim().toLowerCase();
+    b = b.trim().toLowerCase();
+
+    if (a === b) return 0;
+    if (a < b) return 1;
+
+    return -1;
+  };
+
+  var getCellByKey = function(cells, key) {
+    return [].slice.call(cells).find(function(cell) {
+      return cell.getAttribute('data-sort-column-key') === key;
+    });
+  };
+
+  // Stable sort function
+  // If two elements are equal under the original sort function,
+  // then there relative order is reversed
+  var stabilize = function(sort, antiStabilize) {
+    return function(a, b) {
+      var unstableResult = sort(a.td, b.td);
+
+      if (unstableResult === 0) {
+        if (antiStabilize) return b.index - a.index;
+        return a.index - b.index;
+      }
+
+      return unstableResult;
+    };
+  };
+
+  Tablesort.extend = function(name, pattern, sort) {
+    if (typeof pattern !== 'function' || typeof sort !== 'function') {
+      throw new Error('Pattern and sort must be a function');
+    }
+
+    sortOptions.push({
+      name: name,
+      pattern: pattern,
+      sort: sort
+    });
+  };
+
+  Tablesort.prototype = {
+
+    init: function(el, options) {
+      var that = this,
+          firstRow,
+          defaultSort,
+          i,
+          cell;
+
+      that.table = el;
+      that.thead = false;
+      that.options = options;
+
+      if (el.rows && el.rows.length > 0) {
+        if (el.tHead && el.tHead.rows.length > 0) {
+          for (i = 0; i < el.tHead.rows.length; i++) {
+            if (el.tHead.rows[i].getAttribute('data-sort-method') === 'thead') {
+              firstRow = el.tHead.rows[i];
+              break;
+            }
+          }
+          if (!firstRow) {
+            firstRow = el.tHead.rows[el.tHead.rows.length - 1];
+          }
+          that.thead = true;
+        } else {
+          firstRow = el.rows[0];
+        }
+      }
+
+      if (!firstRow) return;
+
+      var onClick = function() {
+        if (that.current && that.current !== this) {
+          that.current.removeAttribute('aria-sort');
+        }
+
+        that.current = this;
+        that.sortTable(this);
+      };
+
+      // Assume first row is the header and attach a click handler to each.
+      for (i = 0; i < firstRow.cells.length; i++) {
+        cell = firstRow.cells[i];
+        cell.setAttribute('role','columnheader');
+        if (cell.getAttribute('data-sort-method') !== 'none') {
+          cell.tabindex = 0;
+          cell.addEventListener('click', onClick, false);
+
+          if (cell.getAttribute('data-sort-default') !== null) {
+            defaultSort = cell;
+          }
+        }
+      }
+
+      if (defaultSort) {
+        that.current = defaultSort;
+        that.sortTable(defaultSort);
+      }
+    },
+
+    sortTable: function(header, update) {
+      var that = this,
+          columnKey = header.getAttribute('data-sort-column-key'),
+          column = header.cellIndex,
+          sortFunction = caseInsensitiveSort,
+          item = '',
+          items = [],
+          i = that.thead ? 0 : 1,
+          sortMethod = header.getAttribute('data-sort-method'),
+          sortOrder = header.getAttribute('aria-sort');
+
+      that.table.dispatchEvent(createEvent('beforeSort'));
+
+      // If updating an existing sort, direction should remain unchanged.
+      if (!update) {
+        if (sortOrder === 'ascending') {
+          sortOrder = 'descending';
+        } else if (sortOrder === 'descending') {
+          sortOrder = 'ascending';
+        } else {
+          sortOrder = that.options.descending ? 'descending' : 'ascending';
+        }
+
+        header.setAttribute('aria-sort', sortOrder);
+      }
+
+      if (that.table.rows.length < 2) return;
+
+      // If we force a sort method, it is not necessary to check rows
+      if (!sortMethod) {
+        var cell;
+        while (items.length < 3 && i < that.table.tBodies[0].rows.length) {
+          if(columnKey) {
+            cell = getCellByKey(that.table.tBodies[0].rows[i].cells, columnKey);
+          } else {
+            cell = that.table.tBodies[0].rows[i].cells[column];
+          }
+
+          // Treat missing cells as empty cells
+          item = cell ? getInnerText(cell,that.options) : "";
+
+          item = item.trim();
+
+          if (item.length > 0) {
+            items.push(item);
+          }
+
+          i++;
+        }
+
+        if (!items) return;
+      }
+
+      for (i = 0; i < sortOptions.length; i++) {
+        item = sortOptions[i];
+
+        if (sortMethod) {
+          if (item.name === sortMethod) {
+            sortFunction = item.sort;
+            break;
+          }
+        } else if (items.every(item.pattern)) {
+          sortFunction = item.sort;
+          break;
+        }
+      }
+
+      that.col = column;
+
+      for (i = 0; i < that.table.tBodies.length; i++) {
+        var newRows = [],
+            noSorts = {},
+            j,
+            totalRows = 0,
+            noSortsSoFar = 0;
+
+        if (that.table.tBodies[i].rows.length < 2) continue;
+
+        for (j = 0; j < that.table.tBodies[i].rows.length; j++) {
+          var cell;
+
+          item = that.table.tBodies[i].rows[j];
+          if (item.getAttribute('data-sort-method') === 'none') {
+            // keep no-sorts in separate list to be able to insert
+            // them back at their original position later
+            noSorts[totalRows] = item;
+          } else {
+            if (columnKey) {
+              cell = getCellByKey(item.cells, columnKey);
+            } else {
+              cell = item.cells[that.col];
+            }
+            // Save the index for stable sorting
+            newRows.push({
+              tr: item,
+              td: cell ? getInnerText(cell,that.options) : '',
+              index: totalRows
+            });
+          }
+          totalRows++;
+        }
+        // Before we append should we reverse the new array or not?
+        // If we reverse, the sort needs to be `anti-stable` so that
+        // the double negatives cancel out
+        if (sortOrder === 'descending') {
+          newRows.sort(stabilize(sortFunction, true));
+        } else {
+          newRows.sort(stabilize(sortFunction, false));
+          newRows.reverse();
+        }
+
+        // append rows that already exist rather than creating new ones
+        for (j = 0; j < totalRows; j++) {
+          if (noSorts[j]) {
+            // We have a no-sort row for this position, insert it here.
+            item = noSorts[j];
+            noSortsSoFar++;
+          } else {
+            item = newRows[j - noSortsSoFar].tr;
+          }
+
+          // appendChild(x) moves x if already present somewhere else in the DOM
+          that.table.tBodies[i].appendChild(item);
+        }
+      }
+
+      that.table.dispatchEvent(createEvent('afterSort'));
+    },
+
+    refresh: function() {
+      if (this.current !== undefined) {
+        this.sortTable(this.current, true);
+      }
+    }
+  };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Tablesort;
+  } else {
+    window.Tablesort = Tablesort;
+  }
+})();
+
+</script>
+
+<script>
+(function(){
+  var cleanNumber = function(i) {
+    return i.replace(/[^\-?0-9.]/g, '');
+  },
+
+  compareNumber = function(a, b) {
+    a = parseFloat(a);
+    b = parseFloat(b);
+
+    a = isNaN(a) ? 0 : a;
+    b = isNaN(b) ? 0 : b;
+
+    return a - b;
+  };
+
+  Tablesort.extend('number', function(item) {
+    return item.match(/^[-+]?[£\x24Û¢´€]?\d+\s*([,\.]\d{0,2})/) || // Prefixed currency
+      item.match(/^[-+]?\d+\s*([,\.]\d{0,2})?[£\x24Û¢´€]/) || // Suffixed currency
+      item.match(/^[-+]?(\d)*-?([,\.]){0,1}-?(\d)+([E,e][\-+][\d]+)?%?$/); // Number
+  }, function(a, b) {
+    a = cleanNumber(a);
+    b = cleanNumber(b);
+
+    return compareNumber(b, a);
+  });
+}());
+
+</script>
+
+<script>
+// Basic dates in dd/mm/yy or dd-mm-yy format.
+// Years can be 4 digits. Days and Months can be 1 or 2 digits.
+(function(){
+  var parseDate = function(date) {
+    date = date.replace(/\-/g, '/');
+    date = date.replace(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/, '$3-$2-$1'); // format before getTime
+
+    return new Date(date).getTime() || -1;
+  };
+
+  Tablesort.extend('date', function(item) {
+    return (
+      item.search(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\.?\,?\s*/i) !== -1 ||
+      item.search(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/) !== -1 ||
+      item.search(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i) !== -1
+    ) && !isNaN(parseDate(item));
+  }, function(a, b) {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+
+    return parseDate(b) - parseDate(a);
+  });
+}());
+
+</script>
+
+<script>
+// Dot separated values. E.g. IP addresses or version numbers.
+Tablesort.extend('dotsep', function(item) {
+  return /^(\d+\.)+\d+$/.test(item);
+}, function(a, b) {
+  a = a.split('.');
+  b = b.split('.');
+
+  for (var i = 0, len = a.length, ai, bi; i < len; i++) {
+    ai = parseInt(a[i], 10);
+    bi = parseInt(b[i], 10);
+
+    if (ai === bi) continue;
+    if (ai > bi) return -1;
+    if (ai < bi) return 1;
+  }
+
+  return 0;
+});
+
+</script>
+
+<script>
+// Filesizes. e.g. '5.35 K', '10 MB', '12.45 GB', or '4.67 TiB'
+(function(){
+  var compareNumber = function(a, b) {
+    a = parseFloat(a);
+    b = parseFloat(b);
+
+    a = isNaN(a) ? 0 : a;
+    b = isNaN(b) ? 0 : b;
+
+    return a - b;
+  },
+
+  cleanNumber = function(i) {
+    return i.replace(/[^\-?0-9.]/g, '');
+  },
+
+  // Returns suffix multiplier
+  // Ex. suffix2num('KB') -> 1000
+  // Ex. suffix2num('KiB') -> 1024
+  suffix2num = function(suffix) {
+    suffix = suffix.toLowerCase();
+    var base = suffix[1] === 'i' ? 1024 : 1000;
+
+    switch(suffix[0]) {
+      case 'k':
+        return Math.pow(base, 2);
+      case 'm':
+        return Math.pow(base, 3);
+      case 'g':
+        return Math.pow(base, 4);
+      case 't':
+        return Math.pow(base, 5);
+      case 'p':
+        return Math.pow(base, 6);
+      case 'e':
+        return Math.pow(base, 7);
+      case 'z':
+        return Math.pow(base, 8);
+      case 'y':
+        return Math.pow(base, 9);
+      default:
+        return base;
+    }
+  },
+  
+  // Converts filesize to bytes
+  // Ex. filesize2num('123 KB') -> 123000
+  // Ex. filesize2num('123 KiB') -> 125952
+  filesize2num = function(filesize) {
+    var matches = filesize.match(/^(\d+(\.\d+)?) ?((K|M|G|T|P|E|Z|Y|B$)i?B?)$/i);
+
+    var num  = parseFloat(cleanNumber(matches[1])),
+      suffix = matches[3];
+
+    return num * suffix2num(suffix);
+  };
+
+  Tablesort.extend('filesize', function(item) {
+    return /^\d+(\.\d+)? ?(K|M|G|T|P|E|Z|Y|B$)i?B?$/i.test(item);
+  }, function(a, b) {
+    a = filesize2num(a);
+    b = filesize2num(b);
+
+    return compareNumber(b, a);
+  });
+}());
+
+</script>
+
+
+<script>
+  var cx_filter;
+$(document).ready(function() {
+  console.log( "psv : document ready!" );
+  new Tablesort(document.getElementById('cx-table'));
+  cx_filter = cx_make_filter('cx-table');
+});
+</script>
+

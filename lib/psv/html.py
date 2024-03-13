@@ -27,14 +27,14 @@ class HtmlOut(FormatOut):
 $ psv in a.csv // html // o a.html
 $ w3m -dump a.html
 
-$ psv in users.txt // -table --fs=":" // html --title=users.txt // o users.html
-$ w3m -dump users.html
+$ psv in users.txt // -table --fs=":" // html --title=users.txt // o users-with-title.html
+$ w3m -dump users-with-title
 
-$ psv in users.txt // -table --fs=":" // html --no-header // o users.html
-$ w3m -dump users.html
+$ psv in users.txt // -table --fs=":" // html --no-header // o users-no-header.html
+$ w3m -dump users-no-header.html
 
-$ psv in users.txt // -table --fs=":" // html -fs // o users.html
-$ w3m -dump users.html
+$ psv in users.txt // -table --fs=":" // html -fs // o users-with-fs.html
+$ w3m -dump users-with-fs.html
 
   '''
   def format_out(self, inp, _env, writeable):

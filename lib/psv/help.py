@@ -170,7 +170,7 @@ class Help(Command):
       if attrs and self.opt('verbose', self.opt('v')):
         row('', '')
         for attr in attrs:
-          val = getattr(desc, attr)
+          val = getattr(desc, attr, None)
           if val:
             row(f':{attr}={val}')
       if len(commands) > 1:

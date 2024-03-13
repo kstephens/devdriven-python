@@ -1,0 +1,13 @@
+# b4f67923bfa51d2f05f8982f916c80a1
+$ psv in us-states-sample.csv // coerce Population:int // sort Population
+            State  Population
+8        Delaware     1018396
+9        Nebraska     1967923
+5        Arkansas     3045637
+6        Kentucky     4512310
+0         Alabama     5074296
+4  South Carolina     5282634
+7       Minnesota     5717184
+1        Maryland     6164660
+3      Washington     7785786
+2        Illinois    12582032

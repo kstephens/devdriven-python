@@ -1,0 +1,2 @@
+# 944687778d2b30c5915a9c9d531b7b93
+$ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv

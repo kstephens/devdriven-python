@@ -1,0 +1,56 @@
+# d113928ec5594f895eb946c34ec1fa34
+$ psv in a.tsv // show-columns // md // env-
+{
+  "now": "...",  "history": [
+    [
+      "<< IoIn: in a.tsv >>",
+      "<< DataFrame: (4, 4) >>",
+      "application/x-pandas-dataframe",
+      null
+    ],
+    [
+      "<< ShowColumns: show-columns >>",
+      "<< DataFrame: (4, 18) >>",
+      "application/x-pandas-dataframe",
+      null
+    ],
+    [
+      "<< MarkdownOut: markdown-out >>",
+      "<< str: | name   | dtype.name   | dtype.kind  ... >>",
+      null,
+      null
+    ],
+    [
+      "<< EnvOut: env- >>",
+      null,
+      null,
+      null
+    ]
+  ],
+  "xform": {
+    "first": [
+      "in",
+      "a.tsv"
+    ],
+    "last": [
+      null
+    ],
+    "prev": [
+      null
+    ],
+    "next": [
+      "show-columns"
+    ],
+    "current": [
+      "<< EnvOut: env- >>",
+      null,
+      null,
+      null
+    ]
+  },
+  "Content-Type": "application/x-psv-env",
+  "Content-Encoding": null,
+  "input.paths": [
+    "a.tsv"
+  ]
+}

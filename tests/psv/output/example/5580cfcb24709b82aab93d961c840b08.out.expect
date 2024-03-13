@@ -1,0 +1,7 @@
+# 5580cfcb24709b82aab93d961c840b08
+$ psv in a.tsv // eval "c *= 2"
+   a   b       c      d
+0  1  b1  47.526  xspdf
+1  2  b2 -197.46   qwer
+2  3  b3  6902.0  bixop
+3  1  b4   2.468    zxy

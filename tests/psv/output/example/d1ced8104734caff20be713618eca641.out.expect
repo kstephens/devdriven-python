@@ -1,0 +1,8 @@
+# d1ced8104734caff20be713618eca641
+$ psv in a.csv // -csv --no-header
+  c1  c2      c3     c4
+0  a   b       c      d
+1  1  b1  23.763  xspdf
+2  2  b2  -98.73   qwer
+3  3  b3  3451.0  bixop
+4  1  b4   1.234    zxy

@@ -1,0 +1,9 @@
+# d7de87ae5bf74ca005f3eba7cf18ca94
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
+|   Rank | State        |   FIPS Code | Population   |
+|-------:|:-------------|------------:|:-------------|
+|      1 | California   |       06000 | 39,029,342   |
+|      2 | Texas        |       48000 | 30,029,572   |
+|      3 | Florida      |       12000 | 22,244,823   |
+|      4 | New York     |       36000 | 19,677,151   |
+|      5 | Pennsylvania |       42000 | 12,972,008   |

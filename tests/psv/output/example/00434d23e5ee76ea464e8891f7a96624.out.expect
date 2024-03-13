@@ -1,0 +1,8 @@
+# 00434d23e5ee76ea464e8891f7a96624
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
+| name   | dtype.name   | dtype.kind   |   dtype.isnative |
+|:-------|:-------------|:-------------|-----------------:|
+| a      | int64        | i            |                1 |
+| b      | object       | O            |                1 |
+| c      | float64      | f            |                1 |
+| d      | object       | O            |                1 |

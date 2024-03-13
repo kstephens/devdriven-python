@@ -1,0 +1,14 @@
+# c59fef9bbc30ae241ebba7c2ba9643c2
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
+|   Rank | State         |   FIPS Code |   Population |
+|-------:|:--------------|------------:|-------------:|
+|      1 | California    |       06000 |     39029342 |
+|      2 | Texas         |       48000 |     30029572 |
+|      3 | Florida       |       12000 |     22244823 |
+|      4 | NewYork       |       36000 |     19677151 |
+|      5 | Pennsylvania  |       42000 |     12972008 |
+|      6 | Illinois      |       17000 |     12582032 |
+|      7 | Ohio          |       39000 |     11756058 |
+|      8 | Georgia       |       13000 |     10912876 |
+|      9 | NorthCarolina |       37000 |     10698973 |
+|     10 | Michigan      |       26000 |     10034113 |

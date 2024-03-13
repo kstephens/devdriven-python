@@ -1,0 +1,4 @@
+# a89e6d51b098f57b2a0b7815b8d1eeb7
+$ psv in users.txt // -table --fs=':' --skip='.*nologin'
+     c1 c2 c3 c4    c5     c6         c7
+0  root  x  0  0  root  /root  /bin/bash

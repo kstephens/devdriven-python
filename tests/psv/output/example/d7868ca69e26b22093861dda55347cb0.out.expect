@@ -1,0 +1,7 @@
+# d7868ca69e26b22093861dda55347cb0
+$ cat a.tsv | psv in -
+a	b	c	d
+1	b1	23.763	xspdf
+2	b2	-98.73	qwer
+3	b3	3451	bixop
+1	b4	1.234	zxy

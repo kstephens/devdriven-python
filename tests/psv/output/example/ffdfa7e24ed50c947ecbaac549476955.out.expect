@@ -1,0 +1,6 @@
+# ffdfa7e24ed50c947ecbaac549476955
+$ psv in transfers.csv // summary Amount count,sum Payer
+     Payer  Amount_count  Amount_sum
+0    Alice             2       56.22
+1      Bob             4      144.58
+2  William             1        9.33

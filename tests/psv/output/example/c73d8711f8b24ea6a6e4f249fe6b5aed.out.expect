@@ -1,0 +1,6 @@
+# c73d8711f8b24ea6a6e4f249fe6b5aed
+$ psv in a.tsv // grep d 'x.+p' // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   3 | b3  | 3451     | bixop |

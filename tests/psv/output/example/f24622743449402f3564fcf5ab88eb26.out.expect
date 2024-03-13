@@ -1,0 +1,14 @@
+# f24622743449402f3564fcf5ab88eb26
+$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+| login   |
+|:--------|
+| root    |
+| daemon  |
+| bin     |
+| sys     |
+| games   |
+| man     |
+| mail    |
+| backup  |
+| nobody  |
+| sshd    |

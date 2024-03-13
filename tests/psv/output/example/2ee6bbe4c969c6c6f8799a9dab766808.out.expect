@@ -1,0 +1,8 @@
+# 2ee6bbe4c969c6c6f8799a9dab766808
+$ psv in a.tsv // null IGNORED --OPTION=VALUE // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |

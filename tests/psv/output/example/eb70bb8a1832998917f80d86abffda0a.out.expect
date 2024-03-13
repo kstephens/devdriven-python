@@ -1,0 +1,8 @@
+# eb70bb8a1832998917f80d86abffda0a
+$ psv in a.tsv // shuffle --seed=5 // md
+|   a | b   |        c | d     |
+|----:|:----|---------:|:------|
+|   1 | b1  |   23.763 | xspdf |
+|   2 | b2  |  -98.73  | qwer  |
+|   3 | b3  | 3451     | bixop |
+|   1 | b4  |    1.234 | zxy   |

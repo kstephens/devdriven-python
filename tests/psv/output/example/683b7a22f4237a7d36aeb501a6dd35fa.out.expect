@@ -1,0 +1,8 @@
+# 683b7a22f4237a7d36aeb501a6dd35fa
+$ psv in transfers.csv // count --column=PayeeTransfers Payee // md
+| Payee   |   PayeeTransfers |
+|:--------|-----------------:|
+| Alice   |                3 |
+| Frank   |                1 |
+| Joe     |                2 |
+| Rich    |                1 |

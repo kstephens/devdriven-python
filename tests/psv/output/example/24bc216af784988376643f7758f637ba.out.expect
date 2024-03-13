@@ -1,0 +1,6 @@
+# 24bc216af784988376643f7758f637ba
+$ psv in a.tsv // eval "return c > 0"
+   a   b       c      d
+0  1  b1  23.763  xspdf
+1  3  b3  3451.0  bixop
+2  1  b4   1.234    zxy

@@ -1,0 +1,7 @@
+# c17b3a67e441d59b9f85ab2153f2b157
+$ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
+   a   b       c  dCamelCase
+0  1  b1  23.763  xspdfxspdf
+1  2  b2  -98.73    qwerqwer
+2  3  b3  3451.0  bixopbixop
+3  1  b4   1.234      zxyzxy

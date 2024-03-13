@@ -1,0 +1,9 @@
+# 11e2df10ac1504b7219bf259290cafde
+$ psv in a.tsv // sql
+CREATE TABLE "__table__" (
+"index" INTEGER,
+  "a" INTEGER,
+  "b" TEXT,
+  "c" REAL,
+  "d" TEXT
+)
