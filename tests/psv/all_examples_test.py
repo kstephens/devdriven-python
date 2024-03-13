@@ -1,8 +1,6 @@
 import sys
 import hashlib
 import re
-# from io import StringIO
-from psv.main import Main
 from psv.example import ExampleRunner
 from devdriven.io import BroadcastIO
 from devdriven.asserts import assert_output

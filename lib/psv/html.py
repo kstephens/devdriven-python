@@ -28,7 +28,7 @@ $ psv in a.csv // html // o a.html
 $ w3m -dump a.html
 
 $ psv in users.txt // -table --fs=":" // html --title=users.txt // o users-with-title.html
-$ w3m -dump users-with-title
+$ w3m -dump users-with-title.html
 
 $ psv in users.txt // -table --fs=":" // html --no-header // o users-no-header.html
 $ w3m -dump users-no-header.html
