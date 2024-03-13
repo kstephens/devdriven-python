@@ -42,6 +42,7 @@ venv-upgrade-tools:
 	- set -x ;\
 	$(PYTHON) -m pip install --upgrade pip ;\
 	. venv/bin/activate ;\
+	which $(PYTHON) ;\
 	pip install --upgrade pip ;\
 	pip install --upgrade setuptools ;\
 	pip install --upgrade distlib ;\
@@ -115,7 +116,7 @@ PYTEST_OPTS= #--capture=fd --show-capture
 run-test:
 	rm -rf coverage/
 	mkdir -p coverage
-	coverage run -m pytest $(PYTEST_OPTS) $(wildcard $(FILES)) -vv -rpP
+	coverage run -m pytest $(PYTEST_OPTS) $(or $(wildcard $(FILES), all)) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json

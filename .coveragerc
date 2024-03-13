@@ -4,7 +4,7 @@ include = lib/*.py,lib/**/*.py,tests/*.py,tests/**/*.py
 sigterm = true
 
 [report]
-include = lib/*.py,lib/**/*.py,tests/*.py,tests/**/*.py
+include = lib/*.py,lib/*/*.py,tests/*.py,tests/*/*.py
 include_namespace_packages = True
 
 [html]

@@ -57,13 +57,13 @@ class Main(devdriven.cli.Main):
       pipe = self.main.parse_pipeline('main', argv)
       if pipe.xforms:
         if not isinstance(pipe.xforms[0], io.IoIn):
-          cmd = io.IoIn()
-          cmd.main = self.main
-          pipe.xforms.insert(0, cmd)
+          in_cmd = io.IoIn()
+          in_cmd.main = self.main
+          pipe.xforms.insert(0, in_cmd)
         if not isinstance(pipe.xforms[-1], io.IoOut):
-          cmd = io.IoOut()
-          cmd.main = self.main
-          pipe.xforms.append(cmd)
+          out_cmd = io.IoOut()
+          out_cmd.main = self.main
+          pipe.xforms.append(out_cmd)
       self.pipeline = pipe
       return self
 
