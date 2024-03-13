@@ -3,6 +3,7 @@ import re
 import os
 import subprocess
 import shlex
+from pathlib import Path
 from io import StringIO
 from dataclasses import dataclass
 # from icecream import ic
@@ -143,8 +144,10 @@ class ExampleRunner:
     else:
       self.run_command(ex, self.main.root_dir, self.main.bin_dir)
 
-  def run_main(self, ex, root_dir, _bin_dir):
+  def run_main(self, ex, root_dir, bin_dir):
     os.environ['PSV_RAND_SEED'] = '12345678'
+    root_dir = Path(root_dir).absolute()
+    bin_dir = Path(bin_dir).absolute()
     with cwd(f'{root_dir}/example'):
       cmd = ex.command
       # logging.warning('run_main: %s', repr(cmd))
@@ -159,6 +162,8 @@ class ExampleRunner:
 
   def run_command(self, ex, root_dir, bin_dir):
     os.environ['PSV_RAND_SEED'] = '12345678'
+    root_dir = Path(root_dir).absolute()
+    bin_dir = Path(bin_dir).absolute()
     with cwd(f'{root_dir}/example'):
       cmd = ex.command
       # logging.warning('run_command: %s', repr(cmd))
