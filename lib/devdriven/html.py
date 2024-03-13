@@ -24,8 +24,10 @@ class Table:
   output: Any = None
   data: dict = field(default_factory=dict)
   _col_opts: dict = field(default_factory=dict)
+  enable_min: bool = field(default=True)
 
   def render(self) -> Self:
+    self.enable_min = False
     if not self.output:
       self.output = StringIO()
     self.prepare_options()
@@ -177,6 +179,8 @@ class Table:
     return self.resource_(res, [name], default)
 
   def resource_min(self, res: Resources, name: str, default=None) -> str:
+    if not self.enable_min:
+      return self.resource_(res, [name], default)
     path = Path(name)
     parent = path.parent
     suffix = path.suffix
@@ -383,7 +387,7 @@ TBODY = '''
   % endfor
 </tr>
 % endfor
-  </tbody>
+</tbody>
 '''
 
 #########################################
