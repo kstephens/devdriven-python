@@ -2,6 +2,7 @@ from typing import Any, Optional, Iterable, Callable, Tuple
 import os
 import sys
 from pathlib import Path
+import hashlib
 from .file import file_md5
 
 FilterFunc = Optional[Callable]
@@ -14,7 +15,23 @@ def assert_command_output(file: str,
     system_command = f'exec 2>&1; set -x; {command} > {actual_out!r}'
     os.system(system_command)
     log(f'assert_command_output : {command!r}')
-  assert_output(file, run, fix_line, context_line)
+  return assert_output(file, run, fix_line, context_line)
+
+def assert_output_by_key(
+  key: str,
+  directory: str,
+  proc: Callable,
+  fix_line: FilterFunc = None,
+  context_line: FilterFunc = None,
+  ):
+  key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
+  output_file = f'{directory}/{key_hash}'
+  return assert_output(
+    output_file,
+    proc,
+    fix_line=fix_line,
+    context_line=context_line,
+  )
 
 def assert_output(file: str,
                   proc: Callable,
@@ -23,9 +40,10 @@ def assert_output(file: str,
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
-  proc(actual_out)
+  result = proc(actual_out)
   assert_files(actual_out, expect_out,
                fix_line=fix_line, context_line=context_line)
+  return result
 
 def assert_files(actual_out: str,
                  expect_out: str,

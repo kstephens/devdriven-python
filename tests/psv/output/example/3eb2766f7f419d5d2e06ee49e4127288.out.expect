@@ -1,0 +1,363 @@
+
+ I/O  
+======
+
+    in    
+----------
+# in: read from STDIN:
+$ cat a.tsv | psv in -
+
+$ cat a.tsv | psv in
+
+# in: HTTP support:
+$ psv in https://tinyurl.com/4sscj338
+
+
+    out    
+-----------
+# out: Convert TSV to CSV and save to a file:
+$ psv in a.tsv // -tsv // csv- // out a.csv
+
+
+ Format  
+=========
+
+    table-in    
+----------------
+# -table: Parse generic table:
+$ psv in users.txt // -table --fs=':'
+
+# -table: Skip users w/o login:
+$ psv in users.txt // -table --fs=':' --skip='.*nologin'
+
+# -table: Generate columns named col01, col02, ...:
+$ psv in users.txt // -table --fs=':' --column='col%02d'
+
+# -table: Set column names or generate them:
+$ psv in users.txt // -table --fs=':' --columns=login,,uid,gid,,home,shell
+
+# Convert text data to CSV:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // csv- // o us-states.csv
+
+# -table: Split fields by 2 or more whitespace chars:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
+
+# -table: Split 3 fields:
+$ psv in users.txt // -table --fs=':' --max-cols=3
+
+
+    table-out    
+-----------------
+$ psv in a.csv // table-
+
+$ psv in a.csv // table- --fs='|'
+
+
+    tsv-in    
+--------------
+# Convert TSV stdin to CSV stdout:
+$ cat a.tsv | psv -tsv // csv-
+
+# Convert TSV to Markdown:
+$ psv in a.tsv // md
+
+# Convert HTTP TSV content to Markdown:
+$ psv in https://tinyurl.com/4sscj338 // -tsv // md
+
+
+    tsv-out    
+---------------
+# Convert CSV to TSV:
+$ psv in a.csv // tsv-
+
+
+    csv-in    
+--------------
+# Use first row as header:
+$ psv in a.csv // -csv
+
+# Generate arbitrary columns:
+$ psv in a.csv // -csv --no-header
+
+# Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+
+
+    csv-out    
+---------------
+# tsv, csv: Convert TSV to CSV:
+$ psv in a.tsv // -tsv // csv-
+
+
+    markdown-in    
+-------------------
+# Convert TSV to Markdown to CSV:
+$ psv in a.tsv // md- // out a.md
+
+$ psv in a.md // -md // csv
+
+
+    markdown-out    
+--------------------
+# Convert TSV on STDIN to Markdown:
+$ cat a.tsv | psv -tsv // md
+
+
+    json-out    
+----------------
+# csv, json: Convert CSV to JSON:
+$ psv in a.csv // -csv // json-
+
+
+    html-out    
+----------------
+$ psv in a.csv // html // o a.html
+
+$ w3m -dump a.html
+
+$ psv in users.txt // -table --fs=":" // html --title=users.txt // o users-with-title.html
+
+$ w3m -dump users-with-title.html
+
+$ psv in users.txt // -table --fs=":" // html --no-header // o users-no-header.html
+
+$ w3m -dump users-no-header.html
+
+$ psv in users.txt // -table --fs=":" // html -fs // o users-with-fs.html
+
+$ w3m -dump users-with-fs.html
+
+
+    sql-    
+------------
+# sql: Convert TSV to SQL schema:
+$ psv in a.tsv // sql
+
+
+    yaml-out    
+----------------
+$ psv in a.csv // yaml
+
+
+    xls-in    
+--------------
+$ psv in a.xlsx // -xls // md
+
+$ psv in a.xlsx // -xls --no-header // md
+
+
+    xls-out    
+---------------
+$ psv in a.csv // xls // o a.xlsx
+
+$ file a.xlsx
+
+
+    extract    
+---------------
+# Extract by names:
+$ psv in users.txt // extract '^(?P<login>[^:]+)' // md
+
+$ psv in users.txt // extract '^(?P<login>[^:]+):(?P<rest>.*)' // md
+
+# Extract unnamed group:
+$ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
+
+# Extract unnamed groups using a template:
+$ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
+
+
+ Manipulation  
+===============
+
+    range    
+-------------
+# range: select a range of rows:
+$ psv in a.tsv // seq --start=0 // range 1 3 // md
+
+# range: every even row:
+$ psv in a.tsv // seq --start=0 // range --step=2 // md
+
+
+    head    
+------------
+# head:
+$ psv in us-states.txt // -table // head 5 // md
+
+
+    tail    
+------------
+# tail: last 3 rows:
+$ psv in us-states.txt // -table // tail 3 // md
+
+
+    reverse    
+---------------
+# reverse:
+$ psv in a.tsv // seq // tac // md
+
+
+    shuffle    
+---------------
+$ psv in a.tsv // shuffle --seed=5 // md
+
+
+    cut    
+-----------
+# cut: select columns by index and name:
+# cut: remove c, put d before other columns,
+$ psv in a.tsv // cut d '*' c:- // md
+
+
+    sort    
+------------
+# sort: increasing:
+$ psv in a.tsv // seq i // sort c // md
+
+# sort: decreasing:
+$ psv in a.tsv // seq i // sort -r c // md
+
+# sort: by a decreasing, c increasing:
+$ psv in a.tsv // seq i // md
+
+$ psv in a.tsv // seq i // sort a:- c // md
+
+
+    grep    
+------------
+# grep: match columns by regex:
+$ psv in a.tsv // grep d 'x' // md
+
+$ psv in a.tsv // grep d '^x' // md
+
+$ psv in a.tsv // grep d 'x.+p' // md
+
+# grep: match where d contains "x" and b ends with "3":
+$ psv in a.tsv // grep d 'x' b '3$' // md
+
+
+    translate    
+-----------------
+# translate: change characters in specific field:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population // head // md
+
+# translate: delete characters:
+$ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
+
+
+    null    
+------------
+# null: does nothing:
+$ psv in a.tsv // null IGNORED --OPTION=VALUE // md
+
+
+ Summaries  
+============
+
+    count    
+-------------
+# Count the number of transfers by Payer:
+$ psv in transfers.csv // count Payer // md
+
+# Count the number of transfers from Payer to Payee:
+$ psv in transfers.csv // count Payer,Payee // md
+
+# Count the number of transfers from Payee:
+$ psv in transfers.csv // count --column=PayeeTransfers Payee // md
+
+
+    summary    
+---------------
+# Summary of transfers by Payer and Payee:
+$ psv in transfers.csv // summary Amount '*' Payer,Payee
+
+# Summary of transfers by Payer:
+$ psv in transfers.csv // summary Amount count,sum Payer
+
+# Sum of Fee by Payee:
+$ psv in transfers.csv // summary Fee sum Payee
+
+# Summary of all transfer Ammount and Fee:
+$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+
+
+    stats    
+-------------
+$ psv in a.tsv // stats // cols // cut name,dtype.name // md
+
+$ psv in a.tsv // stats // cut name,count,min,max
+
+
+ Types  
+========
+
+    coerce    
+--------------
+$ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
+
+$ psv in us-states-sample.csv // sort Population
+
+$ psv in us-states-sample.csv // coerce Population:int // sort Population
+
+
+ Metadata  
+===========
+
+    add-sequence    
+--------------------
+# add-sequence (seq): add a column with a sequence:
+$ psv in a.tsv // seq // md
+
+# add-sequence (seq): start at 0:
+$ psv in a.tsv // seq --start=0 // md
+
+# add-sequence (seq): step by 2:
+$ psv in a.tsv // seq --step=2 // md
+
+# add-sequence (seq): start at 5, step by -2:
+$ psv in a.tsv // seq --start=5 --step=-2 // md
+
+
+    rename-columns    
+----------------------
+# rename-columns: rename column 'b' to 'B':
+$ psv in a.tsv // rename b B // md
+
+
+    show-columns    
+--------------------
+# Column metadata columns:
+$ psv in a.tsv // cols // cols // cut name,dtype.name // md
+
+# Column metadata:
+$ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
+
+
+    env-    
+------------
+# env: display proccessing info:
+$ psv in a.tsv // show-columns // md // env-
+
+
+ Expression Evaluation  
+========================
+
+    eval    
+------------
+$ psv in a.tsv // eval "c *= 2"
+
+$ psv in a.tsv // eval "return c > 0"
+
+$ psv in a.tsv // eval "return {'i': offset, 'd_length': 2}"
+
+$ psv in a.tsv // eval "return {'c': c * 2, 'f': len(d)}"
+
+$ psv in a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
+
+$ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
+
+
+    select    
+--------------
+$ psv in a.tsv // select "c > 0"
+

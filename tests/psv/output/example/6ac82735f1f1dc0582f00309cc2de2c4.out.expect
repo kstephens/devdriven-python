@@ -1,0 +1,215 @@
+[
+  {
+    "class": "<class 'devdriven.cli.descriptor.Descriptor'>",
+    "fields": {
+      "klass": "<< <class 'psv.process.Sort'> >>",
+      "name": "sort",
+      "brief": "Sort rows by columns.",
+      "synopsis": "psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]",
+      "aliases": [
+        "s"
+      ],
+      "detail": [],
+      "options": {
+        "argv": [],
+        "args": [
+          "COL",
+          "COL:-",
+          "COL:+"
+        ],
+        "arg_by_name": {
+          "COL": "Sort by COL ascending",
+          "COL:-": "Sort by COL descending",
+          "COL:+": "Sort by COL ascending"
+        },
+        "opts": [
+          {
+            "style": "doc",
+            "kind": "flag",
+            "arg": "--reverse",
+            "full": "--reverse",
+            "name": "reverse",
+            "value": true,
+            "description": "Sort descending.",
+            "default": null,
+            "aliases": [
+              {
+                "style": "doc",
+                "kind": "flag",
+                "arg": "-r",
+                "full": "-r",
+                "name": "r",
+                "value": true,
+                "description": "Sort descending.",
+                "default": null,
+                "aliases": [],
+                "alias_of": "reverse"
+              }
+            ],
+            "alias_of": null
+          },
+          {
+            "style": "doc",
+            "kind": "flag",
+            "arg": "--numeric",
+            "full": "--numeric",
+            "name": "numeric",
+            "value": true,
+            "description": "Sort as numeric.",
+            "default": null,
+            "aliases": [
+              {
+                "style": "doc",
+                "kind": "flag",
+                "arg": "-n",
+                "full": "-n",
+                "name": "n",
+                "value": true,
+                "description": "Sort as numeric.",
+                "default": null,
+                "aliases": [],
+                "alias_of": "numeric"
+              }
+            ],
+            "alias_of": null
+          },
+          {
+            "style": "doc",
+            "kind": "option",
+            "arg": "--coerce=TYPE",
+            "full": "--coerce",
+            "name": "coerce",
+            "value": "TYPE",
+            "description": "Sort by coerced value.",
+            "default": null,
+            "aliases": [],
+            "alias_of": null
+          }
+        ],
+        "opt_by_name": {
+          "reverse": {
+            "style": "doc",
+            "kind": "flag",
+            "arg": "--reverse",
+            "full": "--reverse",
+            "name": "reverse",
+            "value": true,
+            "description": "Sort descending.",
+            "default": null,
+            "aliases": [
+              {
+                "style": "doc",
+                "kind": "flag",
+                "arg": "-r",
+                "full": "-r",
+                "name": "r",
+                "value": true,
+                "description": "Sort descending.",
+                "default": null,
+                "aliases": [],
+                "alias_of": "reverse"
+              }
+            ],
+            "alias_of": null
+          },
+          "numeric": {
+            "style": "doc",
+            "kind": "flag",
+            "arg": "--numeric",
+            "full": "--numeric",
+            "name": "numeric",
+            "value": true,
+            "description": "Sort as numeric.",
+            "default": null,
+            "aliases": [
+              {
+                "style": "doc",
+                "kind": "flag",
+                "arg": "-n",
+                "full": "-n",
+                "name": "n",
+                "value": true,
+                "description": "Sort as numeric.",
+                "default": null,
+                "aliases": [],
+                "alias_of": "numeric"
+              }
+            ],
+            "alias_of": null
+          },
+          "coerce": {
+            "style": "doc",
+            "kind": "option",
+            "arg": "--coerce=TYPE",
+            "full": "--coerce",
+            "name": "coerce",
+            "value": "TYPE",
+            "description": "Sort by coerced value.",
+            "default": null,
+            "aliases": [],
+            "alias_of": null
+          }
+        },
+        "opts_defaults": {},
+        "opt_char_map": {},
+        "opt_aliases": {
+          "r": {
+            "style": "doc",
+            "kind": "flag",
+            "arg": "-r",
+            "full": "-r",
+            "name": "r",
+            "value": true,
+            "description": "Sort descending.",
+            "default": null,
+            "aliases": [],
+            "alias_of": "reverse"
+          },
+          "n": {
+            "style": "doc",
+            "kind": "flag",
+            "arg": "-n",
+            "full": "-n",
+            "name": "n",
+            "value": true,
+            "description": "Sort as numeric.",
+            "default": null,
+            "aliases": [],
+            "alias_of": "numeric"
+          }
+        },
+        "delegate": null
+      },
+      "examples": [
+        {
+          "command": "psv in a.tsv // seq i // sort c // md",
+          "comments": [
+            "sort: increasing:"
+          ],
+          "output": "|   a | b   |        c | d     |   i |\n|----:|:----|---------:|:------|----:|\n|   2 | b2  |  -98.73  | qwer  |   2 |\n|   1 | b4  |    1.234 | zxy   |   4 |\n|   1 | b1  |   23.763 | xspdf |   1 |\n|   3 | b3  | 3451     | bixop |   3 |\n"
+        },
+        {
+          "command": "psv in a.tsv // seq i // sort -r c // md",
+          "comments": [
+            "sort: decreasing:"
+          ],
+          "output": "|   a | b   |        c | d     |   i |\n|----:|:----|---------:|:------|----:|\n|   3 | b3  | 3451     | bixop |   3 |\n|   1 | b1  |   23.763 | xspdf |   1 |\n|   1 | b4  |    1.234 | zxy   |   4 |\n|   2 | b2  |  -98.73  | qwer  |   2 |\n"
+        },
+        {
+          "command": "psv in a.tsv // seq i // md",
+          "comments": [
+            "sort: by a decreasing, c increasing:"
+          ],
+          "output": "|   a | b   |        c | d     |   i |\n|----:|:----|---------:|:------|----:|\n|   1 | b1  |   23.763 | xspdf |   1 |\n|   2 | b2  |  -98.73  | qwer  |   2 |\n|   3 | b3  | 3451     | bixop |   3 |\n|   1 | b4  |    1.234 | zxy   |   4 |\n"
+        },
+        {
+          "command": "psv in a.tsv // seq i // sort a:- c // md",
+          "comments": [],
+          "output": "|   a | b   |        c | d     |   i |\n|----:|:----|---------:|:------|----:|\n|   3 | b3  | 3451     | bixop |   3 |\n|   2 | b2  |  -98.73  | qwer  |   2 |\n|   1 | b4  |    1.234 | zxy   |   4 |\n|   1 | b1  |   23.763 | xspdf |   1 |\n"
+        }
+      ],
+      "section": "Manipulation",
+      "metadata": {}
+    }
+  }
+]

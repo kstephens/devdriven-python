@@ -1,0 +1,11 @@
+markdown-out - Generate Markdown.
+
+  psv markdown-out
+
+Aliases: markdown-, markdown, md-out, md-, md
+
+Examples:
+
+# Convert TSV on STDIN to Markdown:
+$ cat a.tsv | psv -tsv // md
+
