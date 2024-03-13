@@ -21,6 +21,23 @@ def test_negate():
   assert sut.negate(f)(2, 2) is False
   assert sut.negate(f)(2, 3) is True
 
+def test_bind_arg():
+  assert sut.bind_arg(sut.identity, 0)(2, 3) == 2
+  assert sut.bind_arg(sut.identity, 1)(2, 3) == 3
+  assert sut.bind_arg(sut.identity, -1)(2, 3) == 3
+
+def test_bind_args():
+  def return_args(*args):
+    return list(args)
+
+  def t(idxs):
+    g = sut.bind_args(return_args, idxs)
+    return g(2, 3, 5)
+
+  assert t([]) == []
+  assert t([0]) == [2]
+  assert t([1, 0]) == [3, 2]
+
 def test_and_comp():
   def f(x):
     return x
@@ -98,29 +115,3 @@ def test_re_pred():
   assert sut.re_pred("ab")("bc") is False
   assert sut.re_pred(12)("123") is True
   assert sut.re_pred(12)(123) is True
-
-def test_binary_op():
-  assert sut.binary_op("==")(1, 1) is True
-  assert sut.binary_op("=")(1, 1) is True
-  assert sut.binary_op("==")(1, 2) is False
-  assert sut.binary_op("!=")(1, 2) is True
-  assert sut.binary_op("<")(1, 2) is True
-  assert sut.binary_op(">")(1, 2) is False
-  assert sut.binary_op("<=")(1, 1) is True
-  assert sut.binary_op(">=")(2, 2) is True
-  assert sut.binary_op("=~")("foo", "foo") is True
-  assert sut.binary_op("=~")("foo", "bar") is False
-  assert sut.binary_op("~=")("foo", "foo") is True
-
-def test_binary_op_const():
-  assert sut.binary_op_const("==", 1)(1) is True
-  assert sut.binary_op_const("=", 1)(1) is True
-  assert sut.binary_op_const("==", 1)(2) is False
-  assert sut.binary_op_const("!=", 1)(2) is True
-  assert sut.binary_op_const("<", 1)(2) is False
-  assert sut.binary_op_const(">", 1)(2) is True
-  assert sut.binary_op_const("<=", 1)(1) is True
-  assert sut.binary_op_const(">=", 2)(2) is True
-  assert sut.binary_op_const("=~", "foo")("foo") is True
-  assert sut.binary_op_const("=~", "foo")("bar") is False
-  assert sut.binary_op_const("~=", "foo")("foo") is True

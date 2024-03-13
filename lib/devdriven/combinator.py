@@ -1,11 +1,7 @@
-from typing import Any, Optional, Union, List, Callable
+from typing import Any, Union, List, Mapping, Iterable, Callable
 import re
-
-Arity1Bool = Callable[[Any], bool]
-Arity1 = Callable[[Any], Any]
-Arity2 = Callable[[Any, Any], Any]
-Variadic = Callable[..., Any]
-VariadicBool = Callable[..., bool]
+from .typing import Variadic, VariadicBool, Arity1, Arity1Bool
+# from icecream import ic
 
 def identity(x: Any) -> Any:
   return x
@@ -48,6 +44,22 @@ def negate(f: Variadic) -> VariadicBool:
     - Callable: A new callable that negates the result of `f`.
   """
   return lambda *args, **kwargs: not f(*args, **kwargs)
+
+def bind_arg(f: Arity1, idx: int) -> Variadic:
+  return lambda *args: f(args[idx])
+
+def bind_args(f: Variadic, idxs_: Iterable[int]) -> Variadic:
+  idxs = tuple(idxs_)
+  idxs_ = ()  # GC
+  if len(idxs) == 0:
+    return lambda *_args: f()
+  if len(idxs) == 1:
+    return bind_arg(f, idxs[0])
+
+  def g(*args):
+    args = [args[idx] for idx in idxs]
+    return f(*args)
+  return g
 
 def and_comp(f: Variadic, g: Variadic) -> VariadicBool:
   """
@@ -127,6 +139,15 @@ def compose_2(g: Arity1, f: Variadic) -> Variadic:
 def compose_arity1(g: Arity1, f: Arity1) -> Arity1:
   return lambda arg: g(f(arg))
 
+def get(x: Mapping[Any, Any], default: Any = None) -> Callable[[Any], Any]:
+  if isinstance(x, (list, tuple)):
+    def g(i):
+      if i in range(0, len(x)):
+        return x[i]
+      return default
+    return g
+  return lambda i: x.get(i, default)
+
 def re_pred(rx_or_string: Union[re.Pattern, str]) -> Arity1Bool:
   """
   A function that takes a regular expression pattern as input and returns a predicate function.
@@ -144,66 +165,3 @@ def re_pred(rx_or_string: Union[re.Pattern, str]) -> Arity1Bool:
   else:
     rx = re.compile(str(rx_or_string))
   return lambda x: re.match(rx, str(x)) is not None
-
-def binary_op(operator: str) -> Optional[Arity2]:
-  """
-  A function that takes an binary operator name and returns arity-2 function.
-  """
-  if operator in ("+"):
-    return lambda a, b: a + b
-  if operator in ("-"):
-    return lambda a, b: a - b
-  if operator in ("*"):
-    return lambda a, b: a * b
-  if operator in ("/"):
-    return lambda a, b: a / b
-  if operator in ("%"):
-    return lambda a, b: a % b
-  if operator in ('==', '='):
-    return lambda a, b: a == b
-  if operator in ("!="):
-    return lambda a, b: a != b
-  if operator in ("<"):
-    return lambda a, b: a < b
-  if operator in (">"):
-    return lambda a, b: a > b
-  if operator in ("<="):
-    return lambda a, b: a <= b
-  if operator in (">="):
-    return lambda a, b: a >= b
-  if operator in ("and"):
-    return lambda a, b: a and b
-  if operator in ("or"):
-    return lambda a, b: a or b
-  if operator in ("~=", "=~"):
-    return lambda a, b: re.match(b, a) is not None
-  if operator in ("~!", "!~"):
-    return lambda a, b: re.match(b, a) is None
-  return None
-
-def binary_op_const(operator: str, b: Any) -> Optional[Arity1]:
-  """
-  A function that takes an binary operator name with a right hand constant and returns arity-2 function.
-  """
-  if operator in ("~=", "=~"):
-    return re_pred(f'.*{b}.*')
-  if operator in ("~!", "!~"):
-    pred = re_pred(f'.*{b}.*')
-    return lambda a: not pred(a)
-  if bop := binary_op(operator):
-    return lambda a: bop(a, b)
-  return None
-
-def unary_op(operator: str) -> Optional[Arity1]:
-  """
-  A function that takes a unary operator name and returns arity-1 function.
-  """
-  if operator in ("-"):
-    return lambda a: - a
-  if operator in ("+"):
-    return lambda a: a
-  if operator in ("not"):
-    return lambda a: not a
-  if operator in ("abs"):
-    return abs
-  return None
