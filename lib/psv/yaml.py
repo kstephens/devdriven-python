@@ -1,7 +1,7 @@
+import yaml
 import pandas as pd
 from .command import section, command
 from .formats import FormatOut
-import yaml
 
 section('Format', 20)
 

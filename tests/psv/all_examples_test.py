@@ -13,6 +13,7 @@ def test_all_examples():
 def assert_example(cpr):
   cmd = cpr.example.command
   md5 = hashlib.md5(cmd.encode('utf-8')).hexdigest()
+
   def run(actual_out):
     with open(actual_out, "w", encoding='utf-8') as capture_output:
       output = BroadcastIO([sys.stderr, capture_output])

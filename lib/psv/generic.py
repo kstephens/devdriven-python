@@ -52,6 +52,7 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
     skip_fn = None
     if skip_rx := self.opt('skip'):
       skip_rx = re.compile(skip_rx)
+
       def skip_row(row):
         return re.match(skip_rx, row)
       skip_fn = skip_row
@@ -60,7 +61,7 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
       field_sep=self.opt('fs', r'\s+'),
       record_sep=self.opt('rs', r'\n\r?'),
       max_cols=self.opt('max-cols'),
-      encoding = self.opt('encoding', self.default_encoding()),
+      encoding=self.opt('encoding', self.default_encoding()),
       columns=columns,
       header=self.opt('header'),
       skip=skip_fn,
@@ -91,6 +92,7 @@ $ psv in a.csv // table- --fs='|'
     )
 
 
+# pylint: disable-next=too-many-arguments
 def format_rows(writeable, inp,
                 field_sep=None,
                 record_sep=None,
@@ -115,17 +117,16 @@ def format_rows(writeable, inp,
   for _ind, row in inp.iterrows():
     format_row([row[col] for col in columns])
 
-# pylint: disable-next=too-many-arguments
-# pylint: disable-next=too-many-locals
+# pylint: disable-next=too-many-arguments,disable-next=too-many-locals
 def parse_rows(
-  readable,
-  field_sep=None, record_sep=None,
-  max_cols=0,
-  columns=None,
-  column_format='c',
-  encoding=None,
-  header=None,
-  skip=None):
+    readable,
+    field_sep=None, record_sep=None,
+    max_cols=0,
+    columns=None,
+    column_format='c',
+    encoding=None,
+    header=None,
+    skip=None):
   field_sep_rx = re.compile(field_sep)
   record_sep_rx = re.compile(record_sep)
   max_cols = int(max_cols or 0)

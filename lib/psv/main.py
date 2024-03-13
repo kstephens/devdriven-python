@@ -53,6 +53,7 @@ class Main(devdriven.cli.Main):
       self.env = None
 
     def parse_argv(self, argv: Argv) -> Self:
+      # pylint: disable-next=no-member
       pipe = self.main.parse_pipeline('main', argv)
       if pipe.xforms:
         if not isinstance(pipe.xforms[0], io.IoIn):
@@ -68,6 +69,7 @@ class Main(devdriven.cli.Main):
 
     def exec(self) -> Any:
       self.env.update({
+        # pylint: disable-next=no-member
         'now': self.main.now,
         'history': [],
         'xform': {},
