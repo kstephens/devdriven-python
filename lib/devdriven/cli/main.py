@@ -15,6 +15,8 @@ from .command import Command
 class Main:
   stdin: IO
   stdout: IO
+  stderr: IO
+  config: Any
   argv0: str
   argv: Argv
   commands: List[Command]
@@ -27,6 +29,7 @@ class Main:
     self.stdin = sys.stdin
     self.stdout = sys.stdout
     self.stderr = sys.stderr
+    self.config = None
     self.http = urllib3.PoolManager()
     self.now = datetime.now()
     self.prog_name = self.prog_path = self.bin_dir = None
