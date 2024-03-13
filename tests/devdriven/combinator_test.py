@@ -99,15 +99,28 @@ def test_re_pred():
   assert sut.re_pred(12)("123") is True
   assert sut.re_pred(12)(123) is True
 
-def test_op_pred():
-  assert sut.op_pred("==", 1)(1) is True
-  assert sut.op_pred("=", 1)(1) is True
-  assert sut.op_pred("==", 1)(2) is False
-  assert sut.op_pred("!=", 1)(2) is True
-  assert sut.op_pred("<", 1)(2) is False
-  assert sut.op_pred(">", 1)(2) is True
-  assert sut.op_pred("<=", 1)(1) is True
-  assert sut.op_pred(">=", 2)(2) is True
-  assert sut.op_pred("=~", "foo")("foo") is True
-  assert sut.op_pred("=~", "foo")("bar") is False
-  assert sut.op_pred("~=", "foo")("foo") is True
+def test_binary_op():
+  assert sut.binary_op("==")(1, 1) is True
+  assert sut.binary_op("=")(1, 1) is True
+  assert sut.binary_op("==")(1, 2) is False
+  assert sut.binary_op("!=")(1, 2) is True
+  assert sut.binary_op("<")(1, 2) is True
+  assert sut.binary_op(">")(1, 2) is False
+  assert sut.binary_op("<=")(1, 1) is True
+  assert sut.binary_op(">=")(2, 2) is True
+  assert sut.binary_op("=~")("foo", "foo") is True
+  assert sut.binary_op("=~")("foo", "bar") is False
+  assert sut.binary_op("~=")("foo", "foo") is True
+
+def test_binary_op_const():
+  assert sut.binary_op_const("==", 1)(1) is True
+  assert sut.binary_op_const("=", 1)(1) is True
+  assert sut.binary_op_const("==", 1)(2) is False
+  assert sut.binary_op_const("!=", 1)(2) is True
+  assert sut.binary_op_const("<", 1)(2) is False
+  assert sut.binary_op_const(">", 1)(2) is True
+  assert sut.binary_op_const("<=", 1)(1) is True
+  assert sut.binary_op_const(">=", 2)(2) is True
+  assert sut.binary_op_const("=~", "foo")("foo") is True
+  assert sut.binary_op_const("=~", "foo")("bar") is False
+  assert sut.binary_op_const("~=", "foo")("foo") is True
