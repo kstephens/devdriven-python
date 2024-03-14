@@ -106,6 +106,7 @@ run-mypy:
 
 stubs:
 	$(MAKE) run-stubgen FILES='$(or $(FILES), $(MYPY_FILES))'
+	@set -x; for d in $(OTHER_DIRS); do $(MAKE) -C "$$d" stubs; done
 
 run-stubgen: $(FILES:%.py=%.pyi)
 
