@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-export PSV_PROG_PATH="$(readlink -f "$0")"
-prog_name="$(basename "$0")"
-prog_base="$(readlink -f "$(dirname "$PSV_PROG_PATH")/..")"
-# PATH="$prog_base/bin:$PATH"
-[[ -f "$prog_base/venv/bin/activate" ]] && . "$prog_base/venv/bin/activate"
-export PYTHONPATH="$prog_base/lib:$PYTHONPATH"
-exec python3.11 $PSV_PYTHON_OPTS -m psv.main "$@"

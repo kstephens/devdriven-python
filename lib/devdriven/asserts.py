@@ -18,12 +18,11 @@ def assert_command_output(file: str,
   return assert_output(file, run, fix_line, context_line)
 
 def assert_output_by_key(
-  key: str,
-  directory: str,
-  proc: Callable,
-  fix_line: FilterFunc = None,
-  context_line: FilterFunc = None,
-  ):
+    key: str,
+    directory: str,
+    proc: Callable,
+    fix_line: FilterFunc = None,
+    context_line: FilterFunc = None):
   key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
   output_file = f'{directory}/{key_hash}'
   return assert_output(

@@ -61,7 +61,7 @@ install-requirements:
 
 # Early:
 
-early: minify
+early: resources
 
 # Check:
 
@@ -89,10 +89,10 @@ run-pycodestyle:
 
 # Typecheck:
 
-typecheck:
+typecheck: stubs
 	$(MAKE) run-typecheck FILES='$(or $(FILES), $(MYPY_FILES))'
 
-run-typecheck: mypy
+run-typecheck: stubs mypy
 
 mypy:
 	$(MAKE) run-mypy FILES='$(or $(FILES), $(MYPY_FILES))'
@@ -104,6 +104,15 @@ run-mypy:
 	mkdir -p mypy-report
 	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(FILES), /dev/null))
 	cat mypy-report/index.txt
+
+stubs:
+	$(MAKE) run-stubgen FILES='$(or $(FILES), $(MYPY_FILES))'
+
+run-stubgen: $(FILES:%.py=%.pyi)
+
+.SUFFIXES: .pyi .py
+%.pyi: %.py
+	stubgen $(@:%.pyi=%.py) -o lib
 
 # Unit Test:
 
@@ -127,6 +136,8 @@ run-test:
 RESOURCES_DIR=lib/devdriven/resources
 JS_FILES:=$(shell find $(RESOURCES_DIR)/js $(RESOURCES_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort)
 MIN_JS_FILES:=$(patsubst %.js,%.min.js,$(JS_FILES))
+
+resources: minify
 
 minify: $(MIN_JS_FILES) Makefile
 %.min.js: %.js
