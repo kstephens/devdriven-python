@@ -14,7 +14,7 @@ def assert_command_output(file: str,
   def run(actual_out):
     system_command = f'exec 2>&1; set -x; {command} > {actual_out!r}'
     os.system(system_command)
-    log(f'assert_command_output : {command!r}')
+    assert_log(f'assert_command_output : {command!r}')
   return assert_output(file, run, fix_line, context_line)
 
 def assert_output_by_key(
@@ -54,9 +54,9 @@ def assert_files(actual_out: str,
   if os.path.isfile(expect_out):
     differences = compare_files(actual_out, expect_out, context_line=context_line)
     if differences:
-      log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
-      log(f'To accept  : mv {actual_out!r} {expect_out!r}')
-      log('      OR   : export ASSERT_DIFF_ACCEPT=1')
+      assert_log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
+      assert_log(f'To accept  : mv {actual_out!r} {expect_out!r}')
+      assert_log('      OR   : export ASSERT_DIFF_ACCEPT=1')
       os.system(f'exec 2>&1; set -x; diff -u {expect_out!r} {actual_out!r} 2>&1')
       if int(os.environ.get('ASSERT_DIFF_ACCEPT', '0')):
         log(f'ASSERT_DIFF_ACCEPT : ACCEPTING : {expect_out!r} from {actual_out!r}')
@@ -66,6 +66,7 @@ def assert_files(actual_out: str,
   else:
     log(f'Initialize {expect_out!r} with {actual_out!r}')
   if accept_actual:
+    assert_log(f'{accept_actual} : {expect_out!r} from {actual_out!r}')
     os.system(f'exec 2>&1; set -x; mv {actual_out!r} {expect_out!r}')
   elif not differences:
     os.system(f'exec 2>&1; set -x; rm -f {actual_out!r}')
@@ -77,8 +78,15 @@ def compare_files(actual_out: str,
     actual_lines = io.readlines()
   with open(expect_out, 'r', encoding='utf-8') as io:
     expect_lines = io.readlines()
-  log(f'actual   : {actual_out!r} : {len(actual_lines)} lines : md5 {file_md5(actual_out)!r}')
-  log(f'expected : {expect_out!r} : {len(expect_lines)} lines : md5 {file_md5(expect_out)!r}')
+
+  actual_md5 = file_md5(actual_out)
+  expect_md5 = file_md5(expect_out)
+
+  if actual_md5 != expect_md5:
+    assert_log(f'actual   : {actual_out!r} : {len(actual_lines)} lines : md5 {actual_md5!r}')
+    assert_log(f'expected : {expect_out!r} : {len(expect_lines)} lines : md5 {expect_md5!r}')
+  else:
+    assert_log(f'SAME     : {actual_out!r} : {len(actual_lines)} lines : md5 {actual_md5!r}')
   return compare_lines(actual_lines, expect_lines, context_line=context_line)
 
 def compare_lines(actual_lines: Iterable[str],
@@ -110,5 +118,8 @@ def fix_file(file: str, fix_line: FilterFunc = None) -> None:
   # os.system(f'diff -U0 {file} {file_tmp}')
   os.rename(file_tmp, file)
 
-def log(msg: Any):
-  print(f'  ### assert : {msg}', file=sys.stderr)
+def assert_log(msg: Any = ''):
+  if msg:
+    print(f'  ### assert : {msg}', file=sys.stderr)
+  else:
+    print('', file=sys.stderr)
