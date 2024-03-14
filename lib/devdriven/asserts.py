@@ -48,9 +48,11 @@ def assert_files(actual_out: str,
                  expect_out: str,
                  fix_line: FilterFunc = None,
                  context_line: FilterFunc = None):
-  accept_actual = False
   if fix_line:
     fix_file(actual_out, fix_line)
+
+  accept_actual = differences = None
+
   if os.path.isfile(expect_out):
     differences = compare_files(actual_out, expect_out, context_line=context_line)
     if differences:
@@ -59,17 +61,17 @@ def assert_files(actual_out: str,
       assert_log('      OR   : export ASSERT_DIFF_ACCEPT=1')
       os.system(f'exec 2>&1; set -x; diff -u {expect_out!r} {actual_out!r} 2>&1')
       if int(os.environ.get('ASSERT_DIFF_ACCEPT', '0')):
-        log(f'ASSERT_DIFF_ACCEPT : ACCEPTING : {expect_out!r} from {actual_out!r}')
-        os.system(f'exec 2>&1; set -x; mv {actual_out!r} {expect_out!r}')
-        accept_actual = True
-      assert actual_out == expect_out
+        accept_actual = "ASSERT_DIFF_ACCEPT"
+      else:
+        assert actual_out == expect_out
   else:
-    log(f'Initialize {expect_out!r} with {actual_out!r}')
+    accept_actual = 'Initialize'
+
   if accept_actual:
     assert_log(f'{accept_actual} : {expect_out!r} from {actual_out!r}')
     os.system(f'exec 2>&1; set -x; mv {actual_out!r} {expect_out!r}')
   elif not differences:
-    os.system(f'exec 2>&1; set -x; rm -f {actual_out!r}')
+    os.system(f'exec 2>&1; rm -f {actual_out!r}')
 
 def compare_files(actual_out: str,
                   expect_out: str,
