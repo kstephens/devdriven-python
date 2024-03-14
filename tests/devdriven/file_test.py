@@ -9,7 +9,7 @@ def test_read_file():
   assert sut.read_file('Does-Not-Exist') is None
 
 def test_file_size():
-  assert sut.file_size('Makefile') > 99
+  assert sut.file_size('Makefile.common') > 99
   assert sut.file_size('Does-Not-Exist') is None
 
 def test_file_md5():
