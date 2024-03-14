@@ -4,7 +4,7 @@ endif
 base_dir:=$(shell readlink -f .)
 
 PYTHONPATH_ORIG:=$(PYTHONPATH)
-export PYTHONPATH=lib:$(PYTHONPATH_ORIG)
+export PYTHONPATH=lib:$(OTHER_PYTHONPATH):$(PYTHONPATH_ORIG)
 PYTHON_BIN:=$(shell which $(PYTHON) | head -1)
 VENV_OPTS=--clear
 # OSX HAS WRECKED brew python3.*:
@@ -132,8 +132,6 @@ run-test:
 
 # Resources:
 
-RESOURCES_DIR=lib/devdriven/resources
-JS_FILES:=$(shell find $(RESOURCES_DIR)/js $(RESOURCES_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort)
 MIN_JS_FILES:=$(patsubst %.js,%.min.js,$(JS_FILES))
 
 resources: minify
