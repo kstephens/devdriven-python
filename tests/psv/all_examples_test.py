@@ -4,7 +4,7 @@ import shlex
 from io import StringIO
 from pathlib import Path
 from devdriven.io import BroadcastIO
-from devdriven.asserts import assert_output_by_key
+from devdriven.asserts import assert_output_by_key, assert_log
 from devdriven.cli.application import app
 import psv.main
 from psv.example import ExampleRunner
@@ -35,7 +35,7 @@ def test_help_markdown():
 def test_help_verbose():
   run('psv help --verbose sort')
 
-def test_help_plain():
+def test_help_plain_sort():
   run('psv help --plain sort')
 
 def test_help_section():
@@ -43,6 +43,9 @@ def test_help_section():
 
 def test_help_list():
   run('psv help --list')
+
+def test_help_plain():
+  run('psv help --plain')
 
 def test_help_raw():
   run('psv help --raw sort')
@@ -57,13 +60,16 @@ def test_all_examples():
     assert_example(cpr)
 
 def assert_example(cpr):
+  assert_log()
+  assert_log(f"Testing  : {cpr.example.command!r}")
+
   def run_with_file(actual_out):
     with open(actual_out, "w", encoding='utf-8') as capture_output:
       key_hash = re.sub(r'\..+$', '', Path(actual_out).name)
       output = BroadcastIO([sys.stderr, capture_output])
       output = BroadcastIO([capture_output])
-      output.print(f'# {key_hash}')
-      output.print(f'$ {cpr.example.command}')
+      print(f'# {key_hash}', file=output)
+      print(f'$ {cpr.example.command}', file=output)
       runner = ExampleRunner(main=None, output=output, run=True)
       runner.run_command(cpr.example, '.', 'bin')
 
@@ -71,10 +77,14 @@ def assert_example(cpr):
     cpr.example.command,
     'tests/psv/output/example',
     run_with_file,
-    fix_line=fix_line
+    fix_line=fix_line,
+    context_line=context_line
   )
 
 def run(cmdline, min_len=0):
+  assert_log()
+  assert_log(f"Testing  : {cmdline!r}")
+
   def run_with_file(actual_out):
     with open(actual_out, "w", encoding='utf-8') as capture_output:
       argv = shlex.split(cmdline)
@@ -94,8 +104,15 @@ def run(cmdline, min_len=0):
     cmdline,
     'tests/psv/output/example',
     run_with_file,
-    fix_line=fix_line
+    fix_line=fix_line,
+    context_line=context_line
   )
+
+def context_line(line):
+  if re.match(r'^\$ ', line):
+    assert_log(f'command  : {line}')
+    return line
+  return None
 
 def fix_line(line):
   if m := re.match(r'^( +"now": +")([^"]+)(")(.*)', line):
