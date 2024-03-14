@@ -4,7 +4,7 @@ endif
 base_dir:=$(shell readlink -f .)
 
 PYTHONPATH_ORIG:=$(PYTHONPATH)
-export PYTHONPATH=lib:$(PYTHONPATH_ORIG)
+export PYTHONPATH=lib:${PWD}/../devdriven-python/lib:$(PYTHONPATH_ORIG)
 PYTHON=python3.11
 PYTHON_BIN:=$(shell which $(PYTHON) | head -1)
 VENV_OPTS=--clear
@@ -57,11 +57,11 @@ venv-force:
 	$(MAKE) venv
 
 install-requirements:
-	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt
+	$(PYTHON) -m pip install -r requirements.txt -r dev-requirements.txt -r ../devdriven-python/requirements.txt -r ../devdriven-python/dev-requirements.txt
 
 # Early:
 
-early: minify
+early: resources
 
 # Check:
 
@@ -75,9 +75,11 @@ lint: early pylint pycodestyle
 
 pylint:
 	$(MAKE) run-pylint FILES='$(or $(FILES), $(LINT_FILES))'
+	-$(MAKE) -C ../devdriven-python $@
 
 pycodestyle:
 	$(MAKE) run-pycodestyle FILES='$(or $(FILES), $(LINT_FILES))'
+	-$(MAKE) -C ../devdriven-python $@
 
 run-lint: run-pylint run-pycodestyle
 
@@ -91,6 +93,7 @@ run-pycodestyle:
 
 typecheck:
 	$(MAKE) run-typecheck FILES='$(or $(FILES), $(MYPY_FILES))'
+	-$(MAKE) -C ../devdriven-python $@
 
 run-typecheck: mypy
 
@@ -124,17 +127,8 @@ run-test:
 
 # Resources:
 
-RESOURCES_DIR=lib/devdriven/resources
-JS_FILES:=$(shell find $(RESOURCES_DIR)/js $(RESOURCES_DIR)/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort)
-MIN_JS_FILES:=$(patsubst %.js,%.min.js,$(JS_FILES))
-
-minify: $(MIN_JS_FILES) Makefile
-%.min.js: %.js
-	python -mrjsmin < $< > $@
-# slimit < $< > $@ # ModuleNotFoundError: No module named 'minifier'
-
-minify-clean:
-	rm -f $(MIN_JS_FILES)
+resources:
+	$(MAKE) -C ../devdriven-python $@
 
 # Productivity:
 
@@ -144,7 +138,6 @@ watch-files:
 clean:
 	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/
 	find lib tests -name '__pycache__' -a -type d | sort -r | xargs rm -rf {}
-	rm -f $(MIN_JS_FILES)
 
 very-clean: clean
 	rm -rf ./venv
