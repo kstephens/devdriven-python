@@ -3,6 +3,24 @@ import re
 from .typing import Arity1, Arity2
 from .combinator import re_pred
 
+BINARY_OPS = (
+  "+",
+  "-",
+  "*",
+  "/",
+  "%",
+  '==', '=',
+  "!=",
+  "<",
+  ">",
+  "<=",
+  ">=",
+  "and",
+  "or",
+  "~=", "=~", "~",
+  "~!", "!~",
+)
+
 def binary_op(operator: str) -> Optional[Arity2]:
   """
   A function that takes an binary operator name and returns arity-2 function.
