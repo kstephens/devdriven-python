@@ -121,6 +121,7 @@ unit-test:
 	$(MAKE) run-test FILES='$(or $(FILES), $(TEST_FILES))'
 
 PYTEST_OPTS= #--capture=fd --show-capture
+PYTEST_OPTS= --capture=no
 run-test:
 	rm -rf coverage/
 	mkdir -p coverage

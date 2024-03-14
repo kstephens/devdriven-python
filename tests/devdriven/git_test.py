@@ -1,5 +1,5 @@
 from pathlib import Path
-from os import system
+from os import system, environ
 from devdriven.util import cwd
 from devdriven.git import GitLog, GitDiff, rev_parse, git_repo_url
 
@@ -54,6 +54,7 @@ def commit_ids():
 def setup_module():
   base_dir = TMP_DIR
   Path(base_dir).mkdir(parents=True, exist_ok=True)
+  environ['GIT_PAGER'] = 'cat'
   with cwd(base_dir):
     commands = '''
 rm -rf .git *.txt
@@ -84,7 +85,7 @@ git tag commit_4
 
 ls -la
 git ls-files
-git log -p
+# git log -p
 git tag --list
 git rev-parse --verify commit_1
 git rev-parse --verify commit_2
