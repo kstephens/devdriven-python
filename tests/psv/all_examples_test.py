@@ -3,11 +3,11 @@ import re
 import shlex
 from io import StringIO
 from pathlib import Path
-import psv.main
-from psv.example import ExampleRunner
 from devdriven.io import BroadcastIO
 from devdriven.asserts import assert_output_by_key
 from devdriven.cli.application import app
+import psv.main
+from psv.example import ExampleRunner
 
 ####################################
 
