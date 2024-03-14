@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+# sudo apt-get install inotify-tools
+
+files=(
+  # Makefile
+  *requirements.txt
+  lib
+  tests
+)
+excludes=' __pycache__'
+events=' CREATE MODIFY ATTRIB MOVE DELETE'
+
+watch_cmd=(
+  inotifywait
+  --quiet
+  --monitor
+  ${events// / --event }
+  ${excludes// / --exclude }
+  --recursive "${files[@]}"
+)
+
+main() {
+  file='' file_last=''
+  "${watch_cmd[@]}" |
+  tee /dev/stderr |
+  while file_last="$file"; read -r dir events file
+  do
+    file="$dir$file"
+    declare -p file events
+    [[ "$file" == "$file_last" ]] && continue
+    cmd=": i dont know what to do with ${file@Q}"
+    case "$file"
+    in
+      Makefile)
+        cmd=(make all)
+        ;;
+      *requirements.txt)
+        cmd=(python -m pip install -r "$file")
+        ;;
+      tests/**/*.py)
+        cmd=(test-py-changed "$file")
+        ;;
+      lib/**/*.py)
+        cmd=(lib-py-changed "$file")
+        ;;
+      *.py)
+        cmd=(file-py-changed "$file")
+        ;;
+    esac
+    run "${cmd[@]}"
+  done
+}
+
+run() {
+  cat <<EOF
+
+  ###################################"
+  ### run: ${cmd[*]@Q} : ..."
+
+EOF
+  (set -e; "$@"); local rtn=$?
+cat <<EOF
+
+  ### run: ${cmd[*]@Q} : $rtn"
+  ###################################"
+EOF
+  return $rtn
+}
+
+lib-py-changed() {
+  local lib_file="$1"
+  local test_file="tests/${lib_file#lib/}"
+  file-py-changed "$lib_file"
+  run make mypy MYPY_FILES="$1"
+  [[ -f "$test_file" ]] && test-py-changed "$test_file"
+}
+
+test-py-changed() {
+  file-py-changed "$@"
+  run make test TEST_FILES="$1"
+}
+
+file-py-changed() {
+  run make pylint LINT_FILES="$1"
+  run make pycodestyle LINT_FILES="$1"
+}
+
+main "$@"
