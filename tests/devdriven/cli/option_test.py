@@ -1,6 +1,21 @@
 from dataclasses import asdict
 from devdriven.cli.option import Option
 
+def test_parse_doc_long_value():
+  obj = Option().parse_doc('--opt=STRING  |  desc.')
+  assert asdict(obj) == {
+    'aliases': [],
+    'arg': '--opt=STRING',
+    'default': None,
+    'description': 'desc.',
+    'full': '--opt',
+    'kind': 'option',
+    'name': 'opt',
+    'style': 'doc',
+    'value': 'STRING',
+    'alias_of': None,
+  }
+
 def test_parse_doc_long_flag():
   obj = Option().parse_doc('--opt  |  desc.')
   assert asdict(obj) == {
