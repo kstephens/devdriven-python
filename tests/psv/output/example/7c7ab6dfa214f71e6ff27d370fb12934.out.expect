@@ -1,3 +1,5 @@
+  Section Format
+
 markdown-out - Generate Markdown.
 
   psv markdown-out
@@ -8,4 +10,5 @@ Examples:
 
 # Convert TSV on STDIN to Markdown:
 $ cat a.tsv | psv -tsv // md
+
 

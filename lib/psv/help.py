@@ -1,5 +1,6 @@
 from typing import Iterable, List
 import re
+from dataclasses import dataclass, field
 import pandas as pd  # type: ignore
 import tabulate  # type: ignore
 # from icecream import ic
@@ -10,6 +11,7 @@ from devdriven.cli.option import Option
 from .command import Command, section, command
 from .markdown import MarkdownOut
 from .json import JsonOut
+from .example import ExampleRegistry
 
 section('Documentation', 200)
 
@@ -23,6 +25,7 @@ class Help(Command):
   --plain, -p     |  Show plain docs.
   --raw, -r       |  Raw detail.
   --sections, -s  |  List sections.
+  --markdown      |  Emit Markdown.
   '''
   def xform(self, _inp, env):
     tabulate.PRESERVE_WHITESPACE = True
@@ -46,6 +49,11 @@ class Help(Command):
       commands = list(filter(match_precise, all_commands))
       if not commands:
         commands = list(filter(match_soft, all_commands))
+
+    all_sdc = ExampleRegistry(self.main).all_examples()
+    all_desc = {sdc.descriptor.name: sdc.descriptor for sdc in all_sdc}
+    commands = [all_desc.get(cmd.name, cmd) for cmd in commands]
+
     return self.do_commands(commands, env)
 
   def do_sections(self, sections, env):
@@ -71,6 +79,8 @@ class Help(Command):
       return self.do_commands_plain(commands, env)
     if self.opt('list', False):
       return self.do_commands_list(commands, env)
+    if self.opt('markdown', False):
+      return self.do_commands_markdown(commands, env)
     return self.do_commands_table(commands, env)
 
   def do_commands_list(self, commands, env):
@@ -78,126 +88,256 @@ class Help(Command):
 
     def row(*cols):
       tab.loc[len(tab.index)] = cols
-
     for desc in commands:
       row(desc.name, desc.brief)
-
     return MarkdownOut().xform(tab, env)
 
   def do_commands_table(self, commands, env):
-    tab = pd.DataFrame(columns=['command', 'description'])
-
-    def row(*cols):
-      tab.loc[len(tab.index)] = cols
-
-    def emit_opts(title, items):
-      if items:
-        row('', '')
-        row('', title)
-        row('', '')
-        rows = self.items_to_rows(items)
-        for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
-          row('', '  ' + line)
-
-    sec = None
-    for desc in commands:
-      if sec != desc.section:
-        sec = desc.section
-        row('  ---------', '')
-        row('   Section ', f'-------- {sec} --------')
-        row('  ---------', '')
-        row('', '')
-      row(desc.name, desc.brief)
-      row('', '')
-      row('', '  ' + desc.synopsis)
-      if desc.aliases:
-        row('', '')
-        row('', 'Aliases: ' + ', '.join(desc.aliases))
-      if self.opt('verbose'):
-        if desc.detail:
-          row('', '')
-          for text in desc.detail:
-            row('', text)
-        emit_opts('Arguments:', self.args_table(desc))
-        emit_opts('Options:', self.opts_table(desc))
-      row('', '')
-    return MarkdownOut().xform(tab, env)
+    verbose = self.opt('verbose', self.opt('v'))
+    fmt = FormatTable(show_metadata=verbose, show_example_output=verbose)
+    fmt.commands(commands)
+    return MarkdownOut().xform(fmt.output(), env)
 
   def do_commands_raw(self, commands, env):
     return JsonOut().xform(to_dict(commands), env)
 
   def do_commands_plain(self, commands, _env):
-    lines = []
+    verbose = self.opt('verbose', self.opt('v'))
+    fmt = FormatText(show_metadata=verbose, show_example_output=verbose)
+    fmt.commands(commands)
+    return fmt.output()
 
-    def row(*cols):
-      lines.append(''.join(cols))
+  def do_commands_markdown(self, commands, _env):
+    verbose = self.opt('verbose', self.opt('v'))
+    fmt = FormatMarkdown(show_metadata=verbose)
+    fmt.commands(commands)
+    return fmt.output()
 
-    def emit_opts(title, items):
-      if items:
-        row('', '')
-        row('', title)
-        row('', '')
-        rows = self.items_to_rows(items)
-        for line in tabulate.tabulate(rows, tablefmt="presto").splitlines():
-          line = line[1:]
-          row('  ', line)
+#######################################
 
-    for desc in commands:
-      attrs = list(desc.metadata.keys())
-      # row('', "'''")
-      row('', desc.name, ' - ', desc.brief)
-      row('', '')
-      row('  ', desc.synopsis)
-      if desc.aliases:
-        row('', '')
-        row('', 'Aliases: ' + ', '.join(desc.aliases))
-      if desc.detail:
-        row('', '')
-        for text in desc.detail:
-          row('', text)
-      emit_opts('Arguments:', self.args_table(desc))
-      emit_opts('Options:', self.opts_table(desc))
-      if desc.examples:
-        row('', '')
-        row('', 'Examples:')
-        row('', '')
+@dataclass
+class Format():
+  rows: List[str] = field(default_factory=list)
+  show_section: bool = field(default=True)
+  show_examples: bool = field(default=True)
+  show_example_output: bool = field(default=False)
+  show_metadata: bool = field(default=False)
+
+  def commands(self, descs):
+    sec = None
+    for desc in descs:
+      if self.show_section:
+        if sec != desc.section:
+          sec = desc.section
+          self.section(desc.section)
+      self.command(desc)
+      if self.show_metadata:
+        self.metadata(desc)
+      if len(descs) > 1:
+        self.hrule()
+
+  def section(self, name):
+    self.row('   Section ', f'-------- {name} --------')
+    self.row('', '')
+
+  def command(self, desc):
+    row = self.row
+    self.command_begin(desc)
+    self.brief(desc)
+    row()
+    self.synopsis(desc)
+    if desc.aliases:
+      row()
+      self.aliases(desc)
+    if desc.detail:
+      row()
+      for text in desc.detail:
+        row('', text)
+    self.emit_opts('Arguments:', args_table(desc))
+    self.emit_opts('Options:', opts_table(desc))
+    if desc.examples:
+      row()
+      row('', 'Examples:')
+      row()
+      if self.show_examples:
         for example in desc.examples:
+          self.code_begin()
           for comment in example.comments:
-            row('', "# ", comment)
-          row('', '$ ', example.command)
-          row('', '')
-      # row('', "'''")
-      if attrs and self.opt('verbose', self.opt('v')):
-        row('', '')
-        for attr in attrs:
-          val = getattr(desc, attr, None)
-          if val:
-            row(f':{attr}={val}')
-      if len(commands) > 1:
-        row('', '')
-        row('==========================================================')
-        row('', '')
-    return '\n'.join(lines + [''])
+            row('', "# " + comment)
+          row('', '$ ' + example.command)
+          if self.show_example_output:
+            row(example.output)
+          self.code_end()
+          row()
+    self.command_end(desc)
 
-  def items_to_rows(self, items):
-    rows = []
-    for name, desc in list(items):
-      item_rows = []
-      for desc_line in desc.split('.  '):
-        if desc_line:
-          desc_line = re.sub(r'\.\. *$', '.', desc_line + '.')
-          item_rows.append([name, desc_line])
-          name = ''
-      if len(item_rows) > 1 and rows:
-        rows.append(['', ''])
-      rows.extend(item_rows)
-    return rows
+  def command_begin(self, _desc):
+    return None
 
-  def args_table(self, desc: Descriptor) -> Iterable:
-    return desc.options.arg_by_name.items()
+  def command_end(self, _desc):
+    self.row()
 
-  def opts_table(self, desc: Descriptor) -> List[List[str]]:
-    return [self.opt_row(opt) for opt in desc.options.opts]
+  def brief(self, desc):
+    self.row(self.code(desc.name), f' - {desc.brief}')
 
-  def opt_row(self, opt: Option) -> List[str]:
-    return [opt.synopsis(), opt.description]
+  def synopsis(self, desc):
+    self.row('  ', desc.synopsis)
+
+  def aliases(self, desc):
+    self.row('Aliases: ', ', '.join(map(self.code, desc.aliases)))
+
+  def metadata(self, desc):
+    row = self.row
+    if attrs := list(desc.metadata.keys()):
+      row()
+      for attr in attrs:
+        val = getattr(desc, attr, None)
+        if val:
+          row('', f':{attr}={val}')
+
+  def emit_opts(self, title, items):
+
+    def row(line):
+      self.row('', '  ' + line)
+    self.table(title, items, row)
+
+  def table(self, title, items, table_row, **kwargs):
+    row = self.row
+    if items:
+      row()
+      row('', title)
+      row()
+      rows = items_to_rows(items)
+      lines = tabulate.tabulate(rows, **kwargs).splitlines()
+      width = max(map(len, lines))
+      for line in lines:
+        line = line + ' ' * (width - len(line))
+        table_row(line)
+
+  def code_begin(self, _lang=''):
+    return
+
+  def code_end(self):
+    return
+
+  def code(self, x):
+    return str(x)
+
+  def hrule(self, chars='-'):
+    self.row('', chars * 58)
+    self.row()
+
+  def row(self, *cols):
+    if not cols:
+      cols = ('', '')
+    self.rows.append(''.join(map(str, cols)))
+
+  def output(self):
+    return '\n'.join([str(row).rstrip() for row in self.rows] + [''])
+
+class FormatMarkdown(Format):
+  def section(self, name):
+    self.row(f'# {name}')
+    self.row()
+
+  def command_begin(self, desc):
+    self.row(f'## {self.code(desc.name)}`')
+    self.row()
+
+  def emit_opts(self, title, items):
+    header = False
+
+    def opt_line(row):
+      nonlocal header
+      if not header:
+        header = re.sub(r'[^|]', '-', row)
+        header = re.sub(r'-\|-', ' | ', header)
+        self.row(header := '| ' + header + ' |')
+      self.row(f'| {row} |')
+    self.table(title, items, opt_line, tablefmt="presto")
+    #  self.row(header)
+
+  def code_begin(self, lang=''):
+    self.row('```', lang)
+
+  def code_end(self):
+    self.row('```')
+
+  def code(self, x):
+    return f'`{x}`'
+
+
+class FormatText(Format):
+  def section(self, name):
+    self.row('', f'  Section {name}')
+    self.row()
+
+  def synopsis(self, desc):
+    self.row('  ', desc.synopsis)
+
+  def emit_opts(self, title, items):
+
+    def row(line):
+      self.row('  ', line[1:])
+    self.table(title, items, row, tablefmt="presto")
+
+class FormatTable(Format):
+  def section(self, name):
+    row = self.row
+    title = f'         {name}         '
+    header = '=' * len(title)
+    row('  ===========  ', '  ' + header)
+    row('    Section    ', '  ' + title)
+    row('  ===========  ', '  ' + header)
+    row('', '')
+
+  def synopsis(self, desc):
+    self.row('', '  ' + desc.synopsis)
+
+  def brief(self, desc):
+    self.row(desc.name, desc.brief)
+
+  def aliases(self, desc):
+    self.row('', 'Aliases: ' + ', '.join(desc.aliases))
+
+  def row(self, *cols):
+    if not cols:
+      cols = ('', '')
+    self.rows.append(cols)
+
+  def emit_opts(self, title, items):
+
+    def row(line):
+      self.row('', '  ' + line)
+    self.table(title, items, row, tablefmt="presto")
+
+  def output(self):
+    tab = pd.DataFrame(columns=['command', 'description'])
+    for row in self.rows:
+      tab.loc[len(tab.index)] = row
+    return tab
+
+#########################################
+
+def items_to_rows(items):
+  rows = []
+  for name, desc in list(items):
+    item_rows = []
+    for desc_line in desc.split('.  '):
+      if desc_line:
+        desc_line = re.sub(r'\.\. *$', '.', desc_line + '.')
+        item_rows.append([name, desc_line])
+        name = ''
+    if len(item_rows) > 1 and rows:
+      rows.append(('', ''))
+    rows.extend(item_rows)
+  return rows
+
+def args_table(desc: Descriptor) -> Iterable:
+  return desc.options.arg_by_name.items()
+
+def opts_table(desc: Descriptor) -> List[List[str]]:
+  return [opt_row(opt) for opt in desc.options.opts]
+
+def opt_row(opt: Option) -> List[str]:
+  return [opt.synopsis(), opt.description]

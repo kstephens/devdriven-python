@@ -1,3 +1,5 @@
+  Section Manipulation
+
 sort - Sort rows by columns.
 
   psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]
@@ -28,4 +30,5 @@ $ psv in a.tsv // seq i // sort -r c // md
 $ psv in a.tsv // seq i // md
 
 $ psv in a.tsv // seq i // sort a:- c // md
+
 

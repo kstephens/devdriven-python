@@ -1,3 +1,5 @@
+  Section I/O
+
 in - Read input.
 
   psv in [--auto] [--raw] [FILE] [file:///FILE] [https?://URL] [-]
@@ -29,7 +31,7 @@ $ cat a.tsv | psv in
 $ psv in https://tinyurl.com/4sscj338
 
 
-==========================================================
+----------------------------------------------------------
 
 out - write output to URLs.
 
@@ -57,7 +59,9 @@ Examples:
 $ psv in a.tsv // -tsv // csv- // out a.csv
 
 
-==========================================================
+----------------------------------------------------------
+
+  Section Format
 
 table-in - Parse table.
 
@@ -108,7 +112,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // head 5 // md
 $ psv in users.txt // -table --fs=':' --max-cols=3
 
 
-==========================================================
+----------------------------------------------------------
 
 table-out - Generate table.
 
@@ -134,7 +138,7 @@ $ psv in a.csv // table-
 $ psv in a.csv // table- --fs='|'
 
 
-==========================================================
+----------------------------------------------------------
 
 tsv-in - Parse TSV.
 
@@ -159,7 +163,7 @@ $ psv in a.tsv // md
 $ psv in https://tinyurl.com/4sscj338 // -tsv // md
 
 
-==========================================================
+----------------------------------------------------------
 
 tsv-out - Generate TSV.
 
@@ -173,7 +177,7 @@ Examples:
 $ psv in a.csv // tsv-
 
 
-==========================================================
+----------------------------------------------------------
 
 csv-in - Parse CSV.
 
@@ -198,7 +202,7 @@ $ psv in a.csv // -csv --no-header
 $ psv in a.csv // -csv // json-
 
 
-==========================================================
+----------------------------------------------------------
 
 csv-out - Generate CSV.
 
@@ -212,7 +216,7 @@ Examples:
 $ psv in a.tsv // -tsv // csv-
 
 
-==========================================================
+----------------------------------------------------------
 
 markdown-in - Parse Markdown.
 
@@ -228,7 +232,7 @@ $ psv in a.tsv // md- // out a.md
 $ psv in a.md // -md // csv
 
 
-==========================================================
+----------------------------------------------------------
 
 markdown-out - Generate Markdown.
 
@@ -242,7 +246,7 @@ Examples:
 $ cat a.tsv | psv -tsv // md
 
 
-==========================================================
+----------------------------------------------------------
 
 json-in - Parse JSON.
 
@@ -254,7 +258,7 @@ Options:
 
   --orient | Orientation: see pandas read_json.
 
-==========================================================
+----------------------------------------------------------
 
 json-out - Generate JSON array of objects.
 
@@ -268,7 +272,7 @@ Examples:
 $ psv in a.csv // -csv // json-
 
 
-==========================================================
+----------------------------------------------------------
 
 dataframe-in - Read Pandas Dataframe pickle.
 
@@ -276,7 +280,7 @@ dataframe-in - Read Pandas Dataframe pickle.
 
 Aliases: -dataframe
 
-==========================================================
+----------------------------------------------------------
 
 dataframe-out - Write Pandas DataFrame pickle.
 
@@ -284,7 +288,7 @@ dataframe-out - Write Pandas DataFrame pickle.
 
 Aliases: dataframe-, dataframe
 
-==========================================================
+----------------------------------------------------------
 
 html-out - Generate HTML.
 
@@ -328,7 +332,7 @@ $ psv in users.txt // -table --fs=":" // html -fs // o users-with-fs.html
 $ w3m -dump users-with-fs.html
 
 
-==========================================================
+----------------------------------------------------------
 
 sql- - Write SQL.
 
@@ -342,7 +346,7 @@ Examples:
 $ psv in a.tsv // sql
 
 
-==========================================================
+----------------------------------------------------------
 
 yaml-out - Generate YAML.
 
@@ -355,7 +359,7 @@ Examples:
 $ psv in a.csv // yaml
 
 
-==========================================================
+----------------------------------------------------------
 
 xls-in - Read XLS Spreadsheet.
 
@@ -377,7 +381,7 @@ $ psv in a.xlsx // -xls // md
 $ psv in a.xlsx // -xls --no-header // md
 
 
-==========================================================
+----------------------------------------------------------
 
 xls-out - Generate XLS Spreadsheet.
 
@@ -399,7 +403,7 @@ $ psv in a.csv // xls // o a.xlsx
 $ file a.xlsx
 
 
-==========================================================
+----------------------------------------------------------
 
 extract - Extract fields by Regexp.
 
@@ -421,7 +425,9 @@ $ psv in users.txt // extract --unnamed '^(?P<login>[^:]+)(.*)' // md
 $ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
 
 
-==========================================================
+----------------------------------------------------------
+
+  Section Manipulation
 
 range - Subset of rows.
 
@@ -452,7 +458,7 @@ $ psv in a.tsv // seq --start=0 // range 1 3 // md
 $ psv in a.tsv // seq --start=0 // range --step=2 // md
 
 
-==========================================================
+----------------------------------------------------------
 
 head - First N rows
 
@@ -468,7 +474,7 @@ Examples:
 $ psv in us-states.txt // -table // head 5 // md
 
 
-==========================================================
+----------------------------------------------------------
 
 tail - Last N rows
 
@@ -484,7 +490,7 @@ Examples:
 $ psv in us-states.txt // -table // tail 3 // md
 
 
-==========================================================
+----------------------------------------------------------
 
 reverse - Reverse rows.  Same as "range --step=-1"
 
@@ -498,7 +504,7 @@ Examples:
 $ psv in a.tsv // seq // tac // md
 
 
-==========================================================
+----------------------------------------------------------
 
 shuffle - shuffle rows.
 
@@ -508,7 +514,7 @@ Aliases: rand
 
 Options:
 
-  --seed | Integer.
+  --seed | String.
          | Default: use default state.'.
 
 Examples:
@@ -516,7 +522,7 @@ Examples:
 $ psv in a.tsv // shuffle --seed=5 // md
 
 
-==========================================================
+----------------------------------------------------------
 
 cut - Cut specified columns.
 
@@ -541,7 +547,7 @@ Examples:
 $ psv in a.tsv // cut d '*' c:- // md
 
 
-==========================================================
+----------------------------------------------------------
 
 uniq - Return unique rows.
 
@@ -549,7 +555,7 @@ uniq - Return unique rows.
 
 Aliases: u
 
-==========================================================
+----------------------------------------------------------
 
 sort - Sort rows by columns.
 
@@ -583,7 +589,7 @@ $ psv in a.tsv // seq i // md
 $ psv in a.tsv // seq i // sort a:- c // md
 
 
-==========================================================
+----------------------------------------------------------
 
 grep - Search for rows where columns match a regex.
 
@@ -617,7 +623,7 @@ $ psv in a.tsv // grep d 'x.+p' // md
 $ psv in a.tsv // grep d 'x' b '3$' // md
 
 
-==========================================================
+----------------------------------------------------------
 
 translate - Translate characters.
 
@@ -645,7 +651,7 @@ $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr ',' '_' Population
 $ psv in us-states.txt // -table --header --fs="\s{2,}" // tr -d ', ' // head // md
 
 
-==========================================================
+----------------------------------------------------------
 
 null - Does nothing.
 
@@ -657,7 +663,9 @@ Examples:
 $ psv in a.tsv // null IGNORED --OPTION=VALUE // md
 
 
-==========================================================
+----------------------------------------------------------
+
+  Section Summaries
 
 count - Count of unique column values.
 
@@ -684,7 +692,7 @@ $ psv in transfers.csv // count Payer,Payee // md
 $ psv in transfers.csv // count --column=PayeeTransfers Payee // md
 
 
-==========================================================
+----------------------------------------------------------
 
 summary - Summary of column values.
 
@@ -717,7 +725,7 @@ $ psv in transfers.csv // summary Fee sum Payee
 $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
 
 
-==========================================================
+----------------------------------------------------------
 
 stats - Table of column names and basic statistics.
 
@@ -730,7 +738,9 @@ $ psv in a.tsv // stats // cols // cut name,dtype.name // md
 $ psv in a.tsv // stats // cut name,count,min,max
 
 
-==========================================================
+----------------------------------------------------------
+
+  Section Types
 
 coerce - Corece column types.
 
@@ -764,11 +774,13 @@ $ psv in us-states-sample.csv // sort Population
 $ psv in us-states-sample.csv // coerce Population:int // sort Population
 
 
-==========================================================
+----------------------------------------------------------
 
-add-sequence - Add a column with a sequence of numbers.
+  Section Metadata
 
-  psv add-sequence [--column] [--start] [--step]
+add-sequence - Add a column with a sequence of numbers or random values.
+
+  psv add-sequence [--column] [--start] [--step] [--uuid]
 
 Aliases: seq
 
@@ -777,23 +789,27 @@ Options:
   --column | Default: "__i__".
   --start  | Default: 1.
   --step   | Default: 1.
+  --uuid   | Generate a UUID-4.
 
 Examples:
 
-# add-sequence (seq): add a column with a sequence:
+# add-sequence: add a column with a sequence:
 $ psv in a.tsv // seq // md
 
-# add-sequence (seq): start at 0:
+# add-sequence: start at 0:
 $ psv in a.tsv // seq --start=0 // md
 
-# add-sequence (seq): step by 2:
+# add-sequence: step by 2:
 $ psv in a.tsv // seq --step=2 // md
 
-# add-sequence (seq): start at 5, step by -2:
+# add-sequence: start at 5, step by -2:
 $ psv in a.tsv // seq --start=5 --step=-2 // md
 
+# add-sequence: generate UUIDs:
+$ psv in a.tsv // seq --uuid // md
 
-==========================================================
+
+----------------------------------------------------------
 
 rename-columns - Rename columns.
 
@@ -811,7 +827,7 @@ Examples:
 $ psv in a.tsv // rename b B // md
 
 
-==========================================================
+----------------------------------------------------------
 
 infer-objects - Infer column types.
 
@@ -819,7 +835,7 @@ infer-objects - Infer column types.
 
 Aliases: infer
 
-==========================================================
+----------------------------------------------------------
 
 show-columns - Table of column names and attributes.
 
@@ -838,7 +854,7 @@ $ psv in a.tsv // cols // cols // cut name,dtype.name // md
 $ psv in a.tsv // cols // cut name,dtype.name,dtype.kind,dtype.isnative // md
 
 
-==========================================================
+----------------------------------------------------------
 
 env- - Show env.
 
@@ -850,7 +866,9 @@ Examples:
 $ psv in a.tsv // show-columns // md // env-
 
 
-==========================================================
+----------------------------------------------------------
+
+  Section Expression Evaluation
 
 eval - Evaluate expression for each row.
 
@@ -900,7 +918,7 @@ $ psv in a.tsv // rename d:dCamelCase // eval +n 'dCamelCase *= 2'
 $ psv in a.tsv // rename d:dCamelCase // eval -n 'd_camel_case *= 2'
 
 
-==========================================================
+----------------------------------------------------------
 
 select - Select rows.
 
@@ -920,7 +938,7 @@ Examples:
 $ psv in a.tsv // select "c > 0"
 
 
-==========================================================
+----------------------------------------------------------
 
 repl - Start an interactive REPL.
 
@@ -931,21 +949,9 @@ Arguments:
   `inp` | Input table.
   `out` | Output table; copy of `inp`.
 
-==========================================================
+----------------------------------------------------------
 
-help - This help document.
-
-  psv help [--verbose] [--list] [--plain] [--raw] [--sections]
-
-Options:
-
-  --verbose, -v  | Show more detail.
-  --list, -l     | List commands.
-  --plain, -p    | Show plain docs.
-  --raw, -r      | Raw detail.
-  --sections, -s | List sections.
-
-==========================================================
+  Section Documentation
 
 example - Show examples.
 
@@ -962,5 +968,20 @@ Options:
   --run, -r  | Run examples.
   --generate | Generate and save examples.
 
-==========================================================
+----------------------------------------------------------
+
+help - This help document.
+
+  psv help [--verbose] [--list] [--plain] [--raw] [--sections] [--markdown]
+
+Options:
+
+  --verbose, -v  | Show more detail.
+  --list, -l     | List commands.
+  --plain, -p    | Show plain docs.
+  --raw, -r      | Raw detail.
+  --sections, -s | List sections.
+  --markdown     | Emit Markdown.
+
+----------------------------------------------------------
 

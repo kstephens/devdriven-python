@@ -33,21 +33,12 @@ class Example(Command):
 
   '''
   def xform(self, _inp, _env):
-    all_examples = PickleCache(
-      path=resources.rel_path('example.pickle'),
-      generate=self.generate_all)
-    if self.opt('generate'):
-      all_examples.set_data(self.generate_all())
-    selected = self.find_examples(all_examples.data())
+    registry = ExampleRegistry(main=self.main)
+    all_examples = registry.all_examples(generate=self.opt('generate'))
+    selected = self.find_examples(all_examples)
     runner, output = self.make_runner()
     runner.print_examples(selected)
     return output.pop().getvalue()
-
-  def generate_all(self):
-    all_examples = app.enumerate_examples()
-    runner, _output = self.make_runner()
-    runner.run_examples(all_examples)
-    return all_examples
 
   # pylint: disable-next=too-many-locals
   def find_examples(self, all_sdc):
@@ -91,6 +82,34 @@ class Example(Command):
     return (ExampleRunner(output=output,
                           main=self.main,
                           run=self.opt('run')),
+            output)
+
+
+@dataclass
+class ExampleRegistry():
+  main: Any
+
+  def all_examples(self, generate=False):
+    cache = PickleCache(
+      path=resources.rel_path('example.pickle'),
+      generate=self.generate_all)
+    if generate:
+      cache.set_data(self.generate_all())
+    examples = cache.data()
+    return examples
+
+  def generate_all(self):
+    all_examples = app.enumerate_examples()
+    runner, _output = self.make_runner()
+    runner.run_examples(all_examples)
+    return all_examples
+
+  def make_runner(self):
+    output = BroadcastIO()
+    output.push(StringIO())
+    return (ExampleRunner(output=output,
+                          main=self.main,
+                          run=True),
             output)
 
 
