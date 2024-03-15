@@ -88,10 +88,10 @@ run-pycodestyle:
 
 # Typecheck:
 
-typecheck: stubs
+typecheck: stubgen
 	$(MAKE) run-typecheck FILES='$(or $(FILES), $(MYPY_FILES))'
 
-run-typecheck: stubs mypy
+run-typecheck: stubgen mypy
 
 mypy:
 	$(MAKE) run-mypy FILES='$(or $(FILES), $(MYPY_FILES))'
@@ -104,9 +104,9 @@ run-mypy:
 	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(FILES), /dev/null))
 	cat mypy-report/index.txt
 
-stubs:
-	$(MAKE) run-stubgen FILES='$(or $(FILES), $(MYPY_FILES))'
-	@set -x; for d in $(OTHER_DIRS); do $(MAKE) -C "$$d" stubs; done
+stubgen:
+	$(MAKE) run-$@ FILES='$(or $(FILES), $(MYPY_FILES))'
+	@set -x; for d in $(OTHER_DIRS); do $(MAKE) -C "$$d" $@; done
 
 run-stubgen: $(FILES:%.py=%.pyi)
 
