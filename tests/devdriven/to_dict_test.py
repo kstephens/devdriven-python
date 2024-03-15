@@ -35,7 +35,7 @@ def test_dump_json():
 def test_walk_oserror():
   fut = devdriven.to_dict.to_dict
   with pytest.raises(OSError) as exc_info:
-    open_file('Does-Not-Exist')
+    read_file('Does-Not-Exist')
   assert fut(exc_info.value) == {
     'class': 'FileNotFoundError',
     'message': "[Errno 2] No such file or directory: 'Does-Not-Exist'",
@@ -45,7 +45,7 @@ def test_walk_oserror():
     'filename2': None
   }
 
-def open_file(name):
+def read_file(name):
   with open(name, 'rb') as file:
     return file.read()
 
