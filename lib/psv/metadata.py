@@ -1,6 +1,8 @@
 from devdriven.util import chunks, split_flat
 from devdriven.to_dict import to_dict
 from devdriven.pandas import dtype_to_dict
+from devdriven.random import uuid
+
 import pandas as pd
 # from icecream import ic
 from .command import Command, section, command
@@ -11,33 +13,49 @@ section('Metadata', 60)
 @command
 class AddSequence(Command):
   '''
-  add-sequence - Add a column with a sequence of numbers.
+  add-sequence - Add a column with a sequence of numbers or random values.
   Aliases: seq
 
-  --column=NAME  |  Default: "__i__"
+  --column=NAME  |  Default: "__i__".
   --start=START  |  Default: 1.
   --step=STEP    |  Default: 1.
+  --uuid         |  Generate a UUID-4.
 
-# add-sequence (seq): add a column with a sequence:
+# add-sequence: add a column with a sequence:
 $ psv in a.tsv // seq // md
 
-# add-sequence (seq): start at 0:
+# add-sequence: start at 0:
 $ psv in a.tsv // seq --start=0 // md
 
-# add-sequence (seq): step by 2:
+# add-sequence: step by 2:
 $ psv in a.tsv // seq --step=2 // md
 
-# add-sequence (seq): start at 5, step by -2:
+# add-sequence: start at 5, step by -2:
 $ psv in a.tsv // seq --start=5 --step=-2 // md
 
+# add-sequence: generate UUIDs:
+$ psv in a.tsv // seq --uuid // md
 
   '''
-  def xform(self, inp, _env):
+  def xform(self, inp, env):
+    out = inp.copy()
+    if self.opt('uuid'):
+      self.add_uuid(out, env)
+    else:
+      self.add_range(out, env)
+    return out
+
+  def add_range(self, out, _env):
     col = str(self.arg_or_opt(0, 'column', '__i__'))
     start = int(self.arg_or_opt(1, 'start', 1))
     step = int(self.arg_or_opt(2, 'step', 1))
-    seq = range(start, start + len(inp) * step, step)
-    out = inp.copy()
+    seq = range(start, start + len(out) * step, step)
+    out[col] = seq
+    return out
+
+  def add_uuid(self, out, _env):
+    col = str(self.arg_or_opt(0, 'column', '__i__'))
+    seq = [uuid() for _i in range(0, len(out))]
     out[col] = seq
     return out
 

@@ -1,6 +1,6 @@
 import re
-import os
 from devdriven.util import get_safe, chunks, split_flat, parse_range, make_range
+from devdriven.random import get_seed
 from .command import Command, section, command
 from .coerce import Coerce
 from .util import select_columns, parse_col_or_index
@@ -104,14 +104,17 @@ class Shuffle(Command):
 
   Options:
 
-  --seed=SEED         |  Integer.  Default: use default state.'
+  --seed=SEED         |  String.  Default: use default state.'
 
 $ psv in a.tsv // shuffle --seed=5 // md
 
   '''
   def xform(self, inp, _env):
-    if seed := self.opt('seed', os.environ.get('PSV_RAND_SEED')):
-      seed = int(seed)
+    if seed := self.opt('seed', get_seed()):
+      seed = int(seed + '0'.encode('utf-8').hex(), 16)
+      # numpy.random._mt19937.MT19937._legacy_seeding
+      # ValueError: Seed must be between 0 and 2**32 - 1
+      seed = seed % ((2 ** 32) - 1)
     return inp.sample(frac=1, random_state=seed)
 
 @command

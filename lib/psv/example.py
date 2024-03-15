@@ -6,15 +6,14 @@ import shlex
 from pathlib import Path
 from io import StringIO
 from dataclasses import dataclass
-# from icecream import ic
 from devdriven.cli.application import app
 from devdriven.util import cwd
+from devdriven.random import set_seed
 import devdriven.html
 from devdriven.combinator import re_pred
 from devdriven.io import BroadcastIO
 from devdriven.cache import PickleCache
 from devdriven.resource import Resources
-# from icecream import ic
 from .command import Command, section, command
 
 section('Documentation', 200)
@@ -145,10 +144,7 @@ class ExampleRunner:
       self.run_command(ex, self.main.root_dir, self.main.bin_dir)
 
   def run_main(self, ex, root_dir, bin_dir):
-    os.environ['PSV_RAND_SEED'] = '12345678'
-    root_dir = Path(root_dir).absolute()
-    bin_dir = Path(bin_dir).absolute()
-    with cwd(f'{root_dir}/example'):
+    def proc(*_args):
       cmd = ex.command
       # logging.warning('run_main: %s', repr(cmd))
       cmd_argv = shlex.split(cmd)
@@ -159,12 +155,10 @@ class ExampleRunner:
       if result.exit_code != 0:
         raise Exception(f'example run failed: {cmd}')
       return result
+    self.run_in_context(ex, root_dir, bin_dir, proc)
 
   def run_command(self, ex, root_dir, bin_dir):
-    os.environ['PSV_RAND_SEED'] = '12345678'
-    root_dir = Path(root_dir).absolute()
-    bin_dir = Path(bin_dir).absolute()
-    with cwd(f'{root_dir}/example'):
+    def proc(ex, _root_dir, bin_dir):
       cmd = ex.command
       # logging.warning('run_command: %s', repr(cmd))
       env = os.environ
@@ -181,6 +175,15 @@ class ExampleRunner:
       self.output.write(result.stdout.decode('utf-8'))
       self.output.write(result.stderr.decode('utf-8'))
       assert result.returncode == 0
+    self.run_in_context(ex, root_dir, bin_dir, proc)
+
+  def run_in_context(self, ex, root_dir, bin_dir, proc):
+    set_seed('12345678')
+    os.environ['PSV_RAND_SEED'] = '12345678'
+    root_dir = Path(root_dir).absolute()
+    bin_dir = Path(bin_dir).absolute()
+    with cwd(f'{root_dir}/example'):
+      proc(ex, root_dir, bin_dir)
 
   def fix_command_line(self, cmd):
     w3m_conf = devdriven.html.res_html.find(['w3m.conf'])

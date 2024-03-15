@@ -305,17 +305,20 @@ $ psv in us-states-sample.csv // coerce Population:int // sort Population
 
     add-sequence    
 --------------------
-# add-sequence (seq): add a column with a sequence:
+# add-sequence: add a column with a sequence:
 $ psv in a.tsv // seq // md
 
-# add-sequence (seq): start at 0:
+# add-sequence: start at 0:
 $ psv in a.tsv // seq --start=0 // md
 
-# add-sequence (seq): step by 2:
+# add-sequence: step by 2:
 $ psv in a.tsv // seq --step=2 // md
 
-# add-sequence (seq): start at 5, step by -2:
+# add-sequence: start at 5, step by -2:
 $ psv in a.tsv // seq --start=5 --step=-2 // md
+
+# add-sequence: generate UUIDs:
+$ psv in a.tsv // seq --uuid // md
 
 
     rename-columns    

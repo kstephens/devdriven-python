@@ -568,10 +568,10 @@ $ psv in a.tsv // seq // tac // md
 $ psv in a.tsv // shuffle --seed=5 // md
 |   a | b   |        c | d     |
 |----:|:----|---------:|:------|
-|   1 | b1  |   23.763 | xspdf |
-|   2 | b2  |  -98.73  | qwer  |
 |   3 | b3  | 3451     | bixop |
 |   1 | b4  |    1.234 | zxy   |
+|   2 | b2  |  -98.73  | qwer  |
+|   1 | b1  |   23.763 | xspdf |
 
 
     cut    
@@ -801,30 +801,30 @@ $ psv in a.tsv // stats // cut name,count,min,max
 $ psv in us-states.csv // shuffle // head 10 // cut State,Population // csv- // o us-states-sample.csv
 
 $ psv in us-states-sample.csv // sort Population
-            State  Population
-8        Delaware   1,018,396
-9        Nebraska   1,967,923
-2        Illinois  12,582,032
-5        Arkansas   3,045,637
-6        Kentucky   4,512,310
-0         Alabama   5,074,296
-4  South Carolina   5,282,634
-7       Minnesota   5,717,184
-1        Maryland   6,164,660
-3      Washington   7,785,786
+           State  Population
+8        Montana   1,122,867
+2          Maine   1,385,340
+3  New Hampshire   1,395,231
+0          Idaho   1,939,033
+5       Illinois  12,582,032
+9   Pennsylvania  12,972,008
+6       New York  19,677,151
+4        Florida  22,244,823
+7       Oklahoma   4,019,800
+1      Louisiana   4,590,241
 
 $ psv in us-states-sample.csv // coerce Population:int // sort Population
-            State  Population
-8        Delaware     1018396
-9        Nebraska     1967923
-5        Arkansas     3045637
-6        Kentucky     4512310
-0         Alabama     5074296
-4  South Carolina     5282634
-7       Minnesota     5717184
-1        Maryland     6164660
-3      Washington     7785786
-2        Illinois    12582032
+           State  Population
+8        Montana     1122867
+2          Maine     1385340
+3  New Hampshire     1395231
+0          Idaho     1939033
+7       Oklahoma     4019800
+1      Louisiana     4590241
+5       Illinois    12582032
+9   Pennsylvania    12972008
+6       New York    19677151
+4        Florida    22244823
 
 
  Metadata  
@@ -832,7 +832,7 @@ $ psv in us-states-sample.csv // coerce Population:int // sort Population
 
     add-sequence    
 --------------------
-# add-sequence (seq): add a column with a sequence:
+# add-sequence: add a column with a sequence:
 $ psv in a.tsv // seq // md
 |   a | b   |        c | d     |   __i__ |
 |----:|:----|---------:|:------|--------:|
@@ -841,7 +841,7 @@ $ psv in a.tsv // seq // md
 |   3 | b3  | 3451     | bixop |       3 |
 |   1 | b4  |    1.234 | zxy   |       4 |
 
-# add-sequence (seq): start at 0:
+# add-sequence: start at 0:
 $ psv in a.tsv // seq --start=0 // md
 |   a | b   |        c | d     |   __i__ |
 |----:|:----|---------:|:------|--------:|
@@ -850,7 +850,7 @@ $ psv in a.tsv // seq --start=0 // md
 |   3 | b3  | 3451     | bixop |       2 |
 |   1 | b4  |    1.234 | zxy   |       3 |
 
-# add-sequence (seq): step by 2:
+# add-sequence: step by 2:
 $ psv in a.tsv // seq --step=2 // md
 |   a | b   |        c | d     |   __i__ |
 |----:|:----|---------:|:------|--------:|
@@ -859,7 +859,7 @@ $ psv in a.tsv // seq --step=2 // md
 |   3 | b3  | 3451     | bixop |       5 |
 |   1 | b4  |    1.234 | zxy   |       7 |
 
-# add-sequence (seq): start at 5, step by -2:
+# add-sequence: start at 5, step by -2:
 $ psv in a.tsv // seq --start=5 --step=-2 // md
 |   a | b   |        c | d     |   __i__ |
 |----:|:----|---------:|:------|--------:|
@@ -867,6 +867,15 @@ $ psv in a.tsv // seq --start=5 --step=-2 // md
 |   2 | b2  |  -98.73  | qwer  |       3 |
 |   3 | b3  | 3451     | bixop |       1 |
 |   1 | b4  |    1.234 | zxy   |      -1 |
+
+# add-sequence: generate UUIDs:
+$ psv in a.tsv // seq --uuid // md
+|   a | b   |        c | d     | __i__                                |
+|----:|:----|---------:|:------|:-------------------------------------|
+|   1 | b1  |   23.763 | xspdf | 6c6b3d60-ab24-4baf-9073-f8bbb5ac1b79 |
+|   2 | b2  |  -98.73  | qwer  | 13945e3a-7d6c-4dea-b429-e80874b3baf2 |
+|   3 | b3  | 3451     | bixop | 1f1ca8fa-5841-4070-bcdf-034e616e84d8 |
+|   1 | b4  |    1.234 | zxy   | 34cff4d1-20bc-4443-8f22-eddfcfa959b9 |
 
 
     rename-columns    

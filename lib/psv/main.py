@@ -6,10 +6,13 @@ import os
 import devdriven.cli
 from devdriven.cli.types import Argv
 from devdriven.to_dict import to_dict
+from devdriven.random import set_seed
 from . import pipeline, io
 
 class Main(devdriven.cli.Main):
   def __init__(self):
+    if seed := os.environ.get('PSV_RAND_SEED'):
+      set_seed(seed)
     super().__init__()
     self.prog_name = 'psv'
     self.env = {}
