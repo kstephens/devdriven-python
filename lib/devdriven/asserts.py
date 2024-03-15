@@ -69,7 +69,7 @@ def assert_files(actual_out: str,
 
   if accept_actual:
     assert_log(f'{accept_actual} : {expect_out!r} from {actual_out!r}')
-    os.system(f'exec 2>&1; set -x; mv {actual_out!r} {expect_out!r}')
+    os.system(f'exec 2>&1; mv {actual_out!r} {expect_out!r}')
   elif not differences:
     os.system(f'exec 2>&1; rm -f {actual_out!r}')
 
