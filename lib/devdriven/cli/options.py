@@ -102,7 +102,7 @@ class Options:
   def command_synopsis(self) -> Argv:
     cmd = []
     for opt in self.opts:
-      opts = [opt.full]  # + [alias.full for alias in opt.aliases]
+      opts = [opt.arg]  # + [alias.full for alias in opt.aliases]
       cmd.append(f'[{", ".join(opts)}]')
     for arg in self.args:
       if arg.endswith(' ...') or len(self.args) > 1:
