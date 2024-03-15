@@ -10,3 +10,4 @@ It's design is influenced by the `Unix Principle` of "small tools connected by p
 `psv` can read and write multiple formats of data: CSV, TSV, Markdown, HTML, Pandas pickles.
 
 The string `//` is used to link commands in a pipeline.
+

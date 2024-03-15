@@ -8,7 +8,8 @@ It's design is influenced by the `Unix Principle` of "small tools connected by p
 # Features
 
 `psv` can read and write multiple formats of data: CSV, TSV, Markdown, HTML, Pandas pickles.
-It
+
+The string `//` is used to link commands in a pipeline.
 
 # I/O
 
@@ -1570,45 +1571,47 @@ Examples:
 
 ```NONE
 # Summary of transfers by Payer and Payee:
-$ psv in transfers.csv // summary Amount '*' Payer,Payee
-     Payer  Payee  Amount_count  Amount_sum  Amount_min  Amount_mean  Amount_median  Amount_std  Amount_max  Amount_skew
-0    Alice  Frank             1       10.99       10.99        10.99          10.99         NaN       10.99          NaN
-1    Alice    Joe             1       45.23       45.23        45.23          45.23         NaN       45.23          NaN
-2      Bob  Alice             3      114.33        1.99        38.11          12.34    53.84756      100.00      1.66034
-3      Bob    Joe             1       30.25       30.25        30.25          30.25         NaN       30.25          NaN
-4  William   Rich             1        9.33        9.33         9.33           9.33         NaN        9.33          NaN
+$ psv in transfers.csv // summary Amount '*' Payer,Payee // md
+| Payer   | Payee   |   Amount_count |   Amount_sum |   Amount_min |   Amount_mean |   Amount_median |   Amount_std |   Amount_max |   Amount_skew |
+|:--------|:--------|---------------:|-------------:|-------------:|--------------:|----------------:|-------------:|-------------:|--------------:|
+| Alice   | Frank   |              1 |        10.99 |        10.99 |         10.99 |           10.99 |     nan      |        10.99 |     nan       |
+| Alice   | Joe     |              1 |        45.23 |        45.23 |         45.23 |           45.23 |     nan      |        45.23 |     nan       |
+| Bob     | Alice   |              3 |       114.33 |         1.99 |         38.11 |           12.34 |      53.8476 |       100    |       1.66034 |
+| Bob     | Joe     |              1 |        30.25 |        30.25 |         30.25 |           30.25 |     nan      |        30.25 |     nan       |
+| William | Rich    |              1 |         9.33 |         9.33 |          9.33 |            9.33 |     nan      |         9.33 |     nan       |
 ```
 
 
 ```NONE
 # Summary of transfers by Payer:
-$ psv in transfers.csv // summary Amount count,sum Payer
-     Payer  Amount_count  Amount_sum
-0    Alice             2       56.22
-1      Bob             4      144.58
-2  William             1        9.33
+$ psv in transfers.csv // summary Amount count,sum Payer // md
+| Payer   |   Amount_count |   Amount_sum |
+|:--------|---------------:|-------------:|
+| Alice   |              2 |        56.22 |
+| Bob     |              4 |       144.58 |
+| William |              1 |         9.33 |
 ```
 
 
 ```NONE
 # Sum of Fee by Payee:
-$ psv in transfers.csv // summary Fee sum Payee
-   Payee  Fee_sum
-0  Alice    15.70
-1  Frank     1.01
-2    Joe     3.75
-3   Rich     0.25
+$ psv in transfers.csv // summary Fee sum Payee // md
+| Payee   |   Fee_sum |
+|:--------|----------:|
+| Alice   |     15.7  |
+| Frank   |      1.01 |
+| Joe     |      3.75 |
+| Rich    |      0.25 |
 ```
 
 
 ```NONE
 # Summary of all transfer Ammount and Fee:
-$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
-    index  Amount_count  Amount_sum  Amount_min  Amount_mean  Amount_median  Amount_std  Amount_max  ...  Fee_count  Fee_sum  Fee_min  Fee_mean  Fee_median   Fee_std  Fee_max  Fee_skew
-0  Amount           7.0      210.13        1.99    30.018571          12.34   34.198142       100.0  ...        NaN      NaN      NaN       NaN         NaN       NaN      NaN       NaN
-1     Fee           NaN         NaN         NaN          NaN            NaN         NaN         NaN  ...        7.0    20.71      0.1  2.958571        1.01  5.369561     15.0  2.527704
-
-[2 rows x 17 columns]
+$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee // md
+| index   |   Amount_count |   Amount_sum |   Amount_min |   Amount_mean |   Amount_median |   Amount_std |   Amount_max |   Amount_skew |   Fee_count |   Fee_sum |   Fee_min |   Fee_mean |   Fee_median |   Fee_std |   Fee_max |   Fee_skew |
+|:--------|---------------:|-------------:|-------------:|--------------:|----------------:|-------------:|-------------:|--------------:|------------:|----------:|----------:|-----------:|-------------:|----------:|----------:|-----------:|
+| Amount  |              7 |       210.13 |         1.99 |       30.0186 |           12.34 |      34.1981 |          100 |       1.76746 |         nan |    nan    |     nan   |  nan       |       nan    | nan       |       nan |   nan      |
+| Fee     |            nan |       nan    |       nan    |      nan      |          nan    |     nan      |          nan |     nan       |           7 |     20.71 |       0.1 |    2.95857 |         1.01 |   5.36956 |        15 |     2.5277 |
 ```
 
 
@@ -1939,7 +1942,7 @@ Examples:
 # env: display proccessing info:
 $ psv in a.tsv // show-columns // md // env-
 {
-  "now": "2024-03-15 01:24:44.762103+0000",
+  "now": "2024-03-15 01:57:38.891398+0000",
   "history": [
     [
       "<< IoIn: in a.tsv >>",
