@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Iterable, Callable, List, Dict, Tuple
+from typing import Any, Union, Optional, Iterable, Callable, List, Mapping, Dict, Tuple
 import os
 import subprocess
 import logging
@@ -200,6 +200,12 @@ def partition(seq: Iterable[Any], pred: Predicate) -> Tuple[List[Any], List[Any]
   for elem in seq:
     (true_elems if pred(elem) else false_elems).append(elem)
   return (true_elems, false_elems)
+
+def map_partition(xform: Callable, seq: Iterable[Any]) -> Mapping[Any, Any]:
+  part: Mapping = defaultdict(list)
+  for elem in seq:
+    part[xform(elem)].append(elem)
+  return part
 
 def frequency(seq: Iterable[Any]) -> Dict[Any, int]:
   counts: Dict[Any, int] = defaultdict(lambda: 0, {})

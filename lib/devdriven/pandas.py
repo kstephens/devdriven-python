@@ -48,7 +48,7 @@ def new_empty_df_like(other):
   # df = df.iloc[0:0]
   return df
 
-def normalize_column_name(name):
+def normalize_column_name(name: str) -> str:
   def decamel(m):
     return f'{m[1]}_{m[2]}'.lower()
   name = re.sub(r'([^A-Z]+)([A-Z]+)', decamel, name)

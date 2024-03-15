@@ -36,6 +36,9 @@ def test_exec_command():
 def test_partition():
   assert util.partition(['a', 1, 'b', 2], lambda e: isinstance(e, str)) == (['a', 'b'], [1, 2])
 
+def test_map_partition():
+  assert util.map_partition(lambda x: x % 3, range(1, 9)) == {1: [1, 4, 7], 2: [2, 5, 8], 0: [3, 6]}
+
 def test_frequency():
   assert util.frequency(['a', 1, 'a', 2]) == {'a': 2, 1: 1, 2: 1}
 
