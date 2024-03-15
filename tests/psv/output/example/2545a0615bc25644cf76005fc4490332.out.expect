@@ -1,0 +1,8 @@
+# 2545a0615bc25644cf76005fc4490332
+$ psv in transfers.csv // summary Fee sum Payee // md
+| Payee   |   Fee_sum |
+|:--------|----------:|
+| Alice   |     15.7  |
+| Frank   |      1.01 |
+| Joe     |      3.75 |
+| Rich    |      0.25 |

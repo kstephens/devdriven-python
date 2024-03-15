@@ -168,7 +168,7 @@ class Format():
             row('', "# " + comment)
           row('', '$ ' + example.command)
           if self.show_example_output:
-            row(example.output)
+            row('', example.output)
           self.code_end()
           row()
     self.command_end(desc)
@@ -329,6 +329,7 @@ class FormatTable(Format):
   def output(self):
     tab = pd.DataFrame(columns=['command', 'description'])
     for row in self.rows:
+      assert len(row) == 2
       tab.loc[len(tab.index)] = row
     return tab
 

@@ -48,16 +48,16 @@ class Summary(Command):
   GROUP-BY,...  |  Any column not in the COL list.  Default: is all of them.
 
   # Summary of transfers by Payer and Payee:
-  $ psv in transfers.csv // summary Amount '*' Payer,Payee
+  $ psv in transfers.csv // summary Amount '*' Payer,Payee // md
 
   # Summary of transfers by Payer:
-  $ psv in transfers.csv // summary Amount count,sum Payer
+  $ psv in transfers.csv // summary Amount count,sum Payer // md
 
   # Sum of Fee by Payee:
-  $ psv in transfers.csv // summary Fee sum Payee
+  $ psv in transfers.csv // summary Fee sum Payee // md
 
   # Summary of all transfer Ammount and Fee:
-  $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee
+  $ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee // md
 
   '''
   # pylint: enable=line-too-long

@@ -1,0 +1,9 @@
+# 909b64755b8fb1bf3ebc08a333c4b56b
+$ psv in transfers.csv // summary Amount '*' Payer,Payee // md
+| Payer   | Payee   |   Amount_count |   Amount_sum |   Amount_min |   Amount_mean |   Amount_median |   Amount_std |   Amount_max |   Amount_skew |
+|:--------|:--------|---------------:|-------------:|-------------:|--------------:|----------------:|-------------:|-------------:|--------------:|
+| Alice   | Frank   |              1 |        10.99 |        10.99 |         10.99 |           10.99 |     nan      |        10.99 |     nan       |
+| Alice   | Joe     |              1 |        45.23 |        45.23 |         45.23 |           45.23 |     nan      |        45.23 |     nan       |
+| Bob     | Alice   |              3 |       114.33 |         1.99 |         38.11 |           12.34 |      53.8476 |       100    |       1.66034 |
+| Bob     | Joe     |              1 |        30.25 |        30.25 |         30.25 |           30.25 |     nan      |        30.25 |     nan       |
+| William | Rich    |              1 |         9.33 |         9.33 |          9.33 |            9.33 |     nan      |         9.33 |     nan       |

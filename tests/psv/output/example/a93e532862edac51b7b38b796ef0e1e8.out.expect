@@ -1,0 +1,6 @@
+# a93e532862edac51b7b38b796ef0e1e8
+$ psv in transfers.csv // cut Amount,Fee // summary Amount,Fee // md
+| index   |   Amount_count |   Amount_sum |   Amount_min |   Amount_mean |   Amount_median |   Amount_std |   Amount_max |   Amount_skew |   Fee_count |   Fee_sum |   Fee_min |   Fee_mean |   Fee_median |   Fee_std |   Fee_max |   Fee_skew |
+|:--------|---------------:|-------------:|-------------:|--------------:|----------------:|-------------:|-------------:|--------------:|------------:|----------:|----------:|-----------:|-------------:|----------:|----------:|-----------:|
+| Amount  |              7 |       210.13 |         1.99 |       30.0186 |           12.34 |      34.1981 |          100 |       1.76746 |         nan |    nan    |     nan   |  nan       |       nan    | nan       |       nan |   nan      |
+| Fee     |            nan |       nan    |       nan    |      nan      |          nan    |     nan      |          nan |     nan       |           7 |     20.71 |       0.1 |    2.95857 |         1.01 |   5.36956 |        15 |     2.5277 |

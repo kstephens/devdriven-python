@@ -1,0 +1,7 @@
+# da5d11fe80d9a0ab75cdd5704e4a7746
+$ psv in transfers.csv // summary Amount count,sum Payer // md
+| Payer   |   Amount_count |   Amount_sum |
+|:--------|---------------:|-------------:|
+| Alice   |              2 |        56.22 |
+| Bob     |              4 |       144.58 |
+| William |              1 |         9.33 |

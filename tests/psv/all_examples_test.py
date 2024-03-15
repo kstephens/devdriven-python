@@ -30,10 +30,16 @@ def test_help():
 def test_help_md():
   run('psv help md')
 
+def test_help_verbose():
+  run('psv help --verbose')
+
 def test_help_markdown():
   run('psv help markdown')
 
-def test_help_verbose():
+def test_help_markdown_verbose():
+  run('psv help --markdown --verbose')
+
+def test_help_verbose_sort():
   run('psv help --verbose sort')
 
 def test_help_plain_sort():
@@ -45,10 +51,13 @@ def test_help_section():
 def test_help_list():
   run('psv help --list')
 
+def test_help_list_verbose():
+  run('psv help --list --verbose')
+
 def test_help_plain():
   run('psv help --plain')
 
-def test_help_raw():
+def test_help_raw_sort():
   run('psv help --raw sort')
 
 def test_parse_subpipe():

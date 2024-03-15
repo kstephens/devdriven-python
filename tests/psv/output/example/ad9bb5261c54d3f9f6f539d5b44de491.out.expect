@@ -1,0 +1,47 @@
+| command        | description                                               |
+|:---------------|:----------------------------------------------------------|
+| in             | Read input.                                               |
+| out            | write output to URLs.                                     |
+| table-in       | Parse table.                                              |
+| table-out      | Generate table.                                           |
+| tsv-in         | Parse TSV.                                                |
+| tsv-out        | Generate TSV.                                             |
+| csv-in         | Parse CSV.                                                |
+| csv-out        | Generate CSV.                                             |
+| markdown-in    | Parse Markdown.                                           |
+| markdown-out   | Generate Markdown.                                        |
+| json-in        | Parse JSON.                                               |
+| json-out       | Generate JSON array of objects.                           |
+| dataframe-in   | Read Pandas Dataframe pickle.                             |
+| dataframe-out  | Write Pandas DataFrame pickle.                            |
+| html-out       | Generate HTML.                                            |
+| sql-           | Write SQL.                                                |
+| yaml-out       | Generate YAML.                                            |
+| xls-in         | Read XLS Spreadsheet.                                     |
+| xls-out        | Generate XLS Spreadsheet.                                 |
+| extract        | Extract fields by Regexp.                                 |
+| range          | Subset of rows.                                           |
+| head           | First N rows                                              |
+| tail           | Last N rows                                               |
+| reverse        | Reverse rows.  Same as "range --step=-1"                  |
+| shuffle        | shuffle rows.                                             |
+| cut            | Cut specified columns.                                    |
+| uniq           | Return unique rows.                                       |
+| sort           | Sort rows by columns.                                     |
+| grep           | Search for rows where columns match a regex.              |
+| translate      | Translate characters.                                     |
+| null           | Does nothing.                                             |
+| count          | Count of unique column values.                            |
+| summary        | Summary of column values.                                 |
+| stats          | Table of column names and basic statistics.               |
+| coerce         | Corece column types.                                      |
+| add-sequence   | Add a column with a sequence of numbers or random values. |
+| rename-columns | Rename columns.                                           |
+| infer-objects  | Infer column types.                                       |
+| show-columns   | Table of column names and attributes.                     |
+| env-           | Show env.                                                 |
+| eval           | Evaluate expression for each row.                         |
+| select         | Select rows.                                              |
+| repl           | Start an interactive REPL.                                |
+| example        | Show examples.                                            |
+| help           | This help document.                                       |
