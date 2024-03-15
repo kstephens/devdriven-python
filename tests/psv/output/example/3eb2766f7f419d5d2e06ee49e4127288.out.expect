@@ -323,8 +323,8 @@ $ psv in a.tsv // seq --uuid // md
 
     rename-columns    
 ----------------------
-# rename-columns: rename column 'b' to 'B':
-$ psv in a.tsv // rename b B // md
+# rename-columns: rename column 'b' to 'Name':
+$ psv in a.tsv // rename b:Name // md
 
 
     show-columns    

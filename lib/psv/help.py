@@ -268,11 +268,12 @@ class FormatMarkdown(Format):
     def comma_code(option):
       return ', '.join([self.code(x) for x in re.split(r', ', option)])
 
-    items = [(comma_code(l), html.escape(r)) for l, r in items]
+    items = [(comma_code(key), html.escape(val)) for key, val in items]
     self.table(title, items, opt_line, tablefmt="presto")
 
   def code_begin(self, lang='NONE'):
     self.row('```', lang)
+
   def code_end(self):
     self.row('```')
     self.row()

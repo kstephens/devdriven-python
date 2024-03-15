@@ -35,7 +35,7 @@ $ psv in https://tinyurl.com/4sscj338
 
 out - write output to URLs.
 
-  psv out [--encoding] [FILE] [file///FILE] [https?://...] [-]
+  psv out [--encoding=ENC] [FILE] [file///FILE] [https?://...] [-]
 
 Aliases: o, o-
 
@@ -50,8 +50,7 @@ Arguments:
 
 Options:
 
-  --encoding | Use encoding.
-             | Default: 'UTF-8'.
+  --encoding=ENC | Use encoding.
 
 Examples:
 
@@ -65,28 +64,19 @@ $ psv in a.tsv // -tsv // csv- // out a.csv
 
 table-in - Parse table.
 
-  psv table-in [--fs] [--rs] [--max-cols] [--columns] [--header] [--column] [--encoding] [--skip]
+  psv table-in [--fs=REGEX] [--rs=REGEX] [--max-cols=COUNT] [--columns=COL1,...  |] [--header] [--column=FMT] [--encoding=ENC] [--skip=REGEX]
 
 Aliases: -table
 
 Options:
 
-  --fs         | Field separator.
-               | Default: "\\s+".
-               |
-  --rs         | Record separator.
-               | Default: "\\n\\r?".
-               |
-  --max-cols   | Maximum columns.
-               | Default: 0.
-  --header, -h | Column names are in first row.
-               |
-  --column     | Column name printf template.
-               | Default: "c%d".
-               |
-  --encoding   | Encoding of input.
-               | Default: "utf-8".
-  --skip       | Records matching REGEX are skipped.
+  --fs=REGEX       | Field separator.
+  --rs=REGEX       | Record separator.
+  --max-cols=COUNT | Maximum columns.
+  --header, -h     | Column names are in first row.
+  --column=FMT     | Column name printf template.
+  --encoding=ENC   | Encoding of input.
+  --skip=REGEX     | Records matching REGEX are skipped.
 
 Examples:
 
@@ -116,20 +106,15 @@ $ psv in users.txt // -table --fs=':' --max-cols=3
 
 table-out - Generate table.
 
-  psv table-out [--fs] [--rs] [--header]
+  psv table-out [--fs=STR] [--rs=STR] [--header]
 
 Aliases: table-
 
 Options:
 
-  --fs     | Field separator.
-           | Default: " ".
-           |
-  --rs     | Record separator.
-           | Default: "\n".
-           |
+  --fs=STR | Field separator.
+  --rs=STR | Record separator.
   --header | Emit header.
-           | Default: True.
 
 Examples:
 
@@ -149,7 +134,6 @@ Aliases: -tsv
 Options:
 
   --header | First row is header.
-           | Default: True.
 
 Examples:
 
@@ -188,7 +172,6 @@ Aliases: -csv
 Options:
 
   --header | First row is header.
-           | Default: True.
 
 Examples:
 
@@ -250,13 +233,13 @@ $ cat a.tsv | psv -tsv // md
 
 json-in - Parse JSON.
 
-  psv json-in [--orient]
+  psv json-in [--orient=ORIENT]
 
 Aliases: -json, -js
 
 Options:
 
-  --orient | Orientation: see pandas read_json.
+  --orient=ORIENT | Orientation: see pandas read_json.
 
 ----------------------------------------------------------
 
@@ -292,26 +275,20 @@ Aliases: dataframe-, dataframe
 
 html-out - Generate HTML.
 
-  psv html-out [--title] [--header] [--simple] [--filtering] [--sorting] [--row-index] [--table-only] [--styled]
+  psv html-out [--title=NAME] [--header] [--simple] [--filtering] [--sorting] [--row-index] [--table-only] [--styled]
 
 Aliases: html-, html
 
 Options:
 
-  --title          | Set <title> and a <div>.
-                   |
+  --title=NAME     | Set `<title>` and add a `<div>`.
   --header, -h     | Add table header.
-                   | Default: True.
   --simple, -S     | Minimal format.
   --filtering, -f  | Add filtering UI.
   --sorting, -s    | Add sorting support.
-                   |
   --row-index, -i  | Add row index to first column.
-                   | Default: False.
-  --table-only, -T | Render only a <table>.
-                   |
+  --table-only, -T | Render only a `<table>`.
   --styled         | Add style.
-                   | Default: True.
 
 Examples:
 
@@ -363,16 +340,14 @@ $ psv in a.csv // yaml
 
 xls-in - Read XLS Spreadsheet.
 
-  psv xls-in [--sheet-name] [--header]
+  psv xls-in [--sheet-name=NAME] [--header]
 
 Aliases: -xls
 
 Options:
 
-  --sheet-name | Sheet name.
-               |
-  --header, -h | Generate header.
-               | Default: True.
+  --sheet-name=NAME | Sheet name.
+  --header, -h      | Generate header.
 
 Examples:
 
@@ -385,16 +360,14 @@ $ psv in a.xlsx // -xls --no-header // md
 
 xls-out - Generate XLS Spreadsheet.
 
-  psv xls-out [--sheet-name] [--header]
+  psv xls-out [--sheet-name=NAME] [--header]
 
 Aliases: xls-, xls
 
 Options:
 
-  --sheet-name | Sheet name.
-               |
-  --header, -h | Generate header.
-               | Default: True.
+  --sheet-name=NAME | Sheet name.
+  --header, -h      | Generate header.
 
 Examples:
 
@@ -431,7 +404,7 @@ $ psv in users.txt // extract --unnamed='group-%d' '^(?P<login>[^:]+)(.*)' // md
 
 range - Subset of rows.
 
-  psv range [--start] [--end] [--step] [start [end] [step]] [[start]:[end]:step]
+  psv range [--start=START] [--end=END] [--step=STEP] [start [end] [step]] [[start]:[end]:step]
 
 Aliases: r
 
@@ -442,12 +415,9 @@ Arguments:
 
 Options:
 
-  --start | Inclusive.
-          | Default: 1.
-          |
-  --end   | Non-inclusive.
-          | Default: last row.
-  --step  | Default: 1.
+  --start=START | Inclusive.
+  --end=END     | Non-inclusive.
+  --step=STEP   | Default: 1.
 
 Examples:
 
@@ -508,14 +478,13 @@ $ psv in a.tsv // seq // tac // md
 
 shuffle - shuffle rows.
 
-  psv shuffle [--seed]
+  psv shuffle [--seed=SEED]
 
 Aliases: rand
 
 Options:
 
-  --seed | String.
-         | Default: use default state.'.
+  --seed=SEED | String.
 
 Examples:
 
@@ -559,7 +528,7 @@ Aliases: u
 
 sort - Sort rows by columns.
 
-  psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]
+  psv sort [--reverse] [--numeric] [--coerce=TYPE] [COL] [COL:-] [COL:+]
 
 Aliases: s
 
@@ -573,7 +542,7 @@ Options:
 
   --reverse, -r | Sort descending.
   --numeric, -n | Sort as numeric.
-  --coerce      | Sort by coerced value.
+  --coerce=TYPE | Sort by coerced value.
 
 Examples:
 
@@ -669,16 +638,15 @@ $ psv in a.tsv // null IGNORED --OPTION=VALUE // md
 
 count - Count of unique column values.
 
-  psv count [--column] [COL ...]
+  psv count [--column=NAME] [COL ...]
 
 Arguments:
 
   COL ... | Columns to group by.
-          | Default: ALL COLUMNS.
 
 Options:
 
-  --column | Default: "count".
+  --column=NAME | Default: "count".
 
 Examples:
 
@@ -702,13 +670,8 @@ Arguments:
 
   COL,... [STAT,...] [GROUP-BY,...] | COLs to summarize STATs grouped by GROUP-BY.
   COL,...                           | Any numeric columns separated by ",".
-                                    |
   STAT,...                          | One or more of: 'count,sum,min,max,mean,median,std,skew'.
-                                    | See Pandas "DataFrameGroupBy" documentation.
-                                    | Default: is all of them.
-                                    |
   GROUP-BY,...                      | Any column not in the COL list.
-                                    | Default: is all of them.
 
 Examples:
 
@@ -750,16 +713,16 @@ Aliases: astype
 
 TYPES:
 
-numeric      - to int64 or float64.
-int          - to int64.
-float        - to float64.
-timedelta    - string to timedelta64[ns].
-datetime     - string to datetime.
-second       - string to timedelta64[ns] to float seconds.
-minute       - string to timedelta64[ns] to float minutes.
-hour         - string to timedelta64[ns] to float hours.
-day          - string to timedelta64[ns] to float days.
-ipaddr       - string to ipaddress.  See python ipaddress module.
+* `numeric`      - to `int64` or `float64`.
+* `int`          - to `int64`.
+* `float`        - to `float64`.
+* `timedelta`    - string to `timedelta64[ns]`.
+* `datetime`     - string to `datetime`.
+* `second`       - string to `timedelta64[ns]` to `float` seconds.
+* `minute`       - string to `timedelta64[ns]` to `float` minutes.
+* `hour`         - string to `timedelta64[ns]` to `float` hours.
+* `day`          - string to `timedelta64[ns]` to `float` days.
+* `ipaddr`       - string to `ipaddress`.  See python `ipaddress` module.
 
 Arguments:
 
@@ -780,16 +743,16 @@ $ psv in us-states-sample.csv // coerce Population:int // sort Population
 
 add-sequence - Add a column with a sequence of numbers or random values.
 
-  psv add-sequence [--column] [--start] [--step] [--uuid]
+  psv add-sequence [--column=NAME] [--start=START] [--step=STEP] [--uuid]
 
 Aliases: seq
 
 Options:
 
-  --column | Default: "__i__".
-  --start  | Default: 1.
-  --step   | Default: 1.
-  --uuid   | Generate a UUID-4.
+  --column=NAME | Default: "__i__".
+  --start=START | Default: 1.
+  --step=STEP   | Default: 1.
+  --uuid        | Generate a UUID-4.
 
 Examples:
 
@@ -823,8 +786,8 @@ Arguments:
 
 Examples:
 
-# rename-columns: rename column 'b' to 'B':
-$ psv in a.tsv // rename b B // md
+# rename-columns: rename column 'b' to 'Name':
+$ psv in a.tsv // rename b:Name // md
 
 
 ----------------------------------------------------------
@@ -872,7 +835,7 @@ $ psv in a.tsv // show-columns // md // env-
 
 eval - Evaluate expression for each row.
 
-  psv eval [--columns] [--normalize] [STATEMENT ...]
+  psv eval [--columns=COL,...] [--normalize] [STATEMENT ...]
 
 Aliases: each
 
@@ -893,15 +856,11 @@ When expression returns:
 Arguments:
 
   STATEMENT ... | Statements.
-                | Final statement may return a value.
 
 Options:
 
-  --columns       | Columns bound within STATEMENT.
-                  | Default: input columns.
-                  |
-  --normalize, -n | Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.
-                  | Default: False.
+  --columns=COL,... | Columns bound within STATEMENT.
+  --normalize, -n   | Column bound within STATEMENT are normalized to r'^[a-z0-9_]+$'.
 
 Examples:
 

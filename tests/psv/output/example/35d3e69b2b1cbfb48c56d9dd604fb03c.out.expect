@@ -880,9 +880,9 @@ $ psv in a.tsv // seq --uuid // md
 
     rename-columns    
 ----------------------
-# rename-columns: rename column 'b' to 'B':
-$ psv in a.tsv // rename b B // md
-|   a | None   |        c | d     |
+# rename-columns: rename column 'b' to 'Name':
+$ psv in a.tsv // rename b:Name // md
+|   a | Name   |        c | d     |
 |----:|:-------|---------:|:------|
 |   1 | b1     |   23.763 | xspdf |
 |   2 | b2     |  -98.73  | qwer  |

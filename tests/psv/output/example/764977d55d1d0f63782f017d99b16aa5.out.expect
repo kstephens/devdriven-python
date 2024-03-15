@@ -2,7 +2,7 @@
 
 sort - Sort rows by columns.
 
-  psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]
+  psv sort [--reverse] [--numeric] [--coerce=TYPE] [COL] [COL:-] [COL:+]
 
 Aliases: s
 
@@ -16,7 +16,7 @@ Options:
 
   --reverse, -r | Sort descending.
   --numeric, -n | Sort as numeric.
-  --coerce      | Sort by coerced value.
+  --coerce=TYPE | Sort by coerced value.
 
 Examples:
 

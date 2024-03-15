@@ -5,7 +5,7 @@
       "klass": "<< <class 'psv.process.Sort'> >>",
       "name": "sort",
       "brief": "Sort rows by columns.",
-      "synopsis": "psv sort [--reverse] [--numeric] [--coerce] [COL] [COL:-] [COL:+]",
+      "synopsis": "psv sort [--reverse] [--numeric] [--coerce=TYPE] [COL] [COL:-] [COL:+]",
       "aliases": [
         "s"
       ],

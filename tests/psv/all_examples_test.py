@@ -11,6 +11,7 @@ from psv.example import ExampleRunner
 
 ####################################
 
+# DO THIS FIRST:
 def test_example_generate():
   run('psv example --generate')
 
