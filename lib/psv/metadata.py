@@ -4,7 +4,6 @@ from devdriven.pandas import dtype_to_dict
 from devdriven.random import uuid
 
 import pandas as pd
-# from icecream import ic
 from .command import Command, section, command
 from .util import parse_column_and_opt
 
@@ -78,8 +77,8 @@ class RenameColumns(Command):
 
   OLD-COL:NEW-NAME ...  |  Columns to rename.
 
-# rename-columns: rename column 'b' to 'B':
-$ psv in a.tsv // rename b B // md
+# rename-columns: rename column 'b' to 'Name':
+$ psv in a.tsv // rename b:Name // md
   '''
   def xform(self, inp, _env):
     inp_cols = list(inp.columns)
