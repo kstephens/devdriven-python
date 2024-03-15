@@ -1,5 +1,6 @@
 from typing import Iterable, List
 import re
+import html
 from dataclasses import dataclass, field
 import pandas as pd  # type: ignore
 import tabulate  # type: ignore
@@ -52,7 +53,8 @@ class Help(Command):
 
     all_sdc = ExampleRegistry(self.main).all_examples()
     all_desc = {sdc.descriptor.name: sdc.descriptor for sdc in all_sdc}
-    commands = [all_desc.get(cmd.name, cmd) for cmd in commands]
+    for cmd in commands:
+      cmd.examples = all_desc.get(cmd.name, cmd).examples
 
     return self.do_commands(commands, env)
 
@@ -75,12 +77,12 @@ class Help(Command):
   def do_commands(self, commands, env):
     if self.opt('raw', False):
       return self.do_commands_raw(commands, env)
+    if self.opt('markdown', False):
+      return self.do_commands_markdown(commands, env)
     if self.opt('plain', False) or len(self.args) == 1:
       return self.do_commands_plain(commands, env)
     if self.opt('list', False):
       return self.do_commands_list(commands, env)
-    if self.opt('markdown', False):
-      return self.do_commands_markdown(commands, env)
     return self.do_commands_table(commands, env)
 
   def do_commands_list(self, commands, env):
@@ -109,7 +111,7 @@ class Help(Command):
 
   def do_commands_markdown(self, commands, _env):
     verbose = self.opt('verbose', self.opt('v'))
-    fmt = FormatMarkdown(show_metadata=verbose)
+    fmt = FormatMarkdown(show_examples=True, show_example_output=verbose)
     fmt.commands(commands)
     return fmt.output()
 
@@ -240,28 +242,40 @@ class FormatMarkdown(Format):
     self.row(f'# {name}')
     self.row()
 
+  def synopsis(self, desc):
+    self.code_begin()
+    self.row('', desc.synopsis)
+    self.code_end()
+
   def command_begin(self, desc):
-    self.row(f'## {self.code(desc.name)}`')
+    self.row(f'## {self.code(desc.name)}')
     self.row()
 
   def emit_opts(self, title, items):
-    header = False
+    separator = False
 
     def opt_line(row):
-      nonlocal header
-      if not header:
-        header = re.sub(r'[^|]', '-', row)
-        header = re.sub(r'-\|-', ' | ', header)
-        self.row(header := '| ' + header + ' |')
+      nonlocal separator
+      if not separator:
+        separator = re.sub(r'[^|]', '-', row)
+        separator = re.sub(r'-\|-', ' | ', separator)
+        separator = '| ' + separator + ' |'
+        header = re.sub(r'-', ' ', separator)
+        self.row(header)
+        self.row(separator)
       self.row(f'| {row} |')
+
+    def comma_code(option):
+      return ', '.join([self.code(x) for x in re.split(r', ', option)])
+
+    items = [(comma_code(l), html.escape(r)) for l, r in items]
     self.table(title, items, opt_line, tablefmt="presto")
-    #  self.row(header)
 
-  def code_begin(self, lang=''):
+  def code_begin(self, lang='NONE'):
     self.row('```', lang)
-
   def code_end(self):
     self.row('```')
+    self.row()
 
   def code(self, x):
     return f'`{x}`'
@@ -323,10 +337,12 @@ def items_to_rows(items):
   rows = []
   for name, desc in list(items):
     item_rows = []
-    for desc_line in desc.split('.  '):
+    for desc_line in desc.strip().split('.  '):
+      desc = desc.strip()
       if desc_line:
-        desc_line = re.sub(r'\.\. *$', '.', desc_line + '.')
-        item_rows.append([name, desc_line])
+        desc_line = re.sub(r'\.\. *$', '.', desc_line + '.').strip()
+        if name and desc_line:
+          item_rows.append([name, desc_line])
         name = ''
     if len(item_rows) > 1 and rows:
       rows.append(('', ''))

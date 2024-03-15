@@ -22,16 +22,16 @@ class Coerce(Command):
 
   TYPES:
 
-  numeric      - to int64 or float64.
-  int          - to int64.
-  float        - to float64.
-  timedelta    - string to timedelta64[ns].
-  datetime     - string to datetime.
-  second       - string to timedelta64[ns] to float seconds.
-  minute       - string to timedelta64[ns] to float minutes.
-  hour         - string to timedelta64[ns] to float hours.
-  day          - string to timedelta64[ns] to float days.
-  ipaddr       - string to ipaddress.  See python ipaddress module.
+* `numeric`      - to `int64` or `float64`.
+* `int`          - to `int64`.
+* `float`        - to `float64`.
+* `timedelta`    - string to `timedelta64[ns]`.
+* `datetime`     - string to `datetime`.
+* `second`       - string to `timedelta64[ns]` to `float` seconds.
+* `minute`       - string to `timedelta64[ns]` to `float` minutes.
+* `hour`         - string to `timedelta64[ns]` to `float` hours.
+* `day`          - string to `timedelta64[ns]` to `float` days.
+* `ipaddr`       - string to `ipaddress`.  See python `ipaddress` module.
 
   Examples:
 
