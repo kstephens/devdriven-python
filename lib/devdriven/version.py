@@ -27,10 +27,12 @@ class Version:
     return cmp(self, other, '>') > 0
 
   def __le__(self, other) -> bool:
-    return cmp(self, other, '<=') <= 0
+    other = typecheck(self, other, '<=')
+    return self._str == other._str or cmp(self, other, '<=') <= 0
 
   def __ge__(self, other) -> bool:
-    return cmp(self, other, '>=') >= 0
+    other = typecheck(self, other, '>=')
+    return self._str == other._str or cmp(self, other, '>=') >= 0
 
 
 PARSE_RX = re.compile(r'(\d+)|([a-zA-Z]+)|([^\da-zA-Z]+)')
