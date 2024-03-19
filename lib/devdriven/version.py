@@ -1,9 +1,18 @@
-from typing import Any, Union, List
+from typing import Any, Union, Self, List
 import re
 import logging
 
 class Version:
-  def __init__(self, ver: str):
+  _str: str
+  _elems: List[Any]
+  _repr: str
+
+  def __init__(self, ver: Union[str, Self]):
+    if isinstance(ver, Version):
+      self._str = ver._str
+      self._elems = ver._elems
+      self._repr = ver._repr
+      return
     self._str = ver
     self._elems = parse(ver)
     self._repr = f'<{type(self).__name__} {self._elems!r}>'
@@ -20,12 +29,6 @@ class Version:
   def __ne__(self, other) -> bool:
     return self._str != typecheck(self, other, '!=')._str
 
-  def __lt__(self, other) -> bool:
-    return cmp(self, other, '<') < 0
-
-  def __gt__(self, other) -> bool:
-    return cmp(self, other, '>') > 0
-
   def __le__(self, other) -> bool:
     other = typecheck(self, other, '<=')
     return self._str == other._str or cmp(self, other, '<=') <= 0
@@ -33,6 +36,12 @@ class Version:
   def __ge__(self, other) -> bool:
     other = typecheck(self, other, '>=')
     return self._str == other._str or cmp(self, other, '>=') >= 0
+
+  def __lt__(self, other) -> bool:
+    return cmp(self, other, '<') < 0
+
+  def __gt__(self, other) -> bool:
+    return cmp(self, other, '>') > 0
 
 
 PARSE_RX = re.compile(r'(\d+)|([a-zA-Z]+)|([^\da-zA-Z]+)')
@@ -62,13 +71,13 @@ def cmp_list(a: List[Any], b: List[Any]) -> int:
       break
     if (result := cmp_elem(a[i], b[i])) != 0:
       return result
-  return cmp_same(len(a), len(b))
+  return cmp_elem(len(a), len(b))
 
 def cmp_elem(a: Any, b: Any) -> int:
   # pylint: disable-next=unidiomatic-typecheck
   if type(a) != type(b):
-    return cmp_same(a, b)
-  return cmp_same(str(a), str(b))
+    a, b = str(a), str(b)
+  return cmp_same(a, b)
 
 def cmp_same(a: Any, b: Any) -> int:
   if a > b:
