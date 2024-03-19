@@ -3,9 +3,11 @@ import os
 import sys
 from pathlib import Path
 import hashlib
+from pprint import pprint
 from .file import file_md5
 
 FilterFunc = Optional[Callable]
+OutputFunc = Callable[[str], Any]
 
 def assert_command_output(file: str,
                           command: str,
@@ -17,10 +19,16 @@ def assert_command_output(file: str,
     assert_log(f'assert_command_output : {command!r}')
   return assert_output(file, run, fix_line, context_line)
 
+def pp_output(data: Any) -> OutputFunc:
+  def proc(file):
+    with open(file, "w") as output:
+      pprint(data, stream=output, indent=2)
+  return proc
+
 def assert_output_by_key(
     key: str,
     directory: str,
-    proc: Callable,
+    proc: OutputFunc,
     fix_line: FilterFunc = None,
     context_line: FilterFunc = None):
   key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
@@ -33,7 +41,7 @@ def assert_output_by_key(
   )
 
 def assert_output(file: str,
-                  proc: Callable,
+                  proc: OutputFunc,
                   fix_line: FilterFunc = None,
                   context_line: FilterFunc = None):
   expect_out = f'{file}.out.expect'
@@ -69,9 +77,9 @@ def assert_files(actual_out: str,
 
   if accept_actual:
     assert_log(f'{accept_actual} : {expect_out!r} from {actual_out!r}')
-    os.system(f'exec 2>&1; mv {actual_out!r} {expect_out!r}')
+    Path(actual_out).replace(expect_out)
   elif not differences:
-    os.system(f'exec 2>&1; rm -f {actual_out!r}')
+    Path(actual_out).unlink(missing_ok=True)
 
 def compare_files(actual_out: str,
                   expect_out: str,
