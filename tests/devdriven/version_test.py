@@ -49,13 +49,14 @@ def test_cmp():
 
 def test_sort():
   strings = '''
+1.0
 2
 2.
 2.1
 2.2.3
-1.0
 2.4.6
 2.4.61
+2.z23
 2.10
 2.10.2
 '''.strip().split('\n')
