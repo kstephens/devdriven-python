@@ -9,25 +9,25 @@ class Version:
     self._elems = parse_elements(ver)
     self._repr = f'<{type(self).__name__} {self._elems!r}>'
 
-  def __str__(self):
+  def __str__(self) -> str:
     return self._str
-  def __repr__(self):
+  def __repr__(self) -> str:
     return self._repr
 
-  def __eq__(self, other):
+  def __eq__(self, other) -> bool:
     return self.cmp(other, '==') == 0
-  def __ne__(self, other):
+  def __ne__(self, other) -> bool:
     return self.cmp(other, '!=') != 0
-  def __lt__(self, other):
+  def __lt__(self, other) -> bool:
     return self.cmp(other, '<') < 0
-  def __gt__(self, other):
+  def __gt__(self, other) -> bool:
     return self.cmp(other, '>') >= 0
-  def __le__(self, other):
+  def __le__(self, other) -> bool:
     return self.cmp(other, '<=') <= 0
-  def __ge__(self, other):
+  def __ge__(self, other) -> bool:
     return self.cmp(other, '>=') >= 0
 
-  def cmp(self, other, op):
+  def cmp(self, other: Any, op: str) -> int:
     if isinstance(other, str):
       other = Version(other)
       logging.error('Coerced %s', repr(other))
@@ -57,7 +57,7 @@ def cmp_list(e1: List[Any], e2: List[Any]) -> int:
     if (result := cmp(e1[i], e2[i])) != 0: return result
   return cmp_same(len(e1), len(e2))
 
-def cmp(e1, e2) -> int:
+def cmp(e1: Any, e2: Any) -> int:
   if type(e1) != type(e2):
     return cmp_same(e1, e2)
   return cmp_same(str(e1), str(e2))
