@@ -72,7 +72,6 @@ def test_splitkeep():
   assert fut(b'abc|', b'|') == [b'abc|']
   assert fut(b'abc||', b'|') == [b'abc|', b'|']
 
-
 ##########################################################
 
 def test_elapsed_ms():

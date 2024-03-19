@@ -114,5 +114,6 @@ def test_re_pred():
   assert sut.re_pred(re.compile("ab"))("abc") is True
   assert sut.re_pred("ab")("abc") is True
   assert sut.re_pred("ab")("bc") is False
+  assert sut.re_pred("bc")("abc") is True
   assert sut.re_pred(12)("123") is True
   assert sut.re_pred(12)(123) is True
