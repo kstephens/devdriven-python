@@ -126,7 +126,7 @@ PYTEST_OPTS= --capture=no
 run-test:
 	rm -rf coverage/
 	mkdir -p coverage
-	coverage run -m pytest $(PYTEST_OPTS) $(or $(wildcard $(FILES), all)) -vv -rpP
+	coverage run -m pytest $(PYTEST_OPTS) $(or $(wildcard $(FILES)), all) -vv -rpP
 	coverage report | tee coverage/coverage.txt
 	coverage html
 	coverage json
