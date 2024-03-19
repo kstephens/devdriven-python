@@ -148,9 +148,9 @@ def get(x: Mapping[Any, Any], default: Any = None) -> Callable[[Any], Any]:
     return g
   return lambda i: x.get(i, default)
 
-def re_pred(rx_or_string: Union[re.Pattern, str]) -> Arity1Bool:
+def re_pred(rx_or_string: Union[re.Pattern, str], re_search=re.search) -> Arity1Bool:
   """
-  A function that takes a regular expression pattern as input and returns a predicate function.
+  A function that takes a regular expression pattern as input and returns a predicate function with re.search.
 
   Parameters:
     - rx (Union[re.Pattern, str]): A re.Pattern or regular expression pattern string to be compiled.
@@ -164,4 +164,4 @@ def re_pred(rx_or_string: Union[re.Pattern, str]) -> Arity1Bool:
     rx = rx_or_string
   else:
     rx = re.compile(str(rx_or_string))
-  return lambda x: re.match(rx, str(x)) is not None
+  return lambda x: re_search(rx, str(x)) is not None
