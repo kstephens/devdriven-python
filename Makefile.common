@@ -4,7 +4,7 @@ endif
 base_dir:=$(shell readlink -f .)
 
 PYTHONPATH_ORIG:=$(PYTHONPATH)
-export PYTHONPATH=lib:$(OTHER_PYTHONPATH):$(PYTHONPATH_ORIG)
+export PYTHONPATH=lib:$(PYTHONPATH_OTHER):$(PYTHONPATH_ORIG)
 PYTHON_BIN:=$(shell which $(PYTHON) | head -1)
 VENV_OPTS=--clear
 # OSX HAS WRECKED brew python3.*:
@@ -88,13 +88,14 @@ run-pycodestyle:
 
 # Typecheck:
 
+typing: typecheck
 typecheck: stubgen
-	$(MAKE) run-typecheck FILES='$(or $(FILES), $(MYPY_FILES))'
+	$(MAKE) run-$@ FILES='$(or $(FILES), $(MYPY_FILES))'
 
 run-typecheck: stubgen mypy
 
 mypy:
-	$(MAKE) run-mypy FILES='$(or $(FILES), $(MYPY_FILES))'
+	$(MAKE) run-$@ FILES='$(or $(FILES), $(MYPY_FILES))'
 
 MYPY_OPTS+= --config-file ./.mypy.ini
 MYPY_OPTS+= # --strict
@@ -105,14 +106,14 @@ run-mypy:
 	cat mypy-report/index.txt
 
 stubgen:
-	$(MAKE) run-$@ FILES='$(or $(FILES), $(MYPY_FILES))'
-	@set -x; for d in $(OTHER_DIRS); do $(MAKE) -C "$$d" $@; done
+	@set -x; for d in $(DIRS_OTHER); do $(MAKE) -C "$$d" $@; done
+	$(MAKE) run-$@
 
-run-stubgen: $(FILES:%.py=%.pyi)
-
+PYI_FILES=$(LIB_FILES:%.py=%.pyi)
+run-stubgen: $(PYI_FILES)
 .SUFFIXES: .pyi .py
 %.pyi: %.py
-	stubgen $(@:%.pyi=%.py) -o lib
+	stubgen -o lib $(@:%.pyi=%.py)
 
 # Unit Test:
 
@@ -155,6 +156,7 @@ clean:
 	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/
 	find lib tests -name '__pycache__' -a -type d | sort -r | xargs rm -rf {}
 	rm -f $(MIN_JS_FILES)
+	find --verbose lib -name '*.pyi' exec rm \{} \;
 
 very-clean: clean
 	rm -rf ./venv
