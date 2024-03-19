@@ -1,4 +1,3 @@
-import sys
 import devdriven.version as sut
 from devdriven.asserts import assert_output, pp_output
 
@@ -11,12 +10,8 @@ VERSION_STRINGS = '''
 1.3.45-ab_4
 1.3_45_ab-4'''.split('\n')
 
-def pp(x, stream=sys.stderr):
-  pprint(x, stream=stream, indent=2)
-
 def test_parse():
   results = [(inp, sut.parse(inp)) for inp in VERSION_STRINGS]
-  # pp(results)
   assert results == [
     ('', []),
     ('1.2', [1, '.', 2]),
@@ -31,8 +26,12 @@ def test_parse():
 def test_cmp():
   for a in VERSION_STRINGS:
     assert sut.cmp(sut.Version(a), sut.Version(a), '==') == 0
-
-  results = [(a, b, sut.cmp(sut.Version(a), sut.Version(b), 'OP')) for a in VERSION_STRINGS for b in VERSION_STRINGS if a != b]
+  results = [
+    (a, b, sut.cmp(sut.Version(a), sut.Version(b), 'OP'))
+    for a in VERSION_STRINGS
+    for b in VERSION_STRINGS
+    if a != b
+  ]
   assert_pprint('test_cmp', results)
 
 def assert_pprint(key, data):

@@ -21,7 +21,7 @@ def assert_command_output(file: str,
 
 def pp_output(data: Any) -> OutputFunc:
   def proc(file):
-    with open(file, "w") as output:
+    with open(file, "w", encoding='utf-8') as output:
       pprint(data, stream=output, indent=2)
   return proc
 
