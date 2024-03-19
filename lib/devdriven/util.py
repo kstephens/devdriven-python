@@ -254,6 +254,8 @@ def make_range(start, end, step, n):
     step = - step
   return range(start, end, step)
 
+#####################################################################
+# Misc
 
 def not_implemented() -> None:
   raise NotImplementedError(inspect.stack()[1][3])
@@ -283,6 +285,9 @@ def glob_to_rx(glob, glob_terminator=None):
 
 def set_from_match(obj, match: re.Match):
   setattr_from_dict(obj, match.groupdict())
+
+#####################################################################
+# Misc
 
 def setattr_from_dict(obj, attrs):
   for name, val in attrs.items():
