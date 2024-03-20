@@ -4,6 +4,12 @@ import re
 
 VersionElements = Collection[Union[int, str]]
 
+def version(x):
+  return Version(x)
+
+def constraint(x):
+  return VersionConstraint(x)
+
 class Version:
   _str: str
   elems: tuple
