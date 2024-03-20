@@ -308,3 +308,15 @@ def module_fullname(obj):
   if module == 'builtins':
     return klass.__qualname__  # avoid outputs like 'builtins.str'
   return module + '.' + klass.__qualname__
+
+def rr(v):
+  '''Returns an object where `__repr__` it `str(v)`.'''
+  return RawRepr(v)
+
+class RawRepr:
+  def __init__(self, v):
+    self.v = v
+  def __repr__(self):
+    return str(self.v)
+  def __str__(self):
+    return self.v
