@@ -15,7 +15,7 @@ VERSION_STRINGS = '''
 1.3_45_ab-4'''.split('\n')
 
 def test_parse():
-  results = [(inp, sut.parse(inp)) for inp in VERSION_STRINGS]
+  results = [(inp, sut.version_parse_elements(inp)) for inp in VERSION_STRINGS]
   assert results == [
     ('', []),
     ('1.2', [1, '.', 2]),

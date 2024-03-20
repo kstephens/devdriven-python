@@ -1,5 +1,7 @@
 from typing import Optional, Union, List, Tuple
 import os
+import pickle
+import bz2
 from .util import exec_command
 
 def read_file(name: str, encoding: Optional[str] = None) -> Optional[Union[bytes, str]]:
@@ -62,3 +64,11 @@ def file_count_substr(path: str, substr: bytes) -> Tuple[int, int, Optional[byte
 
 BUFFER_SIZE = 8192
 NEWLINE_BYTE = b'\n'[0]
+
+def read_write_pickle(file, mode, data=None):
+  with bz2.open(file, mode) as stream:
+    if mode == 'rb':
+      return pickle.load(stream)
+    else:
+      pickle.dump(data, stream)
+      return data

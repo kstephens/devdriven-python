@@ -1,4 +1,4 @@
-from typing import Any, Optional, Iterable, Callable, Tuple
+from typing import Any, Optional, Iterable, Callable, Tuple, TextIO
 import os
 import sys
 from pathlib import Path
@@ -7,30 +7,27 @@ from pprint import pprint
 from .file import file_md5
 
 FilterFunc = Optional[Callable]
-OutputFunc = Callable[[str], Any]
+Filepath = str
+FileOutputFunc = Callable[[Filepath], Any]
+Difference = Tuple[int, str, str, Optional[str]]
+Differences = Iterable[Difference]
 
-def assert_command_output(file: str,
-                          command: str,
+def assert_command_output(file: Filepath,
+                          command: Filepath,
                           fix_line: FilterFunc = None,
-                          context_line: FilterFunc = None):
+                          context_line: FilterFunc = None) -> Filepath:
   def run(actual_out):
     system_command = f'exec 2>&1; set -x; {command} > {actual_out!r}'
     os.system(system_command)
     assert_log(f'assert_command_output : {command!r}')
   return assert_output(file, run, fix_line, context_line)
 
-def pp_output(data: Any) -> OutputFunc:
-  def proc(file):
-    with open(file, "w", encoding='utf-8') as output:
-      pprint(data, stream=output, indent=2)
-  return proc
-
 def assert_output_by_key(
     key: str,
-    directory: str,
-    proc: OutputFunc,
+    directory: Filepath,
+    proc: FileOutputFunc,
     fix_line: FilterFunc = None,
-    context_line: FilterFunc = None):
+    context_line: FilterFunc = None) -> Filepath:
   key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
   output_file = f'{directory}/{key_hash}'
   return assert_output(
@@ -40,22 +37,21 @@ def assert_output_by_key(
     context_line=context_line,
   )
 
-def assert_output(file: str,
-                  proc: OutputFunc,
+def assert_output(file: Filepath,
+                  proc: FileOutputFunc,
                   fix_line: FilterFunc = None,
-                  context_line: FilterFunc = None):
+                  context_line: FilterFunc = None) -> Filepath:
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
   result = proc(actual_out)
-  assert_files(actual_out, expect_out,
-               fix_line=fix_line, context_line=context_line)
-  return result
+  return assert_files(actual_out, expect_out,
+                      fix_line=fix_line, context_line=context_line)
 
-def assert_files(actual_out: str,
-                 expect_out: str,
+def assert_files(actual_out: Filepath,
+                 expect_out: Filepath,
                  fix_line: FilterFunc = None,
-                 context_line: FilterFunc = None):
+                 context_line: FilterFunc = None) -> str:
   if fix_line:
     fix_file(actual_out, fix_line)
 
@@ -78,12 +74,15 @@ def assert_files(actual_out: str,
   if accept_actual:
     assert_log(f'{accept_actual} : {expect_out!r} from {actual_out!r}')
     Path(actual_out).replace(expect_out)
+    return expect_out
   elif not differences:
     Path(actual_out).unlink(missing_ok=True)
+    return expect_out
+  return actual_out
 
-def compare_files(actual_out: str,
-                  expect_out: str,
-                  context_line: FilterFunc = None):
+def compare_files(actual_out: Filepath,
+                  expect_out: Filepath,
+                  context_line: FilterFunc = None) -> Differences:
   with open(actual_out, 'r', encoding='utf-8') as io:
     actual_lines = io.readlines()
   with open(expect_out, 'r', encoding='utf-8') as io:
@@ -102,7 +101,7 @@ def compare_files(actual_out: str,
 def compare_lines(actual_lines: Iterable[str],
                   expect_lines: Iterable[str],
                   context_line: FilterFunc = None
-                  ) -> Iterable[Tuple[int, str, str, Optional[str]]]:
+                  ) -> Differences:
   i = 0
   context = None
   differences = []
@@ -116,7 +115,7 @@ def compare_lines(actual_lines: Iterable[str],
       differences.append((i, actual_line, expect_line, context))
   return differences
 
-def fix_file(file: str, fix_line: FilterFunc = None) -> None:
+def fix_file(file: Filepath, fix_line: FilterFunc = None) -> None:
   # log(f'fix_file: {file!r}')
   file_tmp = f'{file}.tmp'
   with open(file_tmp, 'w', encoding='utf-8') as tmp:
@@ -128,8 +127,34 @@ def fix_file(file: str, fix_line: FilterFunc = None) -> None:
   # os.system(f'diff -U0 {file} {file_tmp}')
   os.rename(file_tmp, file)
 
-def assert_log(msg: Any = ''):
+def assert_log(msg: Any = '') -> None:
   if msg:
     print(f'  ### assert : {msg}', file=sys.stderr)
   else:
     print('', file=sys.stderr)
+
+######################################
+
+Outputter = Callable[[TextIO], None]
+
+def open_output(proc: Outputter) -> FileOutputFunc:
+  def f(file: Filepath) -> None:
+    with open(file, "w", encoding='utf-8') as output:
+      proc(output)
+  return f
+
+def pp_output(data: Any) -> Outputter:
+  def f(output: TextIO) -> None:
+    pprint(data, stream=output, indent=2)
+  return f
+
+def lines_output(data: Any) -> Outputter:
+  def make_line(row: Any) -> str:
+    if isinstance(row, Iterable):
+      return ' '.join([str(x) for x in row])
+    else:
+      return str(row)
+  def f(output: TextIO) -> None:
+    for row in data:
+      print(make_line(row), file=output)
+  return f
