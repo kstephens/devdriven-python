@@ -309,14 +309,17 @@ def module_fullname(obj):
     return klass.__qualname__  # avoid outputs like 'builtins.str'
   return module + '.' + klass.__qualname__
 
-def rr(v):
-  '''Returns an object where `__repr__` it `str(v)`.'''
-  return RawRepr(v)
+# pylint: disable-next=invalid-name
+def rr(x):
+  '''Returns an object where `__repr__` it `str(x)`.'''
+  return RawRepr(x)
 
 class RawRepr:
-  def __init__(self, v):
-    self.v = v
+  def __init__(self, x):
+    self._x = x
+
   def __repr__(self):
-    return str(self.v)
+    return str(self._x)
+
   def __str__(self):
-    return self.v
+    return self._x

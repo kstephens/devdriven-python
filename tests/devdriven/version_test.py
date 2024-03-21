@@ -1,7 +1,6 @@
 import random
 import devdriven.version as sut
 from devdriven.asserts import assert_output, open_output, lines_output
-from icecream import ic
 
 VERSION_STRINGS = '''
 1
@@ -71,9 +70,7 @@ def test_cmp_list_right():
     if len(a) >= len(b)
   ]
   results.sort(key=lambda x: x[-1])
-  result_file = assert_data('test_cmp_list_right', results)
-  # with open(result_file, encoding='utf-8') as io:
-  #  print(io.read())
+  assert_data('test_cmp_list_right', results)
 
 def test_constraint():
   versions = '1.0 1.0.1 2.0 2.1 2.1.3 2.2'.split(' ')
@@ -86,7 +83,7 @@ def test_constraint():
     assert sut.VersionConstraintRelation(f'!={ver}')(sut.Version(ver)) is False
   results = [
     (checkbox(sut.VersionConstraintRelation(f'{op}{v2}')(sut.Version(v1))),
-     v1, op, v2)
+      v1, op, v2)
     for op in operators + ['=']
     for v1 in versions
     for v2 in versions
@@ -119,5 +116,4 @@ def assert_data(key, data):
 def checkbox(x):
   if x:
     return '[x]'
-  else:
-    return '[ ]'
+  return '[ ]'

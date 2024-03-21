@@ -69,6 +69,5 @@ def read_write_pickle(file, mode, data=None):
   with bz2.open(file, mode) as stream:
     if mode == 'rb':
       return pickle.load(stream)
-    else:
-      pickle.dump(data, stream)
-      return data
+    pickle.dump(data, stream)
+    return data

@@ -44,7 +44,7 @@ def assert_output(file: Filepath,
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
-  result = proc(actual_out)
+  proc(actual_out)
   return assert_files(actual_out, expect_out,
                       fix_line=fix_line, context_line=context_line)
 
@@ -75,7 +75,7 @@ def assert_files(actual_out: Filepath,
     assert_log(f'{accept_actual} : {expect_out!r} from {actual_out!r}')
     Path(actual_out).replace(expect_out)
     return expect_out
-  elif not differences:
+  if not differences:
     Path(actual_out).unlink(missing_ok=True)
     return expect_out
   return actual_out
@@ -135,6 +135,7 @@ def assert_log(msg: Any = '') -> None:
 
 ######################################
 
+
 Outputter = Callable[[TextIO], None]
 
 def open_output(proc: Outputter) -> FileOutputFunc:
@@ -152,8 +153,8 @@ def lines_output(data: Any) -> Outputter:
   def make_line(row: Any) -> str:
     if isinstance(row, Iterable):
       return ' '.join([str(x) for x in row])
-    else:
-      return str(row)
+    return str(row)
+
   def f(output: TextIO) -> None:
     for row in data:
       print(make_line(row), file=output)

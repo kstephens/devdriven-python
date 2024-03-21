@@ -2,21 +2,21 @@ import csv
 import json
 import tabulate
 
-def formatter(output, format, **kwargs):
-  if format in ('csv'):
-    return CSVFormatter(output, format, field_sep=',', **kwargs)
-  if format in ('tsv'):
-    return CSVFormatter(output, format, field_sep='\t', **kwargs)
-  if format in ('json'):
-    return JSONFormatter(output, format)
-  if format in ('text', 'txt', 'markdown', 'md'):
-    return TabularFormatter(output, format, **kwargs)
-  return None
+def formatter(output, fmt, **kwargs):
+  if fmt in ('csv'):
+    return RecordFormatter(output, fmt, field_sep=',', **kwargs)
+  if fmt in ('tsv'):
+    return RecordFormatter(output, fmt, field_sep='\t', **kwargs)
+  if fmt in ('json'):
+    return JSONFormatter(output, fmt, **kwargs)
+  if kwargs.get('field_sep'):
+    return RecordFormatter(output, fmt, **kwargs)
+  return TabularFormatter(output, fmt, **kwargs)
 
 class Formatter:
-  def __init__(self, output, format, field_sep=None, record_sep=None, **kwargs):
+  def __init__(self, output, fmt, field_sep=None, record_sep=None, **kwargs):
     self.output = output
-    self.format = format
+    self.format = fmt
     self.field_sep = field_sep
     self.record_sep = record_sep
     self.kwargs = kwargs
@@ -32,8 +32,11 @@ class Formatter:
     for row in rows:
       self.write_row(row, fields)
 
+  def write_row(self, _row, _fields):
+    # raise NotImplementedError('Formatter.write_row')  # TOO MUCH LINT
+    return
 
-class CSVFormatter(Formatter):
+class RecordFormatter(Formatter):
   def write(self, rows, fields):
     writer = csv.writer(self.output, delimiter=self.field_sep, lineterminator=(self.record_sep or '\n'))
     writer.writerow(fields)
@@ -49,7 +52,7 @@ class JSONFormatter(Formatter):
 
 class TabularFormatter(Formatter):
   def write(self, rows, fields):
-    rows = [extract_record(row) for row in rows]
+    rows = [extract_record(row, fields) for row in rows]
     rows.insert(0, fields)
     self.output.write(tabulate.tabulate(rows, tablefmt=self.format))
     self.output.write('\n')
