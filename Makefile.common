@@ -97,13 +97,20 @@ run-typecheck: stubgen mypy
 mypy:
 	$(MAKE) run-$@ FILES='$(or $(FILES), $(MYPY_FILES))'
 
+MYPY_REPORT_DIR=mypy-report
+MYPY_REPORTS=--txt-report --html-report --any-exprs-report
+# MYPY_OPTS+= --verbose
 MYPY_OPTS+= --config-file ./.mypy.ini
-MYPY_OPTS+= # --strict
+MYPY_OPTS+= --pretty --show-column-numbers
+# MYPY_OPTS+= --strict
+MYPY_OPTS+= --warn-redundant-casts
+MYPY_OPTS+= $(foreach report,$(MYPY_REPORTS), $(report) $(MYPY_REPORT_DIR))
 run-mypy:
 	rm -rf mypy-report/
 	mkdir -p mypy-report
-	mypy $(MYPY_OPTS) --txt-report mypy-report $(wildcard $(or $(FILES), /dev/null))
+	mypy $(MYPY_OPTS) $(wildcard $(or $(FILES), /dev/null))
 	cat mypy-report/index.txt
+#	-open
 
 stubgen:
 	@set -x; for d in $(DIRS_OTHER); do $(MAKE) -C "$$d" $@; done

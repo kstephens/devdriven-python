@@ -1,7 +1,6 @@
 import random
 import devdriven.version as sut
 from devdriven.asserts import assert_output, open_output, lines_output
-from icecream import ic
 
 VERSION_STRINGS = '''
 1
@@ -29,6 +28,7 @@ def test_constructor():
   b = sut.Version('1.2')
   assert a == b
   assert a == sut.Version(a)
+  assert a is not sut.Version(a)
 
 def test_cmp():
   for a in VERSION_STRINGS:
@@ -55,9 +55,11 @@ def test_sort():
 2.10.2
 '''.strip().split('\n')
   vers = [sut.Version(s) for s in strings]
-  random.shuffle(vers)
-  vers.sort()
-  assert_data('test_sort', vers)
+  vers_shuffled = vers.copy()
+  random.shuffle(vers_shuffled)
+  assert vers != vers_shuffled
+  vers_sorted = sorted(vers_shuffled)
+  assert_data('test_sort', vers_sorted)
 
 def test_cmp_list_right():
   # for a in VERSION_STRINGS:
@@ -71,9 +73,7 @@ def test_cmp_list_right():
     if len(a) >= len(b)
   ]
   results.sort(key=lambda x: x[-1])
-  result_file = assert_data('test_cmp_list_right', results)
-  # with open(result_file, encoding='utf-8') as io:
-  #  print(io.read())
+  assert_data('test_cmp_list_right', results)
 
 def test_constraint():
   versions = '1.0 1.0.1 2.0 2.1 2.1.3 2.2'.split(' ')
@@ -119,5 +119,4 @@ def assert_data(key, data):
 def checkbox(x):
   if x:
     return '[x]'
-  else:
-    return '[ ]'
+  return '[ ]'
