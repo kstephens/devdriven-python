@@ -2,11 +2,7 @@ from typing import Any, Optional, Union, Self, List, Tuple, Callable
 from collections.abc import Collection
 import re
 
-VersionElement = Union[int, str]
-VersionElements = Collection[VersionElement]
-# Collection is not indexable in 3.12?
-Indexable = Union[List[VersionElement], Tuple[VersionElement, ...]]
-ElementRelational = Callable[[VersionElement, VersionElement], bool]
+###################################################################
 
 def version(x):
   return Version(x)
@@ -14,6 +10,13 @@ def version(x):
 def constraint(x):
   return VersionConstraint(x)
 
+###################################################################
+
+VersionElement = Union[int, str]
+VersionElements = Collection[VersionElement]
+# Collection is not indexable in 3.12?
+Indexable = Union[List[VersionElement], Tuple[VersionElement, ...]]
+ElementRelational = Callable[[VersionElement, VersionElement], bool]
 
 class Version:
   elems: tuple
@@ -85,6 +88,8 @@ def convert_to_version(ver: Any) -> Optional[Version]:
     return Version(ver)
   return None
 
+###################################################################
+
 
 VERSION_PARSE_ELEMENTS_RX = re.compile(r'(\d+)|([a-zA-Z]+)|([^\da-zA-Z]+)')
 
@@ -118,6 +123,7 @@ def cmp_same(a: Any, b: Any) -> int:
     return -1
   return 0
 
+###################################################################
 
 class VersionConstraintRelation:
   op: str
@@ -181,6 +187,7 @@ def parse_version_constraint(constraint: str) -> Tuple[str, Version]:
     return (PREDICATE_ALIAS.get(m[1], m[1]), Version(m[2]))
   raise TypeError(f'VersionConstraint: cannot parse {con!r}')
 
+###################################################################
 
 class VersionConstraint:
   _str: str
