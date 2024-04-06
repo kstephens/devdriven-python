@@ -86,7 +86,7 @@ def test_constraint():
     assert sut.VersionConstraintRelation(f'!={ver}')(sut.Version(ver)) is False
   results = [
     (checkbox(sut.VersionConstraintRelation(f'{op}{v2}')(sut.Version(v1))),
-     v1, op, v2)
+      v1, op, v2)
     for op in operators + ['=']
     for v1 in versions
     for v2 in versions
