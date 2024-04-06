@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+
+# sudo apt-get install inotify-tools
+# brew install fswatch
+
+shopt -s globstar
+pwd="$(realpath "$PWD")"
+
+files=(
+  Makefile
+  dev-requirements.txt
+  requirements.txt
+  lib
+  tests
+)
+excludes='__pycache__'
+
+inotifywait="$(which inotifywait 2>/dev/null | head -1)"
+fswatch="$(which fswatch 2>/dev/null| head -1)"
+
+if [[ -x "$inotifywait" ]]
+then
+  events='CREATE MODIFY ATTRIB MOVE DELETE'
+  events=" $events"
+  excludes=" $excludes"
+  read_vars='dir events file'
+  watch_cmd=(
+    $inotifywait
+    --quiet
+    --monitor
+    ${events// / --event }
+    ${excludes// / --exclude }
+    --recursive "${files[@]}"
+  )
+elif [[ -x "$fswatch" ]]
+then
+  events='Created Updated Removed'
+  includes="${files[*]}"
+  read_vars='file'
+  watch_cmd=(
+    $fswatch
+    # --quiet
+    --extended
+    ${events// / --event=}
+    --exclude=${excludes// /|}
+    --include=${includes// /|}
+    "$pwd"
+  )
+else
+  echo "cannot find inotifywait or fswatch"
+  exit 99
+fi
+
+main() {
+  dir='' file='' events='' file_last=''
+  echo "${watch_cmd[*]@Q}"
+  "${watch_cmd[@]}" |
+  while file_last="$file"; read -r $read_vars
+  do
+    file="$dir$file"
+    file="${file#$pwd/}"
+    # [[ "$file" == "$file_last" ]] && continue
+    cmd=()
+    if [[ $verbose ]]
+    then
+      declare -p file dir events
+      cmd=(: i dont know what to do with ${file@Q})
+    fi
+    case "$file"
+    in
+      Makefile|dev-requirements.txt|requirements.txt)
+        cmd=(make all)
+        ;;
+      tests/**/*.py)
+        cmd=(test-py-changed "$file")
+        ;;
+      lib/**/*.py)
+        cmd=(lib-py-changed "$file")
+        ;;
+      *.py)
+        cmd=(file-py-changed "$file")
+        ;;
+    esac
+    rtn=0
+    [[ -n "$cmd" ]] && run "${cmd[@]}"
+  done
+}
+
+rtn=0
+run() {
+  rtn=0
+  cat <<EOF
+
+  ###################################
+  ### run: ${cmd[*]@Q}
+
+EOF
+  "$@"
+  pass-fail "$rtn" "run: ${cmd[@]}"
+cat <<EOF
+
+  ###################################
+EOF
+  return $rtn
+}
+
+cmd() {
+  echo "  ### .... . $*"
+  "$@"
+  pass-fail $? "$@"
+}
+pass-fail() {
+  if [[ $1 == 0 ]]
+  then
+    echo "  ### pass $*"
+  else
+    rtn=$1
+    echo "  ### FAIL $*"
+  fi
+}
+
+lib-py-changed() {
+  local lib_file="$1"
+  local test_file="tests/${lib_file#lib/}"
+  file-py-changed "$lib_file"
+  [[ -f "$test_file" ]] && test-py-changed "$test_file"
+  # cmd make mypy LINT_FILES="$1"
+}
+
+test-py-changed() {
+  cmd make unit-test TEST_FILES="$1"
+  file-py-changed "$@"
+}
+
+file-py-changed() {
+  cmd make pylint LINT_FILES="$1"
+  cmd make pycodestyle LINT_FILES="$1"
+}
+
+main "$@"
