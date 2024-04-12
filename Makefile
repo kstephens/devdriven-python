@@ -1,6 +1,6 @@
 PYTHON=python3.11
-OTHER_PYTHONPATH=../devdriven-python/lib
-OTHER_DIRS=../devdriven-python
+PYTHONPATH_OTHER:=../devdriven-python/lib
+DIRS_OTHER:=../devdriven-python
 include ../devdriven-python/Makefile.common
 
 README.md: doc/README-*.md
