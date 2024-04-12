@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, Self, List, Tuple, Callable
+from typing import Any, Optional, Union, List, Tuple, Callable
 from collections.abc import Collection
 import re
 
@@ -126,7 +126,7 @@ def cmp_same(a: Any, b: Any) -> int:
 ###################################################################
 
 class VersionConstraintRelation:
-  op: str
+  oper: str
   version: Version
   _str: str
   _repr: str
@@ -137,7 +137,7 @@ class VersionConstraintRelation:
       vcr: VersionConstraintRelation = other
       self._str = vcr._str
       self._repr = vcr._repr
-      self.op, self.version = vcr.op, vcr.version
+      self.oper, self.version = vcr.oper, vcr.version
       self._pred = vcr._pred
       return
     self._str = str(other).strip().replace(' ', '')
@@ -182,10 +182,10 @@ PREDICATE_OPS = list(reversed(sorted(list(PREDICATE_FOR_OP.keys()) + list(PREDIC
 PREDICATE_OPS_RX = f'({"|".join(PREDICATE_OPS)})'
 VERSION_CONSTRAINT_ELEMENT_RX = re.compile(f'^\\s*{PREDICATE_OPS_RX}\\s*(({VERSION_PARSE_ELEMENTS_RX.pattern})+)\\s*$')
 
-def parse_version_constraint(constraint: str) -> Tuple[str, Version]:
-  if m := re.match(VERSION_CONSTRAINT_ELEMENT_RX, constraint):
+def parse_version_constraint(const: str) -> Tuple[str, Version]:
+  if m := re.match(VERSION_CONSTRAINT_ELEMENT_RX, const):
     return (PREDICATE_ALIAS.get(m[1], m[1]), Version(m[2]))
-  raise TypeError(f'VersionConstraint: cannot parse {con!r}')
+  raise TypeError(f'VersionConstraint: cannot parse {const!r}')
 
 ###################################################################
 
@@ -196,10 +196,10 @@ class VersionConstraint:
 
   def __init__(self, other: Any):
     if isinstance(other, VersionConstraint):
-      vc: VersionConstraint = other
-      self._str = vc._str
-      self._repr = vc._repr
-      self._preds = vc._preds
+      vercon: VersionConstraint = other
+      self._str = vercon._str
+      self._repr = vercon._repr
+      self._preds = vercon._preds
       return
     self._str = str(other).strip().replace(' ', '')
     self._repr = f'{type(self).__name__}({self._str!r})'
@@ -210,9 +210,9 @@ class VersionConstraint:
     ])
 
   def __call__(self, other: CoerceableVersion) -> bool:
-    version: Version = coerce_to_version(other)
+    ver: Version = coerce_to_version(other)
     for pred in self._preds:
-      if not pred.match(version):
+      if not pred.match(ver):
         return False
     return True
 
