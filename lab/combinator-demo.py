@@ -87,7 +87,7 @@ def op_pred(op: str, b: Any) -> Optional[Predicate]:
 
 def negate(f: Varadic) -> Predicate:
   '''
-  Returns a function that negates the result of the given function.
+  Returns a function that logically negates the result of the given function.
   '''
   return lambda *args, **kwargs: not f(*args, **kwargs)
 
@@ -130,6 +130,15 @@ def compose(*callables: Tuple[Callable, ...]) -> Varadic:
       result = g(result)
     return result
   return h
+
+#################################################
+## Partial Application
+#################################################
+
+def partial(f: Callable, *args, **kwargs) -> Callable:
+  def g(*args2, **kwargs2):
+    return f(*(args + args2), **dict(kwargs, **kwargs2))
+  return g
 
 #################################################
 ## Pattern Matching
