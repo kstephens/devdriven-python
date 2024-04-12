@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List
 import os
 import pickle
 import bz2
@@ -39,6 +39,7 @@ def file_size(path: str) -> Optional[int]:
     return os.stat(path).st_size
   except FileNotFoundError:  # might be a symlink to bad file.
     return None
+
 
 BUFFER_SIZE = 8192
 NEWLINE_BYTE = b'\n'[0]

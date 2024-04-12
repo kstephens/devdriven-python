@@ -1,17 +1,11 @@
-import readline
+# import readline
 import re
 import sys
-from pprint import pprint, saferepr, pformat
-import icecream
+from pprint import pformat
 from pygments import highlight
-from pygments.lexers import PythonLexer
-from pygments.formatters import Terminal256Formatter
+from pygments.lexers.python import PythonLexer
+from pygments.formatters.terminal256 import Terminal256Formatter
 from icecream.coloring import SolarizedDark
-from icecream import ic
-
-# icecream.install()
-ic.configureOutput(prefix='')
-# ic.configureOutput(includeContext=True) # ,contextAbsPath=True)
 
 class ShowingIsSeeing:
   def __init__(self, bindings=None):
@@ -49,15 +43,16 @@ class ShowingIsSeeing:
   def exec_and_print_value(self, expr):
     bindings = (self.bindings or globals)()
     context = {'_expr': expr, '_value': None, '_self': self}
-    locals = context | {}
-    exec(f'_value = ({expr});', bindings, locals)
+    local_bindings = context | {}
+    # pylint: disable-next=exec-used
+    exec(f'_value = ({expr});', bindings, local_bindings)
     # pprint(locals)
     # Copy new locals back into bindings:
-    for key, val in locals.items():
-      if key not in context.keys():
+    for key, val in local_bindings.items():
+      if key not in context:  # .keys():
         # pprint((key, val))
         bindings[key] = val
-    self.print_value(locals['_value'])
+    self.print_value(local_bindings['_value'])
     self.write('\n\n')
 
   def print_expr(self, expr, arrow=''):

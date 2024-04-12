@@ -10,6 +10,7 @@ def version(x):
 def constraint(x):
   return VersionConstraint(x)
 
+
 ###################################################################
 
 VersionElement = Union[int, str]
@@ -66,6 +67,7 @@ class Version:
 
   def cmp_right(self, other: Any, op_name: str) -> int:
     return cmp_list_right(self.elems, typecheck_op(self, other, op_name).elems)
+
 
 CoerceableVersion = Union[Version, str]
 
