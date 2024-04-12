@@ -40,9 +40,20 @@ def file_size(path: str) -> Optional[int]:
   except FileNotFoundError:  # might be a symlink to bad file.
     return None
 
-def file_nlines(path: str) -> Optional[int]:
+BUFFER_SIZE = 8192
+NEWLINE_BYTE = b'\n'[0]
+
+def file_nlines(path: str, eol: bytes = b'\n', buffer_size: int = BUFFER_SIZE) -> Optional[int]:
+  # For large files: wc -l 'path' will be faster.
+  last_buffer = None
+  count = byte_count = 0
+  assert len(eol) == 1
   try:
-    count, byte_count, last_buffer = file_count_substr(path, b'\n')
+    with open(path, 'rb') as input_io:
+      while buf := input_io.read(buffer_size):
+        last_buffer = buf
+        count += buf.count(eol)
+        byte_count += len(buf)
     if byte_count == 0:
       return 0
     if last_buffer and last_buffer[-1] == NEWLINE_BYTE:
@@ -50,20 +61,6 @@ def file_nlines(path: str) -> Optional[int]:
     return count + 1
   except OSError:
     return None
-
-def file_count_substr(path: str, substr: bytes) -> Tuple[int, int, Optional[bytes]]:
-  last_buffer = None
-  count = byte_count = 0
-  with open(path, 'rb') as input_io:
-    while buf := input_io.read(BUFFER_SIZE):
-      last_buffer = buf
-      count += buf.count(substr)
-      byte_count += len(buf)
-  return (count, byte_count, last_buffer)
-
-
-BUFFER_SIZE = 8192
-NEWLINE_BYTE = b'\n'[0]
 
 def read_write_pickle(file, mode, data=None):
   with bz2.open(file, mode) as stream:
