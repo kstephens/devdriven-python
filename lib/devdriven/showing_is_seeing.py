@@ -29,13 +29,6 @@ class ShowingIsSeeing:
     return highlight(expr, self.lexer, self.formatter).strip()
 
   def format_value(self, value):
-    value_str = re.sub(r'^[^:]+: ', '', ic.format(value))
-    if value_str.count('\n') > 0:
-      value_str = '...\n   ' + value_str
-    return value_str
-
-  def format_value(self, value):
-    # rep = saferepr(value)
     rep = pformat(value,
                   indent=2,
                   width=80,
@@ -43,7 +36,7 @@ class ShowingIsSeeing:
                   compact=True,
                   sort_dicts=True,
                   underscore_numbers=False)
-    return self.highlight_expr(saferepr(value))
+    return self.highlight_expr(rep)
 
   def print_value(self, value):
     rep = self.format_value(value)
@@ -93,7 +86,3 @@ class ShowingIsSeeing:
         self.print(expr)
       else:
         self.prompt_and_print(expr)
-
-current = None
-def __print_main__(*args):
-  current.print_main(*args)
