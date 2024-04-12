@@ -11,8 +11,8 @@ VENV_OPTS=--clear
 #VENV_OPTS+=--copies
 
 BIN_FILES:=$(shell grep -Erl '^\#!.+python' bin)
-LIB_FILES:=$(shell find lib -name '*.py' | sort)
-TEST_FILES:=$(shell find tests -name '*.py' | sort)
+LIB_FILES:=$(shell find lib -name '*.py' | grep -Ev '_test\.py$$' | sort)
+TEST_FILES:=$(shell find lib -name '*.py' | grep -E '_test\.py$$' | sort)
 LINT_FILES:=$(BIN_FILES) $(LIB_FILES) $(TEST_FILES)
 MYPY_FILES:=$(shell grep -Elr '^ *from typing import ' $(LINT_FILES))
 
@@ -163,7 +163,7 @@ clean:
 	rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov coverage/
 	find lib tests -name '__pycache__' -a -type d | sort -r | xargs rm -rf {}
 	rm -f $(MIN_JS_FILES)
-	find --verbose lib -name '*.pyi' exec rm \{} \;
+	find lib -name '*.pyi' -exec rm \{} \;
 
 very-clean: clean
 	rm -rf ./venv

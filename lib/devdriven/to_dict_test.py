@@ -74,7 +74,7 @@ def test_walk_subprocess_error():
 def test_walk_dataclass():
   fut = devdriven.to_dict.to_dict
   assert fut(ExampleDataclass('foo', 123)) == {
-    'class': "<class 'to_dict_test.ExampleDataclass'>",
+    'class': "<class 'devdriven.to_dict_test.ExampleDataclass'>",
     'fields': {
       'name': 'foo',
       'value': 123,
