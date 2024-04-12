@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.12
+#!/usr/bin/env python3.11
 from typing import Any, Optional, Tuple, List, Mapping, Callable, Type
 from numbers import Number
 from collections.abc import Collection
