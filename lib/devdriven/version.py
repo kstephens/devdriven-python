@@ -1,5 +1,5 @@
 from typing import Any, Optional, Union, List, Tuple, Callable
-from collections.abc import Collection
+from collections.abc import Sequence
 import re
 
 ###################################################################
@@ -14,8 +14,7 @@ def constraint(x):
 ###################################################################
 
 VersionElement = Union[int, str]
-VersionElements = Collection[VersionElement]
-# Collection is not indexable in 3.12?
+VersionElements = Sequence[VersionElement]
 Indexable = Union[List[VersionElement], Tuple[VersionElement, ...]]
 ElementRelational = Callable[[VersionElement, VersionElement], bool]
 
