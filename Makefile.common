@@ -10,9 +10,12 @@ VENV_OPTS=--clear
 # OSX HAS WRECKED brew python3.*:
 #VENV_OPTS+=--copies
 
-BIN_FILES:=$(shell grep -Erl '^\#!.+python' bin)
-LIB_FILES:=$(shell find lib -name '*.py' | grep -Ev '_test\.py$$' | sort)
-TEST_FILES:=$(shell find lib -name '*.py' | grep -E '_test\.py$$' | sort)
+BIN_DIRS+=bin
+BIN_FILES:=$(shell grep -Erl '^\#!.+python' $(BIN_DIRS))
+LIB_DIRS+=lib
+LIB_FILES:=$(shell find $(LIB_DIRS) -name '*.py' | grep -Ev '_test\.py$$' | sort)
+TEST_DIRS+=lib
+TEST_FILES:=$(shell find $(TEST_DIRS) -name '*.py' | grep -E '_test\.py$$' | sort)
 LINT_FILES:=$(BIN_FILES) $(LIB_FILES) $(TEST_FILES)
 MYPY_FILES:=$(shell grep -Elr '^ *from typing import ' $(LINT_FILES))
 
