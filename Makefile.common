@@ -11,7 +11,7 @@ VENV_OPTS=--clear
 #VENV_OPTS+=--copies
 
 BIN_DIRS+=bin
-BIN_FILES:=$(shell grep -Erl '^\#!.+python' $(BIN_DIRS))
+BIN_FILES:=$(shell grep -Erl '^\#!.+python' $(BIN_DIRS) 2>/dev/null)
 LIB_DIRS+=lib
 LIB_FILES:=$(shell find $(LIB_DIRS) -name '*.py' | grep -Ev '_test\.py$$' | sort)
 TEST_DIRS+=lib
