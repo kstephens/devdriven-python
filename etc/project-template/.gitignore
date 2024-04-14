@@ -1,7 +1,0 @@
-__pycache__
-/tmp/
-/venv/
-/.coverage
-/coverage/
-/mypy-report/
-/.pytest_cache
