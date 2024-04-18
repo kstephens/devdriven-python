@@ -1,6 +1,7 @@
 # import readline
 import re
 import sys
+import logging
 try:
   import gnureadline as readline
 except ImportError:
@@ -12,14 +13,29 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from icecream.coloring import SolarizedDark
 from icecream import ic
 
+ic.configureOutput(includeContext=True)
 
 class ShowingIsSeeing:
   def __init__(self, bindings=None):
+    self.enabled = True
     self.repl_enabled = True
+    self.print_enabled = True
     self.bindings = bindings
     self.lexer = PythonLexer()
     self.formatter = Terminal256Formatter(style=SolarizedDark)
+    self.debug = False
+    self.term_cols = 80
+    self.horiz_bar = f'{rgb_24bit(50, 50, 50)}{"_" * self.term_cols}{ANSI_NORMAL}'
+    self.comment_block = '#' * self.term_cols
     readline.clear_history()
+
+  def setup_logging(self):
+    logging.basicConfig(
+      stream=sys.stderr,
+      level=logging.DEBUG,
+      format='',
+    )
+    return self
 
   def write(self, x):
     sys.stdout.write(clean_str(x))
@@ -66,14 +82,15 @@ class ShowingIsSeeing:
     return input(prompt)
 
   def repl(self, prompt):
-    last_expr = last_value = None
+    last_value = last_expr = None
     while expr := self.read_line(prompt):
-      self.print_expr(expr)
       try:
-        last_value = self.exec_and_print(expr)
+        last_value, context = self.eval_expr(expr)
+        self.print_eval_result(last_value, context)
         last_expr = expr
-      except Exception as e:
-        self.print(f'{ERROR_COLOR}{e!r}{ANSI_NORMAL}')
+      # pylint: disable-next=broad-except
+      except Exception as exc:
+        self.print(f'{ERROR_COLOR}{exc!r}{ANSI_NORMAL}')
         self.print(f'in: {ERROR_COLOR}{expr!r}{ANSI_NORMAL}')
     return last_value, last_expr
 
@@ -87,7 +104,7 @@ class ShowingIsSeeing:
   def is_multiline(self, expr):
     return '\n' in expr
 
-  def eval_expr(self, expr, is_stmt=False, no_history=False):
+  def eval_expr(self, expr, is_stmt=False, history=True):
     bindings = (self.bindings or globals)()
     context = {
       '_is_stmt': (is_stmt or self.expr_is_stmt(expr)),
@@ -104,7 +121,7 @@ class ShowingIsSeeing:
     # ic(executable)
     # pylint: disable-next=exec-used
     exec(executable, bindings, local_bindings)
-    if not (no_history or self.is_multiline(expr)):
+    if history and not self.is_multiline(expr):
       readline.add_history(expr)
 
     # pprint(locals)
@@ -113,84 +130,132 @@ class ShowingIsSeeing:
       if key not in context:  # .keys():
         # pprint((key, val))
         bindings[key] = val
-    return (context, local_bindings['_value'])
+    return (local_bindings['_value'], context)
 
-  def exec_and_print(self, expr):
-    context, value = self.eval_expr(expr)
+  def print_eval_result(self, value, context):
     if not context['_is_stmt']:
       self.write(RESULT_SEP)
       self.print_value(value)
-    self.write('\n')
+      self.write('\n')
     return value
 
-  def prompt_eval_print(self, expr):
-    expr_given = None
+  def eval_and_print_and_repl(self, expr, repl=True, print=True):
+    repl = repl and self.repl_enabled
+    print = print and self.print_enabled
+    if self.debug:
+      ic(expr)
+      ic(repl)
+      ic(print)
     if self.expr_is_stmt(expr):
-      self.print_expr(expr)
-      self.eval_expr(expr)
-      if self.repl_enabled:
+      if print:
+        self.print_expr(expr)
+      value, context = self.eval_expr(expr)
+      if repl:
+        self.print('')
         self.repl(REPL_PROMPT)
     else:
-      self.print_expr(expr)
-      if self.repl_enabled:
-        expr_given, _value = self.repl(QUESTION_PROMPT)
-        if expr_given:
+      if print:
+        self.print_expr(expr)
+      if repl:
+        _repl_value, repl_expr = self.repl(QUESTION_PROMPT)
+        if print and repl_expr:
           self.print_expr(expr)
           self.write(RESULT_SEP)
-      self.exec_and_print(expr)
-    self.write(HORIZ_BAR + '\n')
+      value, context = self.eval_expr(expr)
+      if print:
+        self.print_eval_result(value, context)
+        self.write('\n')
+    if print:
+      self.write(self.horiz_bar + '\n')
+    return value
 
+  def if_print_enabled(self, f):
+    def g(*args, **kwargs):
+      if self.print_enabled:
+        return f(*args, **kwargs)
+    return g
+
+  # pylint: disable-next=too-many-arguments
   def scan_lines(self, lines, eval_and_print_expr, eval_expr, print_expr, comment):
-    ready = True
     buffer = ''
+    line = m = None
+
     def emit():
       nonlocal buffer
       if buffer:
         # ic(buffer)
         eval_and_print_expr(buffer)
         buffer = ''
+
+    def log(msg, *args):
+      nonlocal line
+      if self.debug:
+        msg = f"scan_lines: %s : {msg}"
+        logging.debug(msg, pformat(line), *args, )
+
     prev_line = None
     for line in lines.splitlines():
-      # ic(line)
-      if re.search(r'^### SIS: BEGIN', line):
-        ready = True
+      log('line')
+      log('buffer = %s', pformat(buffer))
+      if m := re.search(r'^### *SIS: *(.*)', line):
+        stmt = m[1]
+        log('SIS: stmt = %s', pformat(stmt))
+        eval_expr(stmt, is_stmt=True, history=False)
         continue
-      if re.search(r'^### SIS: END', line):
-        ready = False
-        continue
-      if not ready:
+      if not self.enabled:
         continue
       if line.startswith('#'):
+        log('block-comment')
         emit()
-        comment(line)
-      elif re.search(r'^\s*(from|import)\s+', line):
-        eval_expr(line, is_stmt=True, no_history=True)
-      elif re.search(r'^[a-zA-Z_][a-zA-Z0-9_.]*\s+=\s+', line):
+        if line.startswith('####'):
+          comment(self.comment_block)
+        else:
+          comment(line)
+      elif m := re.search(r'^\s*(from|import)\s+', line):
+        log('import')
+        emit()
+        eval_expr(line, is_stmt=True, history=False)
+      elif m := re.search(r'^[a-zA-Z_][a-zA-Z0-9_.]*\s+=\s+', line):
+        log('top-level-assignment')
+        emit()
         print_expr(line)
         eval_expr(line, is_stmt=True)
-      elif re.search(r'^(def|if|elif|else|try|except|finally|return|""""|\'\'\')', line):
+      elif m := re.search(r'^(((class|def|if|elif|else|try|except|finally|return)\b)|""""|\'\'\')', line):
+        log('statement')
         buffer += line + '\n'
-      elif re.search(r'^\s+\S', line):
+      elif m := re.search(r'(""""|\'\'\')\s*', line):
+        log('multiline-string')
         buffer += line + '\n'
-      elif re.search(r'^\s*$', line):
+      # elif m := re.search(r'["\[\]\{\}\(\):]\s*(#.*)?$', line):
+      #   log('terminator')
+      #   buffer += line + '\n'
+      elif m := re.search(r'^\s+\S', line):
+        log('indented')
+        buffer += line + '\n'
+      elif m := re.search(r'^\s*$', line):
+        log('blank-line')
         emit()
         comment(line)
         if prev_line.startswith('###') and self.repl_enabled:
           self.repl(REPL_PROMPT)
+          self.print('')
       else:
+        log('other')
         emit()
         buffer = line
         emit()
       prev_line = line
+      if self.debug and m:
+        ic(m.groups())
     emit()
 
   def eval_exprs(self, lines):
     self.scan_lines(
       lines,
-      self.prompt_eval_print,
+      self.eval_and_print_and_repl,
       self.eval_expr,
-      self.print_expr,
-      self.print_comment,
+      self.if_print_enabled(self.print_expr),
+      self.if_print_enabled(self.print_comment),
     )
 
 
@@ -201,8 +266,10 @@ def clean_str(x):
 def rl_ansi(text):
   return f'\001{text}\002'
 
+# pylint: disable-next=invalid-name
 def rgb_24bit(r, g, b):
   return rl_ansi(f'\033[38;2;{r};{g};{b}m')
+
 
 ANSI_NORMAL = rl_ansi('\033[0m')
 ANSI_BLINK = rl_ansi('\033[5m')
@@ -212,4 +279,3 @@ RESULT_SEP = f'{rgb_24bit(90, 140, 176)}=>{ANSI_NORMAL} '
 REPL_PROMPT = f'{rgb_24bit(90, 140, 176)}#>{ANSI_NORMAL} '
 QUESTION_PROMPT = f'{rgb_24bit(217, 101, 72)}#{ANSI_BLINK}?{ANSI_NORMAL} '
 ERROR_COLOR = rgb_24bit(255, 50, 50)
-HORIZ_BAR = f'{rgb_24bit(50, 50, 50)}{"_" * 80}{ANSI_NORMAL}'

@@ -2,16 +2,15 @@ from typing import Any, Optional, Union, List, Tuple, Dict, Mapping, Callable, T
 from numbers import Number
 from collections.abc import Collection, Sequence # , Indexable
 import re
+import sys
+import logging
 
-_sis.repl_enabled = False
-
-Indexable = Union[List, Tuple, Dict]
+# ### SIS: _sis.repl_enabled = False
 
 #################################################
-# What are combinators?
+# Combinators
+#
 # Combinators are functions that construct functions from other functions.
-
-# The functions constructed combinators can be arbitrarily complex.
 
 # Combinators provides a powerful mechanism for reusing logic...
 # without having to anticpate the future.
@@ -25,6 +24,7 @@ Indexable = Union[List, Tuple, Dict]
 #   * assigned to variables
 #   * passed to other functions
 #   * returned as values
+
 #################################################
 
 def identity(x: Any) -> Any:
@@ -122,6 +122,7 @@ def filter(f: Uniary, xs: Sequence) -> Sequence:
 
 items = [1, "string", False, True, None]
 filter(is_number, items)
+
 filter(not_(is_number), items)
 
 #################################################
@@ -172,12 +173,11 @@ map_by_reduction(plus_three, [3, 5, 7, 11])
 def compose(*callables) -> Varadic:
   'Returns the composition one or more functions, in reverse order.'
   'For example, `compose(g, f)(x, y)` is equivalent to `g(f(x, y))`.'
-  reverse_callables = list(callables)
-  reverse_callables.reverse()
-  f = reverse_callables.pop(0)
+  f: Callable = callables[-1]
+  gs: List[Uniary] = list(reversed(callables[:-1]))
   def h(*args, **kwargs):
     result = f(*args, **kwargs)
-    for g in reverse_callables:
+    for g in gs:
       result = g(result)
     return result
   return h
@@ -242,7 +242,7 @@ f(3)
 #################################################
 
 def re_pred(pat: str, re_func: Callable = re.search) -> Predicate:
-  'Returns a predicate that matches the given regular expression pattern.'
+  'Returns a predicate that matches a regular expression.'
   rx = re.compile(pat)
   return lambda x: re_func(rx, str(x)) is not None
 
@@ -251,7 +251,7 @@ re_pred("ab")("abc")
 re_pred("ab")("nope")
 
 #################################################
-## Logical Compositors
+## Binary Predicate Compositors
 #################################################
 
 def and_(f: Varadic, g: Varadic) -> Varadic:
@@ -271,7 +271,10 @@ is_word("not-a-word")
 is_word(2)
 is_word(None)
 
-g = or_(and_(is_number, plus_three),and_(is_string, is_word))
+g = or_(
+  and_(is_number, plus_three),
+  and_(is_string, is_word)
+)
 items = ["hello", "not-a-word", 2, None]
 map(g, items)
 
@@ -345,6 +348,10 @@ mod_3(1)
 mod_3(3)
 mod_3(5)
 
+
+# A value `x` that supports `x[i]`:
+Indexable = Union[List, Tuple, Dict]
+
 def indexed(x: Indexable) -> Uniary:
   'Returns a function `f(i)` that returns `x[i]`.'
   return lambda i: x[i]
@@ -355,8 +362,6 @@ f = compose(indexed(words), mod_3)
 f
 [f(x) for x in range(0, 10)]
 
-_sis.repl_enabled = True
-
 #################################################
 ## Pattern Matching
 #################################################
@@ -364,14 +369,14 @@ _sis.repl_enabled = True
 def is_this(y: Any) -> Predicate:
   return lambda x: x == y
 
-def is_instanceof(t: Type) -> Predicate:
+def is_a(t: Type) -> Predicate:
   return lambda x: isinstance(x, t)
 
-def is_anything(x: Any) -> Predicate:
-  return lambda y: True
+def is_anything() -> Predicate:
+  return lambda x: True
 
 def zero_or_more(p: Predicate) -> Predicate:
-  return lambda xs: all(p(y) for y in xs)
+  return lambda xs: all(p(x) for x in xs)
 
 def one_or_more(p: Predicate) -> Predicate:
   return lambda xs: len(xs) > 0 and zero_or_more(p)(xs)
@@ -386,13 +391,13 @@ def sequence_of(*predicates: Sequence[Predicate]) -> Predicate:
     return True
   return g
 
-pattern = one_or_more(is_instanceof(str))
+pattern = one_or_more(is_a(str))
 pattern([])
 pattern(['a'])
 pattern(['a', 'b'])
 pattern(['a', 2, 'b'])
 
-pattern = sequence_of(is_instanceof(str), is_this('b'))
+pattern = sequence_of(is_a(str), is_this('b'))
 pattern([])
 pattern(['a'])
 pattern(['a', 'b'])
@@ -409,24 +414,37 @@ pattern(['a', 2])
 #################################################
 
 def projection(key: Any, default: Any = None) -> Callable:
-  'Returns a function f(a) that returns a.get(key, default).'
+  'Returns a function `f(a)` that returns `a.get(key, default)`.'
   return lambda a: a.get(key, default)
 
+### SIS: _sis.repl_enabled = True
 #################################################
-## Debugging combinators
+## Debugging Combinators
 #################################################
 
-from icecream import ic
-
-def ic_in(f: Callable) -> Callable:
+def trace(
+    f: Callable,
+    name: str,
+    log: Uniary,
+  ) -> Callable:
   def g(*args, **kwargs):
-    ic(((f, *args, kwargs), '=>'))
-    return f(*args, **kwargs)
-  return g
-
-def ic_out(f: Callable) -> Callable:
-  def g(*args, **kwargs):
+    msg = f"{name}({format_args(args, kwargs)})"
+    # log(f"{msg} => ...")
     result = f(*args, **kwargs)
-    ic(((f, *args), '=>', result))
+    log(f"{msg} => {result!r}")
     return result
   return g
+
+def format_args(args, kwargs):
+  rep = ''
+  if args:
+    rep += ', '.join(map(repr, args))
+  if kwargs:
+    rep += ', ' + ', '.join([f'{k}={v!r}' for k, v in kwargs])
+  return rep
+
+f = compose(str, plus_three)
+map(f, [2, 3, 5])
+
+g = trace(f, "g", logging.info)
+map(g, [2, 3, 5])
