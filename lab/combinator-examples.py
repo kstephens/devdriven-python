@@ -1,23 +1,30 @@
-from typing import Any, Optional, Tuple, Mapping, Callable, Type
+from typing import Any, Optional, Union, List, Tuple, Dict, Mapping, Callable, Type
 from numbers import Number
-from collections.abc import Collection
+from collections.abc import Collection, Sequence # , Indexable
 import re
 
+_sis.repl_enabled = False
+
+Indexable = Union[List, Tuple, Dict]
+
 #################################################
-## Function Types
+# What are combinators?
+# Combinators are functions that construct functions from other functions.
+
+# The functions constructed combinators can be arbitrarily complex.
+
+# Combinators provides a powerful mechanism for reusing logic...
+# without having to anticpate the future.
+
 #################################################
-
-# Functions that have zero or more arguments and return anything.
-Varadic = Callable[..., Any]
-
-# Functions that have one argument and return anything.
-Uniadic = Callable[[Any], Any]
-
-# Functions that have zero or more arguments and return a boolean.
-Predicate = Callable[..., bool]
 
 #################################################
 ## First-order Functions
+
+# can be:
+#   * assigned to variables
+#   * passed to other functions
+#   * returned as values
 #################################################
 
 def identity(x: Any) -> Any:
@@ -26,11 +33,21 @@ def identity(x: Any) -> Any:
 
 identity(2)
 f = identity
+f              # f is a function
 f(2)
+
+def plus_three(x):
+  return x + 3
+
+g = plus_three  # g is a function
+g(2)
 
 #################################################
 ## Second-order Functions
 #################################################
+
+# Functions with zero or more arguments that return anything.
+Varadic = Callable[..., Any]
 
 def constantly(x: Any) -> Varadic:
   'Returns a function that always returns a constant value.'
@@ -44,42 +61,117 @@ always_7(11)
 always_7(13, 17)
 
 #################################################
-## Simple Combinators
+## Predicates
 #################################################
 
-def is_string(x: Any) -> bool:
-  return isinstance(x, str)
+# Functions with zero or more arguments that return a boolean.
+Predicate = Callable[..., bool]
 
-is_string("hello")
-is_string(3)
+def is_number(x: Any) -> bool:
+  return isinstance(x, Number)
 
-def negate(f: Varadic) -> Predicate:
+is_number(3)
+not is_number(3)
+
+is_number("hello")
+not is_number("hello")
+
+#################################################
+## Predicate Combinators
+#################################################
+
+# Functions that take a Predicate and return a new Predicate.
+PredicateCombinator = Callable[[Predicate], Predicate]
+
+def not_(f: Predicate) -> Predicate:
   'Returns a function that logically negates the result of the given function.'
   return lambda *args, **kwargs: not f(*args, **kwargs)
 
-f = negate(is_string)
-f("hello")
+f = not_(is_number)
 f(3)
+f("hello")
 
-def not_none(f: Varadic) -> Predicate:
-  'Returns a function that returns True if the given function does not return None.'
-  return lambda *args, **kwargs: f(*args, **kwargs) is not None
+#################################################
+## Mapping functions over sequences
+#################################################
+
+# Function with one argument that returns anything.
+Uniary = Callable[[Any], Any]
+
+def map(f: Uniary, xs: Sequence) -> Sequence:
+  'Returns a sequence of `f(x)` for each element `x` in `xs`.'
+  return [f(x) for x in xs]
+
+map(identity, [1, "string", False, True, None])
+
+map(always_7, [1, "string", False, True, None])
+
+map(is_number, [1, "string", False, True, None])
+
+map(not_(is_number), [1, "string", False, True, None])
+
+map(plus_three, [3, 5, 7, 11])
+
+#################################################
+## Filtering Sequences with Predicates
+#################################################
+
+def filter(f: Uniary, xs: Sequence) -> Sequence:
+  'Returns a sequence of the elements of `xs` for which `f` returns true.'
+  return [x for x in xs if f(x)]
+
+items = [1, "string", False, True, None]
+filter(is_number, items)
+filter(not_(is_number), items)
+
+#################################################
+## Reducing Sequences with Binary Functions
+#################################################
+
+# Functions with two arguments that return anything.
+Binary = Callable[[Any, Any], Any]
+
+def reduce(f: Binary, init: Any, xs: Sequence) -> Sequence:
+  'Returns the result of `init = f(x, init)` for each element `x` in `xs`.'
+  for x in xs:
+    init = f(init, x)
+  return init
+
+def add(x, y):
+  return x + y
+
+reduce(add, 2, [3, 5, 7])
+reduce(add, "a", ["list", 'of', 'strings'])
+
+def conjoin(x, y):
+  return (x, y)
+
+reduce(conjoin, 2, [3, 5, 7])
+
+# Sum of all numbers:
+items = [3, "a", 5, "b", 7, "c", 11]
+reduce(add, 0, filter(is_number, items))
+# "Add" all non-numbers:
+reduce(add, "", filter(not_(is_number), items))
+
+#################################################
+## Map is a Reduction
+#################################################
+
+def map_by_reduction(f: Uniary, xs: Sequence) -> Sequence:
+  def acc(seq, x):
+    return seq + [f(x)]
+  return reduce(acc, [], xs)
+
+map_by_reduction(plus_three, [3, 5, 7, 11])
 
 #################################################
 ## Function Composition
 #################################################
 
-def compose_functions(callables: Collection[Varadic]) -> Varadic:
-  'Returns a function that applies each function in `callables` to the result of the previous function.'
-  def h(*args, **kwargs):
-    result = f(*args, **kwargs)
-    for g in callables:
-      result = g(result)
-    return result
-  return h
-
 def compose(*callables) -> Varadic:
   'Returns the composition one or more functions, in reverse order.'
+  'For example, `compose(g, f)(x, y)` is equivalent to `g(f(x, y))`.'
   reverse_callables = list(callables)
   reverse_callables.reverse()
   f = reverse_callables.pop(0)
@@ -90,16 +182,31 @@ def compose(*callables) -> Varadic:
     return result
   return h
 
-def add_2(x):
-  return x + 2
-
 def multiply_by_3(x):
   return x * 3
 
-add_2(multiply_by_3(5))
+plus_three(multiply_by_3(5))
 
-f = compose(add_2, multiply_by_3)
+f = compose(plus_three, multiply_by_3)
 f(5)
+
+#################################################
+## Manipulating Arguments
+#################################################
+
+def reverse_args(f: Callable) -> Callable:
+  def g(*args, **kwargs):
+    return f(*reversed(args), **kwargs)
+  return g
+
+def divide(x, y):
+  return x / y
+
+divide(2, 3)
+reverse_args(divide)(2, 3)
+
+reduce(reverse_args(add), "a", ["list", 'of', 'strings'])
+reduce(reverse_args(conjoin), 2, [3, 5, 7])
 
 #################################################
 ## Partial Application
@@ -115,15 +222,18 @@ def partial(f: Callable, *args, **kwargs) -> Callable:
     return f(*(args + args2), **dict(kwargs, **kwargs2))
   return g
 
-add_2_and_multiply = partial(add_and_multiply, 2)
-add_2_and_multiply = add_2_and_multiply(3, 5)
+f = partial(add_and_multiply, 2)
+f(3, 5)
 
 #################################################
 ## Methods are Partially Applied Functions
 #################################################
 
-(2).__add__(3)
-f = (2).__add__
+a = 2
+b = 3
+a + b
+a.__add__(b)    # eqv. to `a + b`
+f = a.__add__
 f
 f(3)
 
@@ -132,9 +242,7 @@ f(3)
 #################################################
 
 def re_pred(pat: str, re_func: Callable = re.search) -> Predicate:
-  '''
-  Returns a predicate that matches the given regular expression pattern.
-  '''
+  'Returns a predicate that matches the given regular expression pattern.'
   rx = re.compile(pat)
   return lambda x: re_func(rx, str(x)) is not None
 
@@ -147,24 +255,25 @@ re_pred("ab")("nope")
 #################################################
 
 def and_(f: Varadic, g: Varadic) -> Varadic:
-  """
-  Returns a new function that applies `f`.
-  If the result of `f` is truthy, it returns the result of `g`.
-  """
+  'Returns a function that returns `f(x, ...) and g(x, ...).'
   return lambda *args, **kwargs: f(*args, **kwargs) and g(*args, **kwargs)
 
 def or_(f: Varadic, g: Varadic) -> Varadic:
-  """
-  Returns a new function that applies `f`.
-  If the result of `f` is falsey, it returns the result of `g`.
-  """
+  'Returns a function that returns `f(x, ...) or g(x, ...).'
   return lambda *args, **kwargs: f(*args, **kwargs) or g(*args, **kwargs)
+
+def is_string(x):
+  return isinstance(x, str)
 
 is_word = and_(is_string, re_pred(r'^[a-z]+$'))
 is_word("hello")
 is_word("not-a-word")
 is_word(2)
 is_word(None)
+
+g = or_(and_(is_number, plus_three),and_(is_string, is_word))
+items = ["hello", "not-a-word", 2, None]
+map(g, items)
 
 #################################################
 ## Operator Predicates
@@ -212,38 +321,48 @@ predicates
 [(f, x, '=>', f(x)) for f in predicates for x in (2, 3, 5) ]
 
 #################################################
+## Sequencing
+#################################################
+
+def sequence(*functions: Sequence[Callable]) -> Callable:
+  'Returns a function that calls each function in turn and returns the last result.'
+  def g(*args, **kwargs):
+    result = None
+    for f in functions:
+      result = f(result, *args, **kwargs)
+    return result
+  return g
+
+#################################################
 ## Examples
 #################################################
 
-def modulo(modulus: Number) -> Callable[[Number], Number]:
-  '''
-  Returns a function f(x) that returns x % modulus.
-  '''
+def modulo(modulus: int) -> Callable[[int], int]:
   return lambda x: x % modulus
 
-m3 = modulo(3)
-m3(1)
-m3(3)
-m3(5)
+mod_3 = modulo(3)
+mod_3(1)
+mod_3(3)
+mod_3(5)
 
-def index_map(x: Mapping[int, Any]) -> Callable:
-  '''
-  Returns a function f(i) that returns x[i].
-  '''
+def indexed(x: Indexable) -> Uniary:
+  'Returns a function `f(i)` that returns `x[i]`.'
   return lambda i: x[i]
 
 # Words that repeat every 3 times:
 words = ['Python', 'is', 'the', 'BEST!']
-f = compose(index_map(words), m3)
+f = compose(indexed(words), mod_3)
 f
 [f(x) for x in range(0, 10)]
+
+_sis.repl_enabled = True
 
 #################################################
 ## Pattern Matching
 #################################################
 
-def is_this(x: Any) -> Predicate:
-  return lambda y: x == y
+def is_this(y: Any) -> Predicate:
+  return lambda x: x == y
 
 def is_instanceof(t: Type) -> Predicate:
   return lambda x: isinstance(x, t)
@@ -252,21 +371,41 @@ def is_anything(x: Any) -> Predicate:
   return lambda y: True
 
 def zero_or_more(p: Predicate) -> Predicate:
-  return lambda x: all(p(y) for y in x)
+  return lambda xs: all(p(y) for y in xs)
 
 def one_or_more(p: Predicate) -> Predicate:
-  return lambda x: len(x) > 0 and zero_or_more(p)(x)
+  return lambda xs: len(xs) > 0 and zero_or_more(p)(xs)
+
+def sequence_of(*predicates: Sequence[Predicate]) -> Predicate:
+  def g(xs):
+    for p, x in zip(predicates, xs):
+      if not p(x):
+        return False
+    return True
+  return g
+
+pattern = one_or_more(is_instanceof(str))
+pattern([])
+pattern(['a'])
+pattern(['a', 'b'])
+pattern(['a', 2, 'b'])
+
+pattern = sequence_of(is_instanceof(str), is_this('b'))
+pattern([])
+pattern(['a'])
+pattern(['a', 'b'])
+
+#################################################
+## Parsing Combinators
+#################################################
 
 #################################################
 ## Other
 #################################################
 
 def projection(key: Any, default: Any = None) -> Callable:
-  '''
-  Returns a function f(a) that returns a.get(key, default).
-  '''
+  'Returns a function f(a) that returns a.get(key, default).'
   return lambda a: a.get(key, default)
-
 
 #################################################
 ## Debugging combinators
@@ -286,4 +425,3 @@ def ic_out(f: Callable) -> Callable:
     ic(((f, *args), '=>', result))
     return result
   return g
-

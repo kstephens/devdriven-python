@@ -15,6 +15,7 @@ from icecream import ic
 
 class ShowingIsSeeing:
   def __init__(self, bindings=None):
+    self.repl_enabled = True
     self.bindings = bindings
     self.lexer = PythonLexer()
     self.formatter = Terminal256Formatter(style=SolarizedDark)
@@ -43,15 +44,16 @@ class ShowingIsSeeing:
                   underscore_numbers=False)
     return self.highlight_expr(rep)
 
-  def print_value(self, value, prefix='  '):
+  def print_value(self, value, indent='   '):
     rep = self.format_value(value)
-    rep = re.sub(r'^', prefix, rep, flags=re.MULTILINE)
     if callable(value):
       if doc := getattr(value, '__doc__', None):
         if '\n' in doc:
           rep += f"\n  '''{doc}'''"
         else:
           rep += f"\n  '{doc}'"
+    rep = re.sub(r'^', indent, rep, flags=re.MULTILINE)
+    rep = rep.removeprefix(indent)
     self.write(rep)
 
   def print_comment(self, value):
@@ -91,12 +93,13 @@ class ShowingIsSeeing:
       '_is_stmt': (is_stmt or self.expr_is_stmt(expr)),
       '_expr': expr,
       '_value': None,
-      '_self': self
+      '_sis': self
     }
     local_bindings = context | {}
     if context['_is_stmt']:
       executable = expr
     else:
+      expr = re.sub(r'\s*#.*', '', expr)
       executable = f'_value = ({expr});'
     # ic(executable)
     # pylint: disable-next=exec-used
@@ -115,7 +118,7 @@ class ShowingIsSeeing:
   def exec_and_print(self, expr):
     context, value = self.eval_expr(expr)
     if not context['_is_stmt']:
-      # self.write(RESULT_SEP)
+      self.write(RESULT_SEP)
       self.print_value(value)
     self.write('\n')
     return value
@@ -125,13 +128,15 @@ class ShowingIsSeeing:
     if self.expr_is_stmt(expr):
       self.print_expr(expr)
       self.eval_expr(expr)
-      self.repl(REPL_PROMPT)
+      if self.repl_enabled:
+        self.repl(REPL_PROMPT)
     else:
       self.print_expr(expr)
-      expr_given, _value = self.repl(QUESTION_PROMPT)
-      if expr_given:
-        self.print_expr(expr)
-        # self.write(RESULT_SEP)
+      if self.repl_enabled:
+        expr_given, _value = self.repl(QUESTION_PROMPT)
+        if expr_given:
+          self.print_expr(expr)
+          self.write(RESULT_SEP)
       self.exec_and_print(expr)
     self.write(HORIZ_BAR + '\n')
 
@@ -144,6 +149,7 @@ class ShowingIsSeeing:
         # ic(buffer)
         eval_and_print_expr(buffer)
         buffer = ''
+    prev_line = None
     for line in lines.splitlines():
       # ic(line)
       if re.search(r'^### SIS: BEGIN', line):
@@ -154,25 +160,28 @@ class ShowingIsSeeing:
         continue
       if not ready:
         continue
-      if line.startswith('##'):
-        emit()
-        comment(line)
-      elif line.startswith('#') or re.search(r'^\s*$', line):
+      if line.startswith('#'):
         emit()
         comment(line)
       elif re.search(r'^\s*(from|import)\s+', line):
         eval_expr(line, is_stmt=True, no_history=True)
-      elif re.search(r'^[a-zA-Z_][a-zA-Z0-9_]*\s+=\s+', line):
+      elif re.search(r'^[a-zA-Z_][a-zA-Z0-9_.]*\s+=\s+', line):
         print_expr(line)
         eval_expr(line, is_stmt=True)
       elif re.search(r'^(def|if|elif|else|try|except|finally|return|""""|\'\'\')', line):
         buffer += line + '\n'
       elif re.search(r'^\s+\S', line):
         buffer += line + '\n'
+      elif re.search(r'^\s*$', line):
+        emit()
+        comment(line)
+        if prev_line.startswith('###') and self.repl_enabled:
+          self.repl(REPL_PROMPT)
       else:
         emit()
         buffer = line
         emit()
+      prev_line = line
     emit()
 
   def eval_exprs(self, lines):
@@ -199,9 +208,8 @@ ANSI_NORMAL = rl_ansi('\033[0m')
 ANSI_BLINK = rl_ansi('\033[5m')
 ANSI_BLINK_FAST = rl_ansi('\033[6m')
 COLOR_COMMENT = rgb_24bit(150, 150, 0)
-RESULT_SEP = f'{rgb_24bit(90, 140, 176)}=>{ANSI_NORMAL}\n'
+RESULT_SEP = f'{rgb_24bit(90, 140, 176)}=>{ANSI_NORMAL} '
 REPL_PROMPT = f'{rgb_24bit(90, 140, 176)}#>{ANSI_NORMAL} '
 QUESTION_PROMPT = f'{rgb_24bit(217, 101, 72)}#{ANSI_BLINK}?{ANSI_NORMAL} '
 ERROR_COLOR = rgb_24bit(255, 50, 50)
 HORIZ_BAR = f'{rgb_24bit(50, 50, 50)}{"_" * 80}{ANSI_NORMAL}'
-
