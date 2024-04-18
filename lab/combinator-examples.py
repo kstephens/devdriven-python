@@ -378,6 +378,8 @@ def one_or_more(p: Predicate) -> Predicate:
 
 def sequence_of(*predicates: Sequence[Predicate]) -> Predicate:
   def g(xs):
+    if len(predicates) != len(xs):
+      return False
     for p, x in zip(predicates, xs):
       if not p(x):
         return False
@@ -394,6 +396,9 @@ pattern = sequence_of(is_instanceof(str), is_this('b'))
 pattern([])
 pattern(['a'])
 pattern(['a', 'b'])
+pattern(['a', 'b', 'c'])
+pattern([1, 2])
+pattern(['a', 2])
 
 #################################################
 ## Parsing Combinators
