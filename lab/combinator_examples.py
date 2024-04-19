@@ -152,6 +152,7 @@ reduce(conjoin, 2, [3, 5, 7])
 # Sum of all numbers:
 items = [3, "a", 5, "b", 7, "c", 11]
 reduce(add, 0, filter(is_number, items))
+
 # "Add" all non-numbers:
 reduce(add, "", filter(not_(is_number), items))
 
@@ -271,10 +272,12 @@ is_word("not-a-word")
 is_word(2)
 is_word(None)
 
-g = or_(
-  and_(is_number, plus_three),
-  and_(is_string, is_word)
-)
+# If x is a number add three:
+f = and_(is_number, plus_three)
+# If x is a string, is it a word?:
+g = and_(is_string, is_word)
+# One or the other:
+h = or_(f, g)
 items = ["hello", "not-a-word", 2, None]
 map(g, items)
 
@@ -282,46 +285,46 @@ map(g, items)
 ## Operator Predicates
 #################################################
 
-def binary_operator(op: str) -> Optional[Callable[[Any, Any], Any]]:
+def binary_op(op: str) -> Optional[Callable[[Any, Any], Any]]:
   'Returns a function for a binary operator.'
-  if op in ('=='):
-    return lambda a, b: a == b
-  if op in ("!="):
-    return lambda a, b: a != b
-  if op in ("<"):
-    return lambda a, b: a < b
-  if op in (">"):
-    return lambda a, b: a > b
-  if op in ("<="):
-    return lambda a, b: a <= b
-  if op in (">="):
-    return lambda a, b: a >= b
-  else:
-    return None
+  return {
+    '==': lambda a, b: a == b,
+    '!=': lambda a, b: a != b,
+    '<':  lambda a, b: a < b,
+    '>':  lambda a, b: a > b,
+    '<=': lambda a, b: a <= b,
+    '>=': lambda a, b: a >= b,
+    'and': lambda a, b: a and b,
+    'or': lambda a, b: a or b,
+  }.get(op)
 
-binary_operator("==")(2, 2)
-binary_operator("!=")(2, 2)
+binary_op('==')(2, 2)
+binary_op('!=')(2, 2)
+
+# Create a table `x OP y` results:
+[
+  f'{x} {op} {y} => {binary_op(op)(x, y)}'
+  for op in ['<', '==', '>']
+  for x in (2, 3, 5)
+  for y in (2, 3, 5)
+]
 
 def op_pred(op: str, b: Any) -> Optional[Predicate]:
   'Returns a predicate function given an operator name and a constant.'
-  if pred := binary_operator(op):
-    return lambda x: pred(x, b)
-  if op in ("~=", "=~"):
-    pred = re_pred(f'.*{b}.*')
-    return lambda x: pred(x)
-  if op in ("~!", "!~"):
-    pred = re_pred(f'.*{b}.*')
-    return lambda x: not pred(x)
-  else:
-    return None
+  if pred := binary_op(op):
+    return lambda a: pred(a, b)
+  if op == "not":
+    return lambda a: not a
+  if op == "~=":
+    return re_pred(b)
+  if op == "~!":
+    return not_(re_pred(b))
+  return None
 
-op_pred(">", 3)
+f = op_pred(">", 3)
+f(2)
+f(5)
 
-# Create predicates for a variety of operations:
-operators = ['<', '==', '>']
-predicates = [compose(op_pred(op, 3), int) for op in operators]
-predicates
-[(f, x, '=>', f(x)) for f in predicates for x in (2, 3, 5) ]
 
 #################################################
 ## Sequencing
@@ -347,7 +350,6 @@ mod_3 = modulo(3)
 mod_3(1)
 mod_3(3)
 mod_3(5)
-
 
 # A value `x` that supports `x[i]`:
 Indexable = Union[List, Tuple, Dict]
@@ -417,7 +419,6 @@ def projection(key: Any, default: Any = None) -> Callable:
   'Returns a function `f(a)` that returns `a.get(key, default)`.'
   return lambda a: a.get(key, default)
 
-### SIS: _sis.repl_enabled = True
 #################################################
 ## Debugging Combinators
 #################################################
@@ -436,15 +437,63 @@ def trace(
   return g
 
 def format_args(args, kwargs):
-  rep = ''
-  if args:
-    rep += ', '.join(map(repr, args))
-  if kwargs:
-    rep += ', ' + ', '.join([f'{k}={v!r}' for k, v in kwargs])
-  return rep
+  return ', '.join(map(repr, args) + [f'{k}={v!r}' for k, v in kwargs])
 
 f = compose(str, plus_three)
 map(f, [2, 3, 5])
 
 g = trace(f, "g", logging.info)
 map(g, [2, 3, 5])
+
+map_g = trace(partial(map, g), "map_g", logging.info)
+map_g([2, 3, 5])
+
+##############################################
+
+def mapcat(f, seqs):
+  return reduce(add, [], map(f, seqs))
+
+def duplicate(n, x):
+  return [x] * n
+
+duplicate(3, 5)
+
+mapcat(partial(duplicate, 3), ["a", "b"])
+
+duplicate_each_3_times = partial(mapcat, partial(duplicate, 3))
+duplicate_each_3_times(["a", "b"])
+
+##############################################
+
+def reverse_apply(x: Any) -> Callable:
+  return lambda f, *args, **kwargs: f(x, *args, **kwargs)
+
+reverse_apply(1)(plus_three)
+
+def juxtapose(*funcs):
+  return lambda x: map(reverse_apply(x), funcs)
+
+juxtapose(len, compose(list, reversed))("abc")
+
+##############################################
+## Indexable Object Access
+##############################################
+
+def at(i: Any) -> Uniary:
+  'Returns a function `f(x)` that returns `x[i]`.'
+  return lambda x: x[i]
+
+f = at(2)
+f([0, 1, 2, 3])
+
+g = at("a")
+g({"a": 1, "b": 2})
+
+def indexed(x: Indexable) -> Uniary:
+  return lambda i: x[i]
+
+f = indexed([0, 1, 2, 3])
+f(2)
+
+g = indexed({"a": 1, "b": 2})
+g("a")

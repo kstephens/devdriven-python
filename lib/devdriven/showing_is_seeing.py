@@ -1,6 +1,7 @@
 # import readline
 import re
 import sys
+import os
 import logging
 try:
   import gnureadline as readline
@@ -18,7 +19,7 @@ ic.configureOutput(includeContext=True)
 class ShowingIsSeeing:
   def __init__(self, bindings=None):
     self.enabled = True
-    self.repl_enabled = True
+    self.repl_enabled = int(os.environ.get('SIS_REPL_ENABLED', '1')) != 0
     self.print_enabled = True
     self.bindings = bindings
     self.lexer = PythonLexer()
@@ -97,9 +98,14 @@ class ShowingIsSeeing:
   def expr_is_stmt(self, expr):
     if re.search(r'^\s*(from|import)\s+', expr):
       return True
-    if re.search(r'^[a-zA-Z_][a-zA-Z0-9_]*\s+=\s+', expr):
+    if self.is_assignment(expr):
       return True
+    if re.search(r'^[\[\{\(]', expr):
+      return False
     return self.is_multiline(expr)
+
+  def is_assignment(self, expr):
+    return re.search(r'^[a-zA-Z_][a-zA-Z0-9_.]*\s+=\s+', expr)
 
   def is_multiline(self, expr):
     return '\n' in expr
@@ -142,7 +148,7 @@ class ShowingIsSeeing:
   def eval_and_print_and_repl(self, expr, repl=True, print=True):
     repl = repl and self.repl_enabled
     print = print and self.print_enabled
-    if self.debug:
+    if False:  # self.debug:
       ic(expr)
       ic(repl)
       ic(print)
@@ -215,7 +221,7 @@ class ShowingIsSeeing:
         log('import')
         emit()
         eval_expr(line, is_stmt=True, history=False)
-      elif m := re.search(r'^[a-zA-Z_][a-zA-Z0-9_.]*\s+=\s+', line):
+      elif m := self.is_assignment(line):
         log('top-level-assignment')
         emit()
         print_expr(line)
@@ -226,9 +232,13 @@ class ShowingIsSeeing:
       elif m := re.search(r'(""""|\'\'\')\s*', line):
         log('multiline-string')
         buffer += line + '\n'
-      # elif m := re.search(r'["\[\]\{\}\(\):]\s*(#.*)?$', line):
-      #   log('terminator')
-      #   buffer += line + '\n'
+      elif m := re.search(r'[\[\{\(:]\s*(#.*)?$', line):
+        log('open-delmiter')
+        buffer += line + '\n'
+      elif m := re.search(r'^[\]\}\)]', line):
+        log('close-delmiter')
+        buffer += line + '\n'
+        emit()
       elif m := re.search(r'^\s+\S', line):
         log('indented')
         buffer += line + '\n'
