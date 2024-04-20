@@ -1,9 +1,10 @@
-from typing import Any, Optional, Union, List, Tuple, Dict, Mapping, Callable, Type
+from typing import Any, Optional, Union, List, Tuple, Dict, Mapping, Callable, Type, Literal
 from numbers import Number
-from collections.abc import Collection, Sequence # , Indexable
+from collections.abc import Collection, Sequence
 import re
 import sys
 import logging
+from pprint import pformat
 
 # ### SIS: _sis.repl_enabled = False
 
@@ -60,6 +61,36 @@ always_7()
 always_7(11)
 always_7(13, 17)
 
+##############################################
+## Container Adapters
+##############################################
+
+# Function with one argument that returns anything.
+Unary = Callable[[Any], Any]
+
+# A value `x` that supports `x[i]`:
+Indexable = Union[List, Tuple, Dict]
+
+def at(i: Any) -> Unary:
+  'Returns a function `f(x)` that returns `x[i]`.'
+  return lambda x: x[i]
+
+f = at(2)
+f([0, 1, 2, 3])
+
+g = at("a")
+g({"a": 1, "b": 2})
+
+def indexed(x: Indexable) -> Unary:
+  'Returns a function `f(i)` that returns `x[i]`.'
+  return lambda i: x[i]
+
+f = indexed([0, 1, 2, 3])
+f(2)
+
+g = indexed({"a": 1, "b": 2})
+g("a")
+
 #################################################
 ## Predicates
 #################################################
@@ -67,14 +98,14 @@ always_7(13, 17)
 # Functions with zero or more arguments that return a boolean.
 Predicate = Callable[..., bool]
 
-def is_number(x: Any) -> bool:
-  return isinstance(x, Number)
+def is_string(x: Any) -> bool:
+  return isinstance(x, str)
 
-is_number(3)
-not is_number(3)
+is_string("hello")
+not is_string("hello")
 
-is_number("hello")
-not is_number("hello")
+is_string(3)
+not is_string(3)
 
 #################################################
 ## Predicate Combinators
@@ -87,18 +118,15 @@ def not_(f: Predicate) -> Predicate:
   'Returns a function that logically negates the result of the given function.'
   return lambda *args, **kwargs: not f(*args, **kwargs)
 
-f = not_(is_number)
-f(3)
+f = not_(is_string)
 f("hello")
+f(3)
 
 #################################################
 ## Mapping functions over sequences
 #################################################
 
-# Function with one argument that returns anything.
-Uniary = Callable[[Any], Any]
-
-def map(f: Uniary, xs: Sequence) -> Sequence:
+def map(f: Unary, xs: Sequence) -> Sequence:
   'Returns a sequence of `f(x)` for each element `x` in `xs`.'
   return [f(x) for x in xs]
 
@@ -106,9 +134,9 @@ map(identity, [1, "string", False, True, None])
 
 map(always_7, [1, "string", False, True, None])
 
-map(is_number, [1, "string", False, True, None])
+map(is_string, [1, "string", False, True, None])
 
-map(not_(is_number), [1, "string", False, True, None])
+map(not_(is_string), [1, "string", False, True, None])
 
 map(plus_three, [3, 5, 7, 11])
 
@@ -116,14 +144,14 @@ map(plus_three, [3, 5, 7, 11])
 ## Filtering Sequences with Predicates
 #################################################
 
-def filter(f: Uniary, xs: Sequence) -> Sequence:
+def filter(f: Unary, xs: Sequence) -> Sequence:
   'Returns a sequence of the elements of `xs` for which `f` returns true.'
   return [x for x in xs if f(x)]
 
 items = [1, "string", False, True, None]
-filter(is_number, items)
+filter(is_string, items)
 
-filter(not_(is_number), items)
+filter(not_(is_string), items)
 
 #################################################
 ## Reducing Sequences with Binary Functions
@@ -149,18 +177,27 @@ def conjoin(x, y):
 
 reduce(conjoin, 2, [3, 5, 7])
 
+#######################################################
+
+items = [3, "a", 5, "b", 7, "c", 11, True]
+
+# Concat all strings:
+reduce(add, "", filter(is_string, items))
+
 # Sum of all numbers:
-items = [3, "a", 5, "b", 7, "c", 11]
+def is_number(x: Any) -> bool:
+  return not isinstance(x, bool) and isinstance(x, Number)
+
 reduce(add, 0, filter(is_number, items))
 
-# "Add" all non-numbers:
-reduce(add, "", filter(not_(is_number), items))
+# Sum all non-strings:
+reduce(add, 0, filter(not_(is_string), items))
 
 #################################################
 ## Map is a Reduction
 #################################################
 
-def map_by_reduction(f: Uniary, xs: Sequence) -> Sequence:
+def map_by_reduction(f: Unary, xs: Sequence) -> Sequence:
   def acc(seq, x):
     return seq + [f(x)]
   return reduce(acc, [], xs)
@@ -175,7 +212,7 @@ def compose(*callables) -> Varadic:
   'Returns the composition one or more functions, in reverse order.'
   'For example, `compose(g, f)(x, y)` is equivalent to `g(f(x, y))`.'
   f: Callable = callables[-1]
-  gs: List[Uniary] = list(reversed(callables[:-1]))
+  gs: Sequence[Unary] = tuple(reversed(callables[:-1]))
   def h(*args, **kwargs):
     result = f(*args, **kwargs)
     for g in gs:
@@ -192,22 +229,22 @@ f = compose(plus_three, multiply_by_3)
 f(5)
 
 #################################################
-## Manipulating Arguments
+## Examples
 #################################################
 
-def reverse_args(f: Callable) -> Callable:
-  def g(*args, **kwargs):
-    return f(*reversed(args), **kwargs)
-  return g
+def modulo(modulus: int) -> Callable[[int], int]:
+  return lambda x: x % modulus
 
-def divide(x, y):
-  return x / y
+mod_3 = modulo(3)
+mod_3(1)
+mod_3(3)
+mod_3(5)
 
-divide(2, 3)
-reverse_args(divide)(2, 3)
-
-reduce(reverse_args(add), "a", ["list", 'of', 'strings'])
-reduce(reverse_args(conjoin), 2, [3, 5, 7])
+# Words that repeat every 3 times:
+words = ['Python', 'is', 'the', 'BEST!']
+f = compose(indexed(words), mod_3)
+f
+[f(x) for x in range(0, 10)]
 
 #################################################
 ## Partial Application
@@ -237,6 +274,7 @@ a.__add__(b)    # eqv. to `a + b`
 f = a.__add__
 f
 f(3)
+f(5)
 
 #################################################
 ## Predicators
@@ -298,8 +336,8 @@ def binary_op(op: str) -> Optional[Callable[[Any, Any], Any]]:
     'or': lambda a, b: a or b,
   }.get(op)
 
-binary_op('==')(2, 2)
-binary_op('!=')(2, 2)
+binary_op('==') (2, 2)
+binary_op('!=') (2, 2)
 
 # Create a table `x OP y` results:
 [
@@ -339,77 +377,144 @@ def sequence(*functions: Sequence[Callable]) -> Callable:
     return result
   return g
 
-#################################################
-## Examples
-#################################################
+##############################################
+## Extraction
+##############################################
 
-def modulo(modulus: int) -> Callable[[int], int]:
-  return lambda x: x % modulus
+def reverse_apply(x: Any) -> Callable:
+  return lambda f, *args, **kwargs: f(x, *args, **kwargs)
 
-mod_3 = modulo(3)
-mod_3(1)
-mod_3(3)
-mod_3(5)
+reverse_apply(1) (plus_three)
 
-# A value `x` that supports `x[i]`:
-Indexable = Union[List, Tuple, Dict]
+def demux(*funcs) -> Unary:
+  'Return a function `h(x)` that returns `[f(x), g(x), ...].'
+  return lambda x: map(reverse_apply(x), funcs)
 
-def indexed(x: Indexable) -> Uniary:
-  'Returns a function `f(i)` that returns `x[i]`.'
-  return lambda i: x[i]
-
-# Words that repeat every 3 times:
-words = ['Python', 'is', 'the', 'BEST!']
-f = compose(indexed(words), mod_3)
-f
-[f(x) for x in range(0, 10)]
+demux(identity, len, compose(tuple, reversed))("abcd")
 
 #################################################
-## Pattern Matching
+## Parser Combinators
 #################################################
 
-def is_this(y: Any) -> Predicate:
-  return lambda x: x == y
+# Parser input: a sequence of lexemes:
+Input = Sequence[Any]
 
-def is_a(t: Type) -> Predicate:
-  return lambda x: isinstance(x, t)
+# A parsed value and remaining input:
+Parsed = Tuple[Any, Input]
 
-def is_anything() -> Predicate:
-  return lambda x: True
+# A parser matches the input sequence and produces a result or nothing:
+Parser = Callable[[Input], Optional[Parsed]]
 
-def zero_or_more(p: Predicate) -> Predicate:
-  return lambda xs: all(p(x) for x in xs)
+first = at(0)
+def rest(x: Input) -> Input:
+  return x[1:]
 
-def one_or_more(p: Predicate) -> Predicate:
-  return lambda xs: len(xs) > 0 and zero_or_more(p)(xs)
-
-def sequence_of(*predicates: Sequence[Predicate]) -> Predicate:
-  def g(xs):
-    if len(predicates) != len(xs):
-      return False
-    for p, x in zip(predicates, xs):
-      if not p(x):
-        return False
-    return True
+def which(p: Predicate) -> Parser:
+  'Returns a parser for the next lexeme when `p(lexeme)` is true.'
+  def g(input: Input):
+    if p(first(input)):
+      return (first(input), rest(input))
   return g
 
-pattern = one_or_more(is_a(str))
-pattern([])
-pattern(['a'])
-pattern(['a', 'b'])
-pattern(['a', 2, 'b'])
-
-pattern = sequence_of(is_a(str), is_this('b'))
-pattern([])
-pattern(['a'])
-pattern(['a', 'b'])
-pattern(['a', 'b', 'c'])
-pattern([1, 2])
-pattern(['a', 2])
+g = which(is_string)
+g(['a'])
+g([2])
+g(['a', 'b'])
 
 #################################################
-## Parsing Combinators
+## Sequence Parsers
 #################################################
+
+ParsedSequence = Tuple[Sequence, Input]
+SequenceParser = Callable[[Input], Optional[ParsedSequence]]
+
+def one(p: Parser) -> SequenceParser:
+  'Returns a parser for one lexeme in a sequence.'
+  def g(input: Input):
+    if input and (result := p(input)):
+      parsed, input = result
+      return ([parsed], input)
+  return g
+
+g = one(which(is_string))
+g([])
+g(['a'])
+g([2])
+g(['a', 'b'])
+
+def zero_or_more(p: Parser) -> SequenceParser:
+  'Returns a parser for zero or more lexemes in a sequence.'
+  def g(input: Input):
+    acc = []
+    while input and (result := p(input)):
+      parsed, input = result
+      acc.append(parsed)
+    return (acc, input)
+  return g
+
+g = zero_or_more(which(is_string))
+g([])
+g(['a'])
+g([2])
+g(['a', 'b'])
+g(['a', 'b', 2])
+g(['a', 'b', 3, 5])
+
+def one_or_more(p: Parser) -> SequenceParser:
+  'Returns a parser for one or more lexemes as a sequence.'
+  p = zero_or_more(p)
+  def g(input: Input):
+    if (result := p(input)) and len(result[0]) >= 1:
+      return result
+  return g
+
+g = one_or_more(which(is_string))
+g([])
+g(['a'])
+g([2])
+g(['a', 'b'])
+g(['a', 'b', 2])
+g(['a', 'b', 3, 5])
+
+def sequence_of(*parsers) -> SequenceParser:
+  'Returns a parser for parsers of a sequence.'
+  def g(input: Input):
+    acc = []
+    for p in parsers:
+      if result := p(input):
+        parsed, input = result
+        acc.extend(parsed)
+      else:
+        return None
+    return (acc, input)
+  return g
+
+g = sequence_of(one(which(is_string)), one(which(is_string)))
+g([])
+g(['a'])
+g([2])
+g(['a', 'b'])
+g(['a', 'b', 2])
+g(['a', 'b', 3, 5])
+
+g = sequence_of(one_or_more(which(is_number)))
+g([])
+g(['a'])
+g([2])
+g([2, 3])
+g([2, 3, False])
+
+g = sequence_of(one(which(is_string)), one_or_more(which(is_number)))
+g([])
+g(['a'])
+g([2])
+g(['a', 'b'])
+g(['a', 2])
+g(['a', 2, 3])
+g(['a', 2, 'b', 3])
+g(['a', 2, 3, False])
+g(['a', 2, 3, False, 'more'])
+
 
 #################################################
 ## Other
@@ -426,7 +531,7 @@ def projection(key: Any, default: Any = None) -> Callable:
 def trace(
     f: Callable,
     name: str,
-    log: Uniary,
+    log: Unary,
   ) -> Callable:
   def g(*args, **kwargs):
     msg = f"{name}({format_args(args, kwargs)})"
@@ -449,51 +554,37 @@ map_g = trace(partial(map, g), "map_g", logging.info)
 map_g([2, 3, 5])
 
 ##############################################
+## Mapcat
+##############################################
 
-def mapcat(f, seqs):
-  return reduce(add, [], map(f, seqs))
+ConcatableUnary = Callable[[Any], Sequence]
+
+def mapcat(f: ConcatableUnary, xs: Sequence):
+  'Concatenate the results of `map(f, xs)`.'
+  return reduce(add, [], map(f, xs))
 
 def duplicate(n, x):
   return [x] * n
-
 duplicate(3, 5)
-
-mapcat(partial(duplicate, 3), ["a", "b"])
 
 duplicate_each_3_times = partial(mapcat, partial(duplicate, 3))
 duplicate_each_3_times(["a", "b"])
+duplicate_each_3_times(range(4, 7))
 
-##############################################
+#################################################
+## Manipulating Arguments
+#################################################
 
-def reverse_apply(x: Any) -> Callable:
-  return lambda f, *args, **kwargs: f(x, *args, **kwargs)
+def reverse_args(f: Callable) -> Callable:
+  def g(*args, **kwargs):
+    return f(*reversed(args), **kwargs)
+  return g
 
-reverse_apply(1)(plus_three)
+def divide(x, y):
+  return x / y
 
-def juxtapose(*funcs):
-  return lambda x: map(reverse_apply(x), funcs)
+divide(2, 3)
+reverse_args(divide)(2, 3)
 
-juxtapose(len, compose(list, reversed))("abc")
-
-##############################################
-## Indexable Object Access
-##############################################
-
-def at(i: Any) -> Uniary:
-  'Returns a function `f(x)` that returns `x[i]`.'
-  return lambda x: x[i]
-
-f = at(2)
-f([0, 1, 2, 3])
-
-g = at("a")
-g({"a": 1, "b": 2})
-
-def indexed(x: Indexable) -> Uniary:
-  return lambda i: x[i]
-
-f = indexed([0, 1, 2, 3])
-f(2)
-
-g = indexed({"a": 1, "b": 2})
-g("a")
+reduce(reverse_args(add), "a", ["list", 'of', 'strings'])
+reduce(reverse_args(conjoin), 2, [3, 5, 7])
