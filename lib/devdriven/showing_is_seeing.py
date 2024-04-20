@@ -225,8 +225,7 @@ class ShowingIsSeeing:
       elif m := self.is_assignment(line):
         log('top-level-assignment')
         emit()
-        print_expr(line)
-        eval_expr(line, is_stmt=True)
+        buffer += line + '\n'
       elif m := re.search(r'^(((class|def|if|elif|else|try|except|finally|return)\b)|""""|\'\'\')', line):
         log('statement')
         buffer += line + '\n'
