@@ -3,6 +3,7 @@ import re
 import sys
 import os
 import logging
+import json
 try:
   import gnureadline as readline
 except ImportError:
@@ -34,7 +35,7 @@ class ShowingIsSeeing:
     logging.basicConfig(
       stream=sys.stderr,
       level=logging.DEBUG,
-      format='',
+      # format='',
     )
     return self
 
@@ -289,3 +290,37 @@ RESULT_SEP = f'{rgb_24bit(90, 140, 176)}=>{ANSI_NORMAL} '
 REPL_PROMPT = f'{rgb_24bit(90, 140, 176)}#>{ANSI_NORMAL} '
 QUESTION_PROMPT = f'{rgb_24bit(217, 101, 72)}#{ANSI_BLINK}?{ANSI_NORMAL} '
 ERROR_COLOR = rgb_24bit(255, 50, 50)
+
+class ConvertJupyterToCode():
+  def __init__(self):
+    self.file = self.content = self.data = self.sections = None
+
+  def read(self, file):
+    with open(file) as inp:
+      self.content = inp.read()
+    return self
+
+  def parse(self):
+    self.data = json.loads(self.content)
+    return self
+
+  def extract(self):
+    def identity(line):
+      return line
+    def markdown(line):
+      return re.sub(r'^', '## ', line, re.MULTILINE)
+
+    sections = []
+    for cell in self.data['cells']:
+      transform = identity
+      if cell['cell_type'] == 'markdown':
+        transform = markdown
+      section = ''.join(list(map(transform, cell['source'])))
+      sections.append(section)
+    self.sections = sections
+    return self
+
+  def as_string(self):
+    def newline(s):
+      return s + '\n'
+    return '\n'.join(map(newline, self.sections)) + '\n'
