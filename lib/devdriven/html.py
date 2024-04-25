@@ -201,10 +201,11 @@ class Table:
       return f'<style>\n{content}\n</style>\n'
     return ''
 
-def html_link(url: str) -> Optional[str]:
+def html_link(url: str, attrs=None) -> Optional[str]:
+  attrs = attrs or 'target="_new" rel="noopener noreferrer"'
   url = str(url).strip()
   if re.match(r'^(https?|ftps?)://', url):
-    return f'<a href="{url}">{html.escape(url)}</a>'
+    return f'<a href="{url}" {attrs}>{html.escape(url)}</a>'
 
 
 #########################################
