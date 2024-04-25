@@ -1,4 +1,4 @@
-from typing import Any, Self, List, Tuple, Dict
+from typing import Any, Optional, Self, List, Tuple, Dict
 from io import StringIO
 from pathlib import Path
 import re
@@ -149,6 +149,9 @@ class Table:
       replace = self.col_opt(col, 'none_as', self.opt('none_as'))
     elif isinstance(data, float) and cmath.isnan(data):
       replace = self.col_opt(col, 'nan_as', self.opt('nan_as'))
+    elif self.col_opt(col, 'render_links', self.opt('render_links')):
+      if link := html_link(data):
+        replace = link
     if replace is not None:
       return replace
     if self.col_opt(col, 'raw', False):
@@ -197,6 +200,12 @@ class Table:
     if content:
       return f'<style>\n{content}\n</style>\n'
     return ''
+
+def html_link(url: str, attrs=None) -> Optional[str]:
+  attrs = attrs or 'target="_new" rel="noopener noreferrer"'
+  url = str(url).strip()
+  if re.match(r'^(https?|ftps?)://', url):
+    return f'<a href="{url}" {attrs}>{html.escape(url)}</a>'
 
 
 #########################################
