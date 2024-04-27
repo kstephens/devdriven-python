@@ -3,9 +3,7 @@ from dataclasses import dataclass, field
 import os
 import logging
 import yaml
-import shlex
-import re
-from icecream import ic
+# from icecream import ic
 
 Command = List[str]
 Converter = Callable[[Any, str], Any]
@@ -70,8 +68,9 @@ class Config:
     converter = converter or self.converters.get(key) or CONVERTERS.get(key) or identity
     return converter(value, key)
 
-  def __getitem__(self, key: str, default: Optional[Any]) -> Any:
-    return self.opt(key, default)
+  def __getitem__(self, key: str) -> Any:
+    return self.opt(key)
+
 
 CONVERTERS = {}
 
@@ -80,53 +79,3 @@ def register_converter(key: str, converter: Converter):
 
 def identity(x: Any, _key: str):
   return x
-
-
-@dataclass
-class MacroExpander:
-  macros: Dict[str, str]
-  max_expansions: int = field(default=16)
-
-  def expand(self, command: Command) -> Command:
-    prev = curr = command
-    for _i in range(self.max_expansions):
-      prev = curr
-      curr = self.expand_macro(prev)
-      if prev == curr:
-        return curr
-      prev = curr
-    logging.warning('config : command : expanded %d times %s ', max_expansions, command)
-    return curr
-
-  def expand_macro(self, command: Command) -> Command:
-    name, *argv = command
-    ic(name); ic(argv)
-
-    if expansion := self.macros.get(name):
-      ic(expansion)
-      exp = ''
-      exp_i = 0
-      for m in re.finditer(r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$(@)"|\$(@))', expansion):
-        exp += expansion[exp_i : m.span()[0]]
-        exp_i = m.span()[1]
-        if i := m[1] or m[2]:
-          v = get_safe(command, int(i), '')
-          if m[1]:   # quoted
-            exp += shlex.join([v])
-          else:
-            exp += str(v)
-        elif a := m[3] or m[4]:
-          if m[3]:   # quoted
-            exp += shlex.join(argv)
-          else:
-            exp += ' '.join(argv)
-      exp += expansion[exp_i:]
-      return shlex.split(exp)
-    return command
-
-def get_safe(a, i, default=None):
-  try:
-    return a[i]
-  except IndexError:
-    return None
-
