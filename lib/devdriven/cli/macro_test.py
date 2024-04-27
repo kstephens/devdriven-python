@@ -2,7 +2,7 @@ from devdriven.cli.macro import MacroExpander
 # from icecream import ic
 
 MACROS = {
-  'foo': 'bar 1: $1 1q: "$1" 2: $2 2q: "$2" @: $@ @q: "$@" rest'
+  'foo': 'bar 1: $1 1q: "$1" 2: $2 2q: "$2" @: $@ @q: "$@" *: $* *q: "$*" rest'
 }
 
 def test_expand_macro():
@@ -27,6 +27,12 @@ def test_expand_macro():
     '@q:',
     'a',
     'b c',
+    '*:',
+    'a',
+    'b',
+    'c',
+    '*q:',
+    'a b c',
     'rest'
   ]
   # ic(actual)

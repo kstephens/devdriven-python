@@ -25,18 +25,21 @@ class MacroExpander:
   def expand_macro(self, command: Command) -> Command:
     name, *argv = command
     if macro := self.macros.get(name):
+      rx = r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$([@*])"|\$([@*]))'
       def expand(m):
-        if m[1]:   # quoted
+        if m[1]:   # "$n"
           return shlex.join([get_safe(command, int(m[1]), '')])
-        if m[2]:
+        if m[2]:   # $n
           return get_safe(command, int(m[2]), '')
-        if m[3]:   # quoted
+        if m[3] == '@':   # "$@"
           return shlex.join(argv)
-        if m[4]:
+        if m[3] == '*':   # "$*"
+          return shlex.join([' '.join(argv)])
+        if m[4]:  # $@ == $*
           return ' '.join(argv)
         assert not 'here'
         return None
-      exp = re.sub(r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$(@)"|\$(@))', expand, macro)
+      exp = re.sub(rx, expand, macro)
       return shlex.split(exp)
     return command
 
