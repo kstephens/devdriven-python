@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import logging
 import shlex
 import re
-from icecream import ic
+# from icecream import ic
 
 Command = List[str]
 
@@ -25,26 +25,20 @@ class MacroExpander:
 
   def expand_macro(self, command: Command) -> Command:
     name, *argv = command
-    # ic(name); ic(argv)
-
-    if expansion := self.macros.get(name):
-      ic(expansion)
-      exp = ''
-      exp_i = 0
-      for m in re.finditer(r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$(@)"|\$(@))', expansion):
-        exp += expansion[exp_i:m.span()[0]]
-        exp_i = m.span()[1]
-        if i := m[1] or m[2]:
+    if macro := self.macros.get(name):
+      def expand(m):
+        if i := (m[1] or m[2]):
           val = get_safe(command, int(i), '')
           if m[1]:   # quoted
-            exp += shlex.join([val])
-          else:
-            exp += str(val)
-        elif m[3]:   # quoted
-          exp += shlex.join(argv)
-        elif m[4]:
-          exp += ' '.join(argv)
-      exp += expansion[exp_i:]
+            return shlex.join([val])
+          return str(val)
+        if m[3]:   # quoted
+          return shlex.join(argv)
+        if m[4]:
+          return ' '.join(argv)
+        assert not 'here'
+        return None
+      exp = re.sub(r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$(@)"|\$(@))', expand, macro)
       return shlex.split(exp)
     return command
 
