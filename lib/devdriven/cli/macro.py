@@ -19,7 +19,6 @@ class MacroExpander:
       curr = self.expand_macro(prev)
       if prev == curr:
         return curr
-      prev = curr
     logging.warning('config : command : expanded %d times %s ', self.max_expansions, command)
     return curr
 
@@ -27,11 +26,10 @@ class MacroExpander:
     name, *argv = command
     if macro := self.macros.get(name):
       def expand(m):
-        if i := (m[1] or m[2]):
-          val = get_safe(command, int(i), '')
-          if m[1]:   # quoted
-            return shlex.join([val])
-          return str(val)
+        if m[1]:   # quoted
+          return shlex.join([get_safe(command, int(m[1]), '')])
+        if m[2]:
+          return get_safe(command, int(m[2]), '')
         if m[3]:   # quoted
           return shlex.join(argv)
         if m[4]:
