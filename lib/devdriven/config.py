@@ -50,7 +50,7 @@ class Config:
     opts_val = self.opts.get(key)
     env_key = (self.env_prefix + key).upper().replace('-', '_')
     env_val = self.env.get(env_key)
-    conf_val = self.conf.get(key)
+    conf_val = self.conf and self.conf.get(key)
     if opts_val is not None:
       val = opts_val
     elif env_val is not None:
