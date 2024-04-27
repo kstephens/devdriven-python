@@ -146,33 +146,29 @@ class ShowingIsSeeing:
       self.write('\n')
     return value
 
-  def eval_and_print_and_repl(self, expr, repl=True, print=True):
+  def eval_and_print_and_repl(self, expr, repl=True, prn=True):
     repl = repl and self.repl_enabled
-    print = print and self.print_enabled
-    if False:  # self.debug:
-      ic(expr)
-      ic(repl)
-      ic(print)
+    prn = prn and self.print_enabled
     if self.expr_is_stmt(expr):
-      if print:
+      if prn:
         self.print_expr(expr)
       value, context = self.eval_expr(expr)
       if repl:
         self.print('')
         self.repl(REPL_PROMPT)
     else:
-      if print:
+      if prn:
         self.print_expr(expr)
       if repl:
         _repl_value, repl_expr = self.repl(QUESTION_PROMPT)
-        if print and repl_expr:
+        if prn and repl_expr:
           self.print_expr(expr)
           self.write(RESULT_SEP)
       value, context = self.eval_expr(expr)
-      if print:
+      if prn:
         self.print_eval_result(value, context)
         self.write('\n')
-    if print:
+    if prn:
       self.write(self.horiz_bar + '\n')
     return value
 
@@ -180,10 +176,12 @@ class ShowingIsSeeing:
     def g(*args, **kwargs):
       if self.print_enabled:
         return f(*args, **kwargs)
+      return None
     return g
 
   # pylint: disable-next=too-many-arguments
-  def scan_lines(self, lines, eval_and_print_expr, eval_expr, print_expr, comment):
+  # pylint: disable-next=too-many-statements
+  def scan_lines(self, lines, eval_and_print_expr, eval_expr, _print_expr, comment):
     buffer = ''
     line = m = None
 
@@ -295,7 +293,7 @@ class ConvertJupyterToCode():
     self.file = self.content = self.data = self.sections = None
 
   def read(self, file):
-    with open(file) as inp:
+    with open(file, encoding='utf-8') as inp:
       self.content = inp.read()
     return self
 
@@ -306,6 +304,7 @@ class ConvertJupyterToCode():
   def extract(self):
     def identity(line):
       return line
+
     def markdown(line):
       return re.sub(r'^', '## ', line, re.MULTILINE)
 

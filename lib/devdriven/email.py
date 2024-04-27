@@ -12,7 +12,7 @@ class Email:
   server: str
 
   def message(self) -> str:
-        return f'''From: {self.sender}
+    return f'''From: {self.sender}
 To: {', '.join(self.recipients)}
 Subject: {self.subject}
 MIME-Version: 1.0
