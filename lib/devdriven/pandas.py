@@ -14,25 +14,27 @@ def column_type_names(dframe):
   return {col: str(dtype) for col, dtype in dframe.dtypes.to_dict().items()}
 
 def dtype_to_dict(dtype: Any) -> dict:
-  return {
-    'name': dtype.name,
-    'kind': dtype.kind,
-    'char': dtype.char,
-    'num': dtype.num,
-    'str': dtype.str,
-    'itemsize': dtype.itemsize,
-    'byteorder': dtype.byteorder,
-    'subdtype': dtype.subdtype,
-    'shape': dtype.shape,
-    'hasobject': dtype.hasobject,
-    'flags': dtype.flags,
-    'isbuiltin': dtype.isbuiltin,
-    'isnative': dtype.isbuiltin,
-    'descr': dtype.descr,
-    'alignment': dtype.alignment,
-    'base': dtype.base,
-    'metadata': dtype.metadata,
-  }
+  return {k: getattr(dtype, k, None) for k in DTYPE_ATTRS}
+
+DTYPE_ATTRS = [
+  'name',
+  'kind',
+  'char',
+  'num',
+  'str',
+  'itemsize',
+  'byteorder',
+  'subdtype',
+  'shape',
+  'hasobject',
+  'flags',
+  'isbuiltin',
+  'isnative',
+  'descr',
+  'alignment',
+  'base',
+  'metadata',
+]
 
 def select_rows(rows, match):
   selected = rows.loc[match]
