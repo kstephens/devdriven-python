@@ -1,4 +1,5 @@
 from typing import Union, Type, List, Dict
+import logging
 from devdriven.util import dataclass_from_dict
 from .descriptor import Descriptor, Section, SectionDescriptorExample
 
@@ -29,7 +30,12 @@ class Application:
       'section': app.current_section.name,
       'klass': klass,
     }
-    return dataclass_from_dict(Descriptor, kwargs).parse_docstring(klass.__doc__)
+    docstr = klass.__doc__
+    try:
+      return dataclass_from_dict(Descriptor, kwargs).parse_docstring(docstr)
+    except Exception as exc:
+      logging.fatal('Could not parse %s docstring : %s : \n%s', repr(klass), repr(exc), docstr)
+      raise exc
 
   def descriptor(self, name_or_klass: Union[str, Type], default=None) -> Descriptor:
     return self.descriptor_by_any.get(name_or_klass, default)
