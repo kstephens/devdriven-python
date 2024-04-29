@@ -206,6 +206,7 @@ def html_link(url: str, attrs=None) -> Optional[str]:
   url = str(url).strip()
   if re.match(r'^(https?|ftps?)://', url):
     return f'<a href="{url}" {attrs}>{html.escape(url)}</a>'
+  return None
 
 
 #########################################
