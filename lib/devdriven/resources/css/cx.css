@@ -74,6 +74,12 @@ table.cx-table {
 .cx-center {
   text-align: center;
 }
+.cx-nowrap {
+  white-space: nowrap;
+}
+.cx-wrap {
+  white-space: normal;
+}
 
 /* https://css-tricks.com/position-sticky-and-table-headers/ */
 table.cx-table {

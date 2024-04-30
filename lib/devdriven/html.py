@@ -110,6 +110,10 @@ class Table:
       align = 'right'
     if align := (self.col_opt(col, 'align') or align):
       cls.append(f'cx-{align}')
+    if self.col_opt(col, 'wrap', False):
+      cls.append('cx-wrap')
+    else:
+      cls.append('cx-nowrap')
     cls.append(self.col_opt(col, 'class', ''))
     cls = ' '.join([x for x in cls if x])
     if cls:
