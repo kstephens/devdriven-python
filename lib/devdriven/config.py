@@ -2,7 +2,7 @@ from typing import Any, Optional, List, Dict, Callable
 from dataclasses import dataclass, field
 import os
 import logging
-import yaml
+import yaml  # type: ignore
 # from icecream import ic
 
 Command = List[str]
@@ -46,7 +46,7 @@ class Config:
     return val
 
   def get_opt(self, key: str, default: Optional[Any] = None, converter: Optional[Converter] = None) -> Any:
-    val = None
+    val: Any = None
     opts_val = self.opts.get(key)
     env_key = (self.env_prefix + key).upper().replace('-', '_')
     env_val = self.env.get(env_key)

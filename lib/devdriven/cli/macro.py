@@ -1,5 +1,4 @@
 from typing import Any, List, Dict
-from dataclasses import dataclass, field
 import logging
 import shlex
 import re
@@ -7,10 +6,10 @@ import re
 
 Command = List[str]
 
-@dataclass
 class MacroExpander:
-  macros: Dict[str, str]
-  max_expansions: int = field(default=16)
+  def __init__(self, macros: Dict[str, str], max_expansions: int = 16):
+    self.macros = macros
+    self.max_expansions = max_expansions
 
   def expand(self, command: Command) -> Command:
     prev = curr = command
