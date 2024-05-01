@@ -129,6 +129,13 @@ table.cx-table {
   font-size: 80%;
 }
 
+.cx-column-sort-indicator {
+  white-space: pre;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 50%;
+}
+
 /** footer  *****************************************/
 
 .cx-footer {

@@ -27,7 +27,7 @@ class Table:
   enable_min: bool = field(default=True)
 
   def render(self) -> Self:
-    self.enable_min = False
+    # self.enable_min = False
     if not self.output:
       self.output = StringIO()
     self.prepare_options()
@@ -36,6 +36,8 @@ class Table:
       'h': self.h,
       'opt': self.opt,
       'col_opt': self.col_opt,
+      'th': self.th,
+      'td': self.td,
       'width': len(self.columns),
       'colspan': len(self.columns) + 1 if self.opt('row_index') else len(self.columns),
       'height': len(self.rows),
@@ -132,8 +134,8 @@ class Table:
   def col_opt(self, col: str, opt: str, default=None) -> Any:
     return self._col_opts[col].get(opt, default)
 
-  def attrs(self, d):
-    return ' '.join([self.attr(name, val) for name, val in d.items()]).strip()
+  def attrs(self, attrs: dict) -> str:
+    return ' '.join([self.attr(name, val) for name, val in attrs.items()]).strip()
 
   def attr(self, name, val):
     if name and val is not None and self.data['allow_attributes']:
@@ -145,6 +147,13 @@ class Table:
 
   ######################################
   # Content:
+
+  def th(self, name: Any, attrs: dict = {}) -> str:
+    return f"<th {self.attrs(attrs)}><span class='cx-column-name'>{self.h(name)}</span><span class='cx-column-sort-indicator'>&nbsp;&nbsp;</span></th>"
+
+  def td(self, row, row_idx: int, col: str) -> str:
+    col_tooltip = f'{row_idx} / {len(self.rows)} - {col}'
+    return f"<td {self.attrs({'class': self.col_opt(col, 'td_class'), 'title': col_tooltip})}>{self.cell(row, col, row_idx)}</td>"
 
   def cell(self, row, col: str, _row_idx: int) -> str:
     data = row.get(col, '')
@@ -330,7 +339,7 @@ THEAD_COLUMNS = '''
 %>
 <tr ${class_("cx-columms")}>
 %if opt('row_index'):
-<th ${attrs({'class': 'cx-right', 'title': row_title, "data-sort-method": "number"})}>#</th>
+${ th('#', {'class': 'cx-right', 'title': row_title, "data-sort-method": "number"}) }
 %endif
 % for col in columns:
 <%
@@ -350,7 +359,7 @@ THEAD_COLUMNS = '''
       "data-filter-name-full": col,
     })
 %>
-<th ${attrs(col_attrs)}>${h(col)}</th>
+${ th(col, col_attrs) }
 % endfor
 </tr>
 '''
@@ -396,9 +405,8 @@ TBODY = '''
 <td ${class_("cx-right")}>${row_idx}</td>
 %endif
 % for col in columns:
-<% col_tooltip = f'{row_tooltip} - {col}' %>
-<td ${attrs({"class": col_opt(col, 'td_class'), "title": col_tooltip})}>${this.cell(row, col, row_idx)}</td>
-  % endfor
+${td(row, row_idx, col)}
+% endfor
 </tr>
 % endfor
 </tbody>
