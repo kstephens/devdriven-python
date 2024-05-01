@@ -130,6 +130,7 @@ table.cx-table {
 }
 
 .cx-column-sort-indicator {
+  visibility: hidden;
   white-space: pre;
   vertical-align: middle;
   text-align: center;
