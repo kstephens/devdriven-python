@@ -167,7 +167,7 @@ class Table:
         replace = link
     if replace is not None:
       return replace
-    if self.col_opt(col, 'raw', False):
+    if not self.col_opt(col, 'raw', False):
       data = self.h(data)
     data = str(data)
     return data
