@@ -148,8 +148,8 @@ class Table:
   ######################################
   # Content:
 
-  def th(self, name: Any, attrs: dict = {}) -> str:
-    return f"<th {self.attrs(attrs)}><span class='cx-column-name'>{self.h(name)}</span><span class='cx-column-sort-indicator'></span></th>"
+  def th(self, name: Any, attrs: Optional[dict] = None) -> str:
+    return f"<th {self.attrs(attrs or EMPTY_DICT)}><span class='cx-column-name'>{self.h(name)}</span><span class='cx-column-sort-indicator'></span></th>"
 
   def td(self, row, row_idx: int, col: str) -> str:
     col_tooltip = f'{row_idx} / {len(self.rows)} - {col}'
