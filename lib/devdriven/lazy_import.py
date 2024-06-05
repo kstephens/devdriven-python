@@ -5,7 +5,7 @@ def load(modname):
 
 class Importer():
   def __init__(self, modname):
-    self._modname  = modname
+    self._modname = modname
     self._mod = None
 
   def __getattr__(self, attr):

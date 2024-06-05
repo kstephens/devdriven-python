@@ -172,6 +172,12 @@ def exec_command_unless_dry_run(cmd_line: List[str], dry_run: bool, **options: A
   return exec_command(cmd_line, **options)
 
 #####################################################################
+# Dict
+
+def merge_dicts(*dicts):
+  return {k: v for d in dicts for k, v in d.items()}
+
+#####################################################################
 # Sequence
 
 def reorder_list(items, front, back):
