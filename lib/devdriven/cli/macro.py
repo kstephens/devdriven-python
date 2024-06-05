@@ -25,6 +25,7 @@ class MacroExpander:
     name, *argv = command
     if macro := self.macros.get(name):
       rx = r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$([@*])"|\$([@*]))'
+
       def expand(m):
         if m[1]:   # "$n"
           return shlex.join([get_safe(command, int(m[1]), '')])

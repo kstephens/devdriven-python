@@ -23,6 +23,9 @@ class Table:
   options: dict = field(default_factory=dict)
   output: Any = None
   data: dict = field(default_factory=dict)
+  width: int = 0
+  height: int = 0
+  colspan: int = 0
   _col_opts: dict = field(default_factory=dict)
   enable_min: bool = field(default=True)
 
@@ -135,7 +138,9 @@ class Table:
   def col_opt(self, col: str, opt: str, default=None) -> Any:
     return self._col_opts[col].get(opt, default)
 
-  def attrs(self, attrs: dict) -> str:
+  def attrs(self, attrs: Optional[dict]) -> str:
+    if not attrs:
+      return ''
     return ' '.join([self.attr(name, val) for name, val in attrs.items()]).strip()
 
   def attr(self, name, val):
@@ -149,12 +154,22 @@ class Table:
   ######################################
   # Content:
 
-  def th(self, name: Any, attrs: dict = {}) -> str:
-    return f"<th {self.attrs(attrs)}><span class='cx-column-name'>{self.h(name)}</span><span class='cx-column-sort-indicator'></span></th>"
+  # pylint: disable-next=invalid-name
+  def th(self, name: Any, attrs: dict) -> str:
+    return f'''\
+<th {self.attrs(attrs)}>\
+<span class="cx-column-name">{self.h(name)}</span>\
+<span class="cx-column-sort-indicator"></span></th>\
+'''
 
+  # pylint: disable-next=invalid-name
   def td(self, row, row_idx: int, col: str) -> str:
     col_tooltip = f'{row_idx} / {len(self.rows)} - {col}'
-    return f"<td {self.attrs({'class': self.col_opt(col, 'td_class'), 'title': col_tooltip})}>{self.cell(row, col, row_idx)}</td>"
+    return f'''\
+<td {self.attrs({"class": self.col_opt(col, "td_class"), "title": col_tooltip})}>\
+{self.cell(row, col, row_idx)}\
+</td>\
+'''
 
   def cell(self, row, col: str, _row_idx: int) -> str:
     data = row.get(col, '')
@@ -174,9 +189,10 @@ class Table:
     return data
 
   def title_tr(self) -> str:
-    title = []
     def stat(n, axis):
       return tooltip(n, f'{n} {axis}')
+
+    title = []
     if self.opt('stats'):
       title += [
         ''.join([
@@ -188,22 +204,19 @@ class Table:
         ])
       ]
     if self.opt('parent_link'):
-      title += [ '<span style="cx-parent-link"><a href="./" title="parent directory">..</a></span>' ]
+      title += ['<span style="cx-parent-link"><a href="./" title="parent directory">..</a></span>']
     if self.opt('title'):
-      title += [ f'<span class="cx-title-text">{self.h(self.opt("title"))}</span>' ]
+      title += [f'<span class="cx-title-text">{self.h(self.opt("title"))}</span>']
     if not title:
       return ''
     title = [
-      f'<tr class="cx-title-row">',
+      '<tr class="cx-title-row">',
       f'<th class="cx-title-th" colspan="{self.colspan}">',
-      f'<span class="cx-title">',
+      '<span class="cx-title">',
       self.h(' | ').join(title),
       '</span></th></tr>'
     ]
     return ''.join(title)
-
-  def wide_row(self, tag: str, row, row_idx: int) -> str:
-    return ''
 
   def resource_(self, res: Resources, names: List[str], default=None) -> Any:
     if not names:
@@ -242,9 +255,6 @@ class Table:
 
   def style(self, content: str) -> str:
     return tag_maybe('style', content)
-
-  def h(self, content: str) -> str:
-    return html.escape(content)
 
 
 def tooltip(content: str, title: str) -> str:

@@ -16,6 +16,7 @@ def column_type_names(dframe):
 def dtype_to_dict(dtype: Any) -> dict:
   return {k: getattr(dtype, k, None) for k in DTYPE_ATTRS}
 
+
 DTYPE_ATTRS = [
   'name',
   'kind',
