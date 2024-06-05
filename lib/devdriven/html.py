@@ -31,6 +31,9 @@ class Table:
     if not self.output:
       self.output = StringIO()
     self.prepare_options()
+    self.width = len(self.columns)
+    self.height = len(self.rows)
+    self.colspan = len(self.columns) + 1 if self.opt('row_index') else len(self.columns)
     self.data = vars(self) | {
       'this': self,
       'h': self.h,
@@ -38,9 +41,6 @@ class Table:
       'col_opt': self.col_opt,
       'th': self.th,
       'td': self.td,
-      'width': len(self.columns),
-      'colspan': len(self.columns) + 1 if self.opt('row_index') else len(self.columns),
-      'height': len(self.rows),
       'unicode': UNICODE,
       'allow_attributes': self.opt('styled') or self.opt('filtering') or self.opt('sorting'),
       'attr': self.attr,
@@ -50,6 +50,7 @@ class Table:
       'vendor': res_vendor,
       'js': res_js,
       'css': res_css,
+      'title_tr': self.title_tr(),
     }
 
     self.render_template(self.template_text())
@@ -172,6 +173,38 @@ class Table:
     data = str(data)
     return data
 
+  def title_tr(self) -> str:
+    title = []
+    def stat(n, axis):
+      return tooltip(n, f'{n} {axis}')
+    if self.opt('stats'):
+      title += [
+        ''.join([
+          '<span style="cx-stats">',
+          stat(self.width, 'columns'),
+          ' x ',
+          stat(self.height, 'rows'),
+          '</span>',
+        ])
+      ]
+    if self.opt('parent_link'):
+      title += [ '<span style="cx-parent-link"><a href="./" title="parent directory">..</a></span>' ]
+    if self.opt('title'):
+      title += [ f'<span class="cx-title-text">{self.h(self.opt("title"))}</span>' ]
+    if not title:
+      return ''
+    title = [
+      f'<tr class="cx-title-row">',
+      f'<th class="cx-title-th" colspan="{self.colspan}">',
+      f'<span class="cx-title">',
+      self.h(' | ').join(title),
+      '</span></th></tr>'
+    ]
+    return ''.join(title)
+
+  def wide_row(self, tag: str, row, row_idx: int) -> str:
+    return ''
+
   def resource_(self, res: Resources, names: List[str], default=None) -> Any:
     if not names:
       return str(default)
@@ -205,14 +238,21 @@ class Table:
     return self.resource_(res, [str(name_min), name], default)
 
   def javascript(self, content: str) -> str:
-    if content:
-      return f'<script>\n{content}\n</script>\n'
-    return ''
+    return tag_maybe('script', content)
 
   def style(self, content: str) -> str:
-    if content:
-      return f'<style>\n{content}\n</style>\n'
-    return ''
+    return tag_maybe('style', content)
+
+  def h(self, content: str) -> str:
+    return html.escape(content)
+
+
+def tooltip(content: str, title: str) -> str:
+  return f'<a href="#" class="cx-tooltip" title="{title}">{content}</a>'
+
+def tag_maybe(tag: str, content: str) -> str:
+  _tag = re.sub(r' +.*$', '', tag)
+  return f'<{tag}>{content}</{_tag}>\n' if content else ''
 
 def html_link(url: str, attrs=None) -> Optional[str]:
   attrs = attrs or 'target="_new" rel="noopener noreferrer"'
@@ -254,9 +294,6 @@ ${this.resource_opt(table, 'html_head_footer', '')}
 ${this.resource(table, 'body-header.html', '')}
 ${this.resource_opt(table, 'body_header', '')}
 <div ${class_("cx-content")}>
-% if opt('title'):
-<div ${class_("cx-title")}>${opt('title')}</div>
-% endif
 '''
 
 HTML_FOOT = '''
@@ -319,8 +356,9 @@ $(document).ready(function() {
 #########################################
 
 THEAD_HEAD = '''
-% if opt('header'):
+% if opt('header') or title_tr:
 <thead ${attrs({'class': "cx-thead"})}>
+${title_tr}
 '''
 
 THEAD_FOOT = '''

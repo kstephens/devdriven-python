@@ -29,14 +29,32 @@ a:hover {
   background-color: #b08080;
 }
 
-.cx-title {
-  text-align: center;
-}
 div.cx-content {
   display: inline-block;
 }
 
 /** cx-table *****************************************/
+
+.cx-table thead .cx-title-row {
+  position: sticky;
+  left: 0; /* needed for sticky? */
+  background-color: #000;
+}
+.cx-table .cx-title-th {
+  position: sticky;
+  left: 0;
+  background-color: #000;
+  padding-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.cx-title {
+  position: sticky;
+  left: 2em;
+  float: left;
+  white-space: pre;
+  font-weight: bold;
+  background-color: #000;
+}
 
 table.cx-table {
   border-collapse: collapse;
