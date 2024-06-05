@@ -155,7 +155,7 @@ class Table:
   # Content:
 
   # pylint: disable-next=invalid-name
-  def th(self, name: Any, attrs: dict) -> str:
+  def th(self, name: Any, attrs: Optional[dict] = None) -> str:
     return f'''\
 <th {self.attrs(attrs)}>\
 <span class="cx-column-name">{self.h(name)}</span>\
@@ -183,7 +183,7 @@ class Table:
         replace = link
     if replace is not None:
       return replace
-    if self.col_opt(col, 'raw', False):
+    if not self.col_opt(col, 'raw', False):
       data = self.h(data)
     data = str(data)
     return data
