@@ -63,7 +63,7 @@ def file_nlines(path: str, eol: bytes = b'\n', buffer_size: int = BUFFER_SIZE) -
   except OSError:
     return None
 
-def read_write_pickle(file, mode, data=None):
+def pickle_bz2(file, mode, data=None):
   with bz2.open(file, mode) as stream:
     if mode == 'rb':
       return pickle.load(stream)

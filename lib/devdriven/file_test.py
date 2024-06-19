@@ -37,3 +37,9 @@ def test_file_nlines():
   assert sut.file_nlines('tests/devdriven/data/expected.txt') == 11
   assert sut.file_nlines('/dev/null') == 0
   assert sut.file_nlines('Does-Not-Exist') is None
+
+def test_pickle_bz2():
+  data = {'a': 1, 'b': 2}
+  with tempfile.NamedTemporaryFile() as tmp:
+    sut.pickle_bz2(tmp.name, 'wb', data)
+    assert sut.pickle_bz2(tmp.name, 'rb') == data
