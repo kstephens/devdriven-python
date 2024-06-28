@@ -8,7 +8,6 @@ import cmath
 from devdriven.resource import Resources
 from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
-# from icecream import ic
 
 res_html = Resources([]).add_file_dir(__file__, 'resources/html')
 res_table = Resources([]).add_file_dir(__file__, 'resources/html/table')
@@ -39,6 +38,7 @@ class Table:
     self.colspan = len(self.columns) + 1 if self.opt('row_index') else len(self.columns)
     self.data = vars(self) | {
       'this': self,
+      'dom_id': self.opt('dom_id', 'cx-table'),  # ??? IMPLEMENT
       'h': self.h,
       'opt': self.opt,
       'col_opt': self.col_opt,
@@ -101,13 +101,37 @@ class Table:
       self.options['styled'] = True
     # Merge and amend column options:
     opt_cols = self.options.get('columns', {})
-    # ic(opt_cols)
     self._col_opts = {col: {} | opt_cols.get(col, {}) for col in self.columns}
-    # ic(self._col_opts)
+    col_idx = 0
     for col, opts in self._col_opts.items():
+      col_idx += 1
+      opts['col_idx'] = col_idx
       opts['none'] = self.opt('none', opts.get('none', None))
       opts['td_class'] = self.col_class(col)
-    # ic(self._col_opts)
+      opts['col_attrs'] = self.col_attrs(col, opts)
+
+  def col_attrs(self, col, opts):
+    col_idx = opts['col_idx']
+    col_attrs = {
+      "class": "cx-column",
+      "title": f'name: {col}; index: {col_idx}; type: {self.col_opt(col, "type", "UNKNOWN")}',
+    }
+    if self.opt('filtering'):
+      col_attrs.update({
+        "data-column-index": col_idx,
+        "data-filter-name": col,
+        "data-filter-name-full": col,
+      })
+    if self.opt('sorting'):
+      col_attrs['data-sort-method'] = self.col_sort_method(col) or 'string'
+    return col_attrs
+
+  def col_sort_method(self, col):
+    sort_method = self.col_opt(col, 'sort_method')
+    if not sort_method:
+      if self.col_opt(col, 'numeric'):
+        sort_method = 'number'
+    return sort_method
 
   def col_class(self, col):
     cls = []
@@ -156,6 +180,7 @@ class Table:
 
   # pylint: disable-next=invalid-name
   def th(self, name: Any, attrs: Optional[dict] = None) -> str:
+    attrs = attrs or self.col_opt(name, 'col_attrs')
     return f'''\
 <th {self.attrs(attrs)}>\
 <span class="cx-column-name">{self.h(name)}</span>\
@@ -342,6 +367,7 @@ ${this.javascript(this.resource_min(js, "filter.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/tablesort.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.number.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.date.js"))}
+${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.monthname.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.dotsep.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.filesize.js"))}
 %endif
@@ -350,13 +376,23 @@ ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort
 <script>
   var cx_filter;
 $(document).ready(function() {
-  console.log( "psv : document ready!" );
 % if opt('sorting'):
+  // See: tablesort.js: var caseInsensitiveSort:
+  Tablesort.extend('string', function(item) {
+    return true;
+  }, function(a, b) {
+    a = a.trim().toLowerCase();
+    b = b.trim().toLowerCase();
+    if (a === b) return 0;
+    if (a < b) return 1;
+    return -1;
+  });
   new Tablesort(document.getElementById('cx-table'));
 %endif
 % if opt('filtering'):
   cx_filter = cx_make_filter('cx-table');
 %endif
+  console.log( "psv : document ready!" );
 });
 </script>
 %endif
@@ -390,24 +426,7 @@ THEAD_COLUMNS = '''
 ${ th('#', {'class': 'cx-right', 'title': row_title, "data-sort-method": "number"}) }
 %endif
 % for col in columns:
-<%
-  col_idx += 1
-  col_attrs = {
-    "class": "cx-column",
-    "title": f'name: {col}; index: {col_idx}; type: {this.col_opt(col, "type", "UNKNOWN")}',
-  }
-  col_sort = None
-  if opt('sorting'):
-    if this.col_opt(col, 'numeric'):
-      col_attrs['data-sort-method'] = 'number'
-  if opt('filtering'):
-    col_attrs.update({
-      "data-column-index": col_idx,
-      "data-filter-name": col,
-      "data-filter-name-full": col,
-    })
-%>
-${ th(col, col_attrs) }
+${ th(col) }
 % endfor
 </tr>
 '''

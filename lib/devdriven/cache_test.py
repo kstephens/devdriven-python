@@ -2,13 +2,13 @@ import tempfile
 from random import randint
 from pathlib import Path
 import devdriven.cache as sut  # type: ignore
-# from icecream import ic
 
-def test_PickleCache():
+def test_pickle_cache():
   # ic.configureOutput(includeContext=True, contextAbsPath=True)
   with tempfile.NamedTemporaryFile() as tmp:
     path = Path(tmp.name)
     data = [randint(10, 100) for _i in range(10)]
+
     def return_data():
       return data
 
