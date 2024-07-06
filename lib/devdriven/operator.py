@@ -1,7 +1,6 @@
 from typing import Any, Optional, Tuple, Callable  # , Union, List, Dict, Mapping, Type, Literal
 # from numbers import Number
 import operator
-from icecream import ic
 from .util import merge_dicts
 
 Unary = Callable[[Any], Any]
@@ -177,13 +176,14 @@ def conjoin(*args) -> Tuple:
 
 ##############################
 
-bc = left_comp
+def test():
+  # pylint: disable-next=import-outside-toplevel
+  from icecream import ic
 
-def bop(name: str) -> Callable:
-  f = binary_op(name)
-  assert f is not None
-  return binary_coerce(f, COERCE_BINARY_RIGHT_NATURAL)
+  def bop(name: str) -> Callable:
+    f = binary_op(name)
+    assert f is not None
+    return binary_coerce(f, COERCE_BINARY_RIGHT_NATURAL)
 
-
-ic(bop('+')(2.3, "5.7"))
-ic(bc(bop('+'), bop('*'))(2.3, "5.7", 5))
+  ic(bop('+')(2.3, "5.7"))
+  ic(left_comp(bop('+'), bop('*'))(2.3, "5.7", 5))

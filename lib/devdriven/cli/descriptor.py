@@ -3,7 +3,6 @@ import re
 from dataclasses import dataclass, field
 from devdriven.cli.options import Options
 from devdriven.util import set_from_match, unpad_lines
-from icecream import ic
 
 @dataclass
 class Example:
@@ -35,13 +34,13 @@ class Descriptor:
 
   def parse_docstring(self, docstr: str) -> Self:
     found_aliases = False
-    debug = False
+    # debug = False
     lines = unpad_lines(re.sub(r'\\\n', '', docstr).splitlines())
     comments = []
     while lines:
       line = lines.pop(0)
-      if debug:
-        ic(line)
+      # if debug:
+      #   ic(line)
       m = None
       if m := re.match(r'^:(?P<name>[a-z_]+)[:=] *(?P<value>.*)', line):
         self.metadata[m.group('name')] = m.group('value').strip()
@@ -59,12 +58,14 @@ class Descriptor:
         self.examples.append(Example(command=m[1], comments=comments))
         comments = []
       elif self.options.parse_docstring(line):
-        if debug:
-          ic((self.name, self.options))
+        # if debug:
+        #   ic((self.name, self.options))
+        # pylint: disable-next=pointless-statement
+        None
       else:
         self.detail.append(line)
-      if debug:
-        ic(m and m.groupdict())
+      # if debug:
+      #   ic(m and m.groupdict())
     self.build_synopsis()
     self.trim_detail()
     return self

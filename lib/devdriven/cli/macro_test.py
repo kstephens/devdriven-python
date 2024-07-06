@@ -1,5 +1,4 @@
 from devdriven.cli.macro import MacroExpander
-# from icecream import ic
 
 MACROS = {
   'foo': 'bar 1: $1 1q: "$1" 2: $2 2q: "$2" @: $@ @q: "$@" *: $* *q: "$*" rest'

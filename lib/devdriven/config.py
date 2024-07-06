@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 import os
 import logging
 import yaml  # type: ignore
-# from icecream import ic
 
 Command = List[str]
 Converter = Callable[[Any, str], Any]

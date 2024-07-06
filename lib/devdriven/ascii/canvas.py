@@ -1,5 +1,4 @@
 from typing import Optional
-from icecream import ic
 
 class Canvas():
   def __init__(self):
@@ -62,7 +61,6 @@ class Canvas():
           self.grow((x + len(line), y + 1))
         for c in line:
           if c != background:
-            ic(c, (x, y))
             self.plot(c, (x, y))
           x += 1
       y += 1
@@ -77,18 +75,15 @@ class Canvas():
     # background = background or self.background
     lines = text.splitlines()
     self.grow((self._size[0], pos[1] + len(lines)))
-    ic(lines)
     for line in lines:
       if grow:
         self.grow((pos[0] + len(line), pos[1] + 1))
-      ic(pos)
       if 0 <= pos[1] and pos[1] <= self._size[1]:
         if not grow and pos[0] + len(text) >= self._size[0]:
           text = text[:]
         row = list(text)
         if background:
           row = [background if c == background else c for c in row]
-        ic(row)
         self._rows[pos[1]][pos[0]:pos[0] + len(row)] = row
       pos = (pos[0], pos[1] + 1)
     self.cursor = pos
@@ -116,8 +111,8 @@ def test():
 
   def s():
     print("\n============================\n")
-    ic(c.cursor)
-    ic(c.size)
+    # ic(c.cursor)
+    # ic(c.size)
     for row in c.rows:
       print(c.render_row(row, '_'))
     print("\n============================\n")

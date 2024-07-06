@@ -2,7 +2,6 @@ from typing import Any, List, Dict
 import logging
 import shlex
 import re
-# from icecream import ic
 
 Command = List[str]
 

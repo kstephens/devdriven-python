@@ -1,7 +1,6 @@
 from typing import Any, Union, List, Mapping, Iterable, Callable
 import re
 from .typing import Variadic, VariadicBool, Arity1, Arity1Bool
-# from icecream import ic
 
 def identity(x: Any) -> Any:
   return x

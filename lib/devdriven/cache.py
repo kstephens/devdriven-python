@@ -2,7 +2,6 @@ from typing import Any, Optional, Callable
 import logging
 from pathlib import Path
 from .file import pickle_bz2
-# from icecream import ic
 
 class PickleCache():
   def __init__(self, path: str, generate: Optional[Callable]):
