@@ -162,3 +162,9 @@ def test_wrap_word():
     'some-very-long-word-with-punctuation.',
     '  And more.'
   ]
+
+def test_humanize():
+  assert util.humanize(25) == ('25.00', "")
+  assert util.humanize(1024) == ('1.00', 'K')
+  assert util.humanize(12345678) == ('11.77', 'M')
+  assert util.humanize(12345678, radix=1000) == ('12.35', 'M')

@@ -83,6 +83,16 @@ def splitkeep(s, delimiter):
     datums.append(split[-1])
   return datums
 
+def humanize(num: float, radix: int = 1024) -> Tuple[str, str]:
+  if num == 0:
+    return ("0", "")
+  for unit in ("", "K", "M", "G", "T", "P", "E", "Z"):
+    if abs(num) < float(radix):
+      return (f"{num:3.2f}", unit)
+    num /= float(radix)
+  return (f"{num:.1f}", "Y")
+
+
 #####################################################################
 # Time
 
