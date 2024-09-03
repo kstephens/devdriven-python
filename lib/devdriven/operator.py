@@ -1,5 +1,4 @@
-from typing import Any, Optional, Tuple, Callable  # , Union, List, Dict, Mapping, Type, Literal
-# from numbers import Number
+from typing import Any, Optional, Tuple, Callable
 import operator
 from .util import merge_dicts
 
@@ -11,7 +10,7 @@ def bind_right(bfun: Binary, b: Any) -> Unary:
 
 # a + (b * c)
 # binary_op('+')(a, binary_op('*')(b, c))
-def left_comp(f: Callable, g: Callable) -> Callable:
+def left_comp(f: Binary, g: Callable) -> Callable:
   def h(a, *args):
     return f(a, g(*args))
   return h
@@ -87,29 +86,29 @@ def identity(x: Any) -> Any:
   return x
 
 
-IDENTITY_IDENTITY = [identity, identity]
+IDENTITY_IDENTITY = (identity, identity)
 
 COERCE_BINARY_OPS = {
   int: {
-    float: [float, float],
-    bool: [int, int],
-    str: [str, str],
-    None: [int, int],
+    float: (float, float),
+    bool: (int, int),
+    str: (str, str),
+    None: (int, int),
   },
   float: {
-    int: [float, float],
-    bool: [float, float],
-    str: [str, str],
-    None: [float, float]
+    int: (float, float),
+    bool: (float, float),
+    str: (str, str),
+    None: (float, float)
   },
   bool: {
-    int: [float, float],
-    bool: [float, float],
-    str: [str, str],
-    None: [float, float]
+    int: (float, float),
+    bool: (float, float),
+    str: (str, str),
+    None: (float, float)
   },
   str: {
-    None: [str, str],
+    None: (str, str),
   },
   None: {
     None: IDENTITY_IDENTITY,
@@ -142,23 +141,23 @@ def str_to_bool(x: str) -> bool:
 
 COERCE_BINARY_RIGHT_NATURAL = {
   int: {
-    float: [float, float],
-    bool: [int, int],
-    str: [int, number_safe],
-    None: [int, int],
+    float: (float, float),
+    bool: (int, int),
+    str: (int, number_safe),
+    None: (int, int),
   },
   float: {
-    int: [float, float],
-    str: [float, number_safe],
-    None: [float, float]
+    int: (float, float),
+    str: (float, number_safe),
+    None: (float, float)
   },
   bool: {
-    str: [bool, str_to_bool],
-    None: [bool, bool],
+    str: (bool, str_to_bool),
+    None: (bool, bool),
   },
   str: {
-    bool: [bool, str_to_bool],
-    None: [str, str],
+    bool: (bool, str_to_bool),
+    None: (str, str),
   },
   None: {
     None: IDENTITY_IDENTITY,
@@ -186,4 +185,4 @@ def test():
     return binary_coerce(f, COERCE_BINARY_RIGHT_NATURAL)
 
   ic(bop('+')(2.3, "5.7"))
-  ic(left_comp(bop('+'), bop('*'))(2.3, "5.7", 5))
+  ic(left_comp(bop('+'), bop('*'))(2.3, 5.7, "11.13"))
