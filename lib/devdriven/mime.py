@@ -30,10 +30,10 @@ def guess_type(file: str) -> MimeType:
   return content_type, content_encoding
 
 
-MIMETYPES_OVERRIDE: Dict[Union[str, None], MimeType] = {
+MimeTypeDict = Dict[Union[str, None], MimeType]
+MIMETYPES_OVERRIDE: MimeTypeDict = {
 }
-
-MIMETYPES_MORE: Dict[Union[str, None], MimeType] = {
+MIMETYPES_MORE: MimeTypeDict = {
   None: (None, None),
 }
 
