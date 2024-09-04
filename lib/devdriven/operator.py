@@ -171,18 +171,3 @@ def not_none(x: Any) -> Any:
 
 def conjoin(*args) -> Tuple:
   return tuple(args)
-
-
-##############################
-
-def test():
-  # pylint: disable-next=import-outside-toplevel
-  from icecream import ic
-
-  def bop(name: str) -> Callable:
-    f = binary_op(name)
-    assert f is not None
-    return binary_coerce(f, COERCE_BINARY_RIGHT_NATURAL)
-
-  ic(bop('+')(2.3, "5.7"))
-  ic(left_comp(bop('+'), bop('*'))(2.3, 5.7, "11.13"))
