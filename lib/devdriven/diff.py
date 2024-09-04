@@ -1,12 +1,35 @@
 from typing import Any, Dict, Optional
+import platform
+import os
 from devdriven.util import exec_command
 from devdriven.file import file_nlines
 
 def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
+  if not (os.path.isfile(expected_file) and os.path.isfile(actual_file)):
+    expected = file_nlines(expected_file)
+    actual = file_nlines(actual_file)
+    return {
+      "correct": False,
+      "expected": expected,
+      "actual": actual,
+      "old": None,
+      "new": None,
+      "differences": None,
+      "correct_ratio": 0.0,
+      "correct_percent": 0.0,
+      "exit_code": 2,
+    }
+
+  if platform.system() == 'Darwin':
+    if os.path.isfile('/opt/homebrew/bin/diff'):
+      return diff_files_gnudiff('/opt/homebrew/bin/diff', expected_file, actual_file, *diff_options)
+  return diff_files_gnudiff('diff', expected_file, actual_file, *diff_options)
+
+def diff_files_gnudiff(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
   expected = file_nlines(expected_file)
   actual = file_nlines(actual_file)
   command = [
-    'diff',
+    diff_cmd,
     '--minimal',
     '--old-line-format=-%l\n',
     '--new-line-format=+%l\n',
