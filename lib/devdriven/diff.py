@@ -31,9 +31,9 @@ def diff_files_gnudiff(diff_cmd: str, expected_file: str, actual_file: str, *dif
   command = [
     diff_cmd,
     '--minimal',
-    '--old-line-format=-%l\n',
-    '--new-line-format=+%l\n',
-    '--unchanged-line-format==%l\n',
+    '--old-line-format=-\n',
+    '--new-line-format=+\n',
+    '--unchanged-line-format==\n',
     *diff_options,
     expected_file, actual_file]
   diff_result = exec_command(command, check=False, capture_output=True)
