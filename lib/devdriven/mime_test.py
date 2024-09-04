@@ -3,8 +3,13 @@ import devdriven.mime as sut
 def test_guess_type():
   fut = sut.guess_type
   assert fut("a") == (None, None)
-  assert fut("a.c") == ('text/x-c', None)
-  assert fut("a.o") == ('application/octet-stream', None)
+  assert fut("a.c") == ('text/x-csrc', None)
+  assert fut("a.h") == ('text/x-chdr', None)
+  for f in ("a.cc", 'a.cpp', 'a.cxx'):
+    assert fut(f) == ('text/x-c++src', None)
+  for f in ("a.hh", 'a.hpp', 'a.hxx'):
+    assert fut(f) == ('text/x-c++hdr', None)
+  assert fut("a.o") == ('application/x-object', None)
   assert fut("a.md") == ('text/markdown', None)
   assert fut("a.markdown") == ('text/markdown', None)
 
