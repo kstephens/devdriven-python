@@ -38,6 +38,12 @@ def diff_files_gnudiff(diff_cmd: str, expected_file: str, actual_file: str, *dif
     expected_file, actual_file]
   diff_result = exec_command(command, check=False, capture_output=True)
   old = new = 0
+  if diff_result.stderr:
+    raise Exception(
+      f"diff_files: failed : {diff_result.returncode}"
+      f": {command!r} : "
+      f"{diff_result.stderr.decode().splitlines()[:5]!r}"
+    )
   for line in diff_result.stdout.splitlines():
     if line.startswith(b'-'):
       old += 1
