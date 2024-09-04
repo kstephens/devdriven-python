@@ -1,0 +1,14 @@
+name: run test
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@main
+    - name: setup venv
+      run: make venv
+    - name: run make
+      run: make venv-force && . venv/bin/activate && make
