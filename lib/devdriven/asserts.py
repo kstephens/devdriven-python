@@ -6,17 +6,19 @@ import hashlib
 from pprint import pprint
 from .file import file_md5
 
-FilterFunc = Optional[Callable]
+FilterFunc = Callable[[str], str]
 Filepath = str
-FileOutputFunc = Callable[[Filepath], Any]
+Command = str
+FileOutputFunc = Callable[[Filepath], None]
+ContextFunc = Callable[[str], Optional[str]]
 Difference = Tuple[int, str, str, Optional[str]]
 Differences = Iterable[Difference]
 
 def assert_command_output(file: Filepath,
-                          command: Filepath,
-                          fix_line: FilterFunc = None,
-                          context_line: FilterFunc = None) -> Filepath:
-  def run(actual_out):
+                          command: Command,
+                          fix_line: Optional[FilterFunc] = None,
+                          context_line: Optional[ContextFunc] = None) -> Filepath:
+  def run(actual_out: Filepath) -> None:
     system_command = f'exec 2>&1; set -x; {command} > {actual_out!r}'
     os.system(system_command)
     assert_log(f'assert_command_output : {command!r}')
@@ -26,8 +28,8 @@ def assert_output_by_key(
     key: str,
     directory: Filepath,
     proc: FileOutputFunc,
-    fix_line: FilterFunc = None,
-    context_line: FilterFunc = None) -> Filepath:
+    fix_line: Optional[FilterFunc] = None,
+    context_line: Optional[ContextFunc] = None) -> Filepath:
   key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
   output_file = f'{directory}/{key_hash}'
   return assert_output(
@@ -39,8 +41,8 @@ def assert_output_by_key(
 
 def assert_output(file: Filepath,
                   proc: FileOutputFunc,
-                  fix_line: FilterFunc = None,
-                  context_line: FilterFunc = None) -> Filepath:
+                  fix_line: Optional[FilterFunc] = None,
+                  context_line: Optional[ContextFunc] = None) -> Filepath:
   expect_out = f'{file}.out.expect'
   actual_out = f'{file}.out.actual'
   Path(expect_out).parent.mkdir(parents=True, exist_ok=True)
@@ -50,15 +52,18 @@ def assert_output(file: Filepath,
 
 def assert_files(actual_out: Filepath,
                  expect_out: Filepath,
-                 fix_line: FilterFunc = None,
-                 context_line: FilterFunc = None) -> str:
+                 fix_line: Optional[FilterFunc] = None,
+                 context_line: Optional[ContextFunc] = None) -> str:
   if fix_line:
     fix_file(actual_out, fix_line)
 
   accept_actual = differences = None
 
   if os.path.isfile(expect_out):
-    differences = compare_files(actual_out, expect_out, context_line=context_line)
+    differences = compare_files(
+      actual_out, expect_out,
+      context_line=context_line
+    )
     if differences:
       assert_log(f'To compare : diff -u {expect_out!r} {actual_out!r}')
       assert_log(f'To accept  : mv {actual_out!r} {expect_out!r}')
@@ -82,7 +87,7 @@ def assert_files(actual_out: Filepath,
 
 def compare_files(actual_out: Filepath,
                   expect_out: Filepath,
-                  context_line: FilterFunc = None) -> Differences:
+                  context_line: Optional[ContextFunc] = None) -> Differences:
   with open(actual_out, 'r', encoding='utf-8') as io:
     actual_lines = io.readlines()
   with open(expect_out, 'r', encoding='utf-8') as io:
@@ -96,11 +101,14 @@ def compare_files(actual_out: Filepath,
     assert_log(f'expected : {expect_out!r} : {len(expect_lines)} lines : md5 {expect_md5!r}')
   else:
     assert_log(f'SAME     : {actual_out!r} : {len(actual_lines)} lines : md5 {actual_md5!r}')
-  return compare_lines(actual_lines, expect_lines, context_line=context_line)
+  return compare_lines(
+    actual_lines, expect_lines,
+    context_line=context_line
+  )
 
 def compare_lines(actual_lines: Iterable[str],
                   expect_lines: Iterable[str],
-                  context_line: FilterFunc = None
+                  context_line: Optional[ContextFunc] = None
                   ) -> Differences:
   i = 0
   context = None
@@ -115,7 +123,7 @@ def compare_lines(actual_lines: Iterable[str],
       differences.append((i, actual_line, expect_line, context))
   return differences
 
-def fix_file(file: Filepath, fix_line: FilterFunc = None) -> None:
+def fix_file(file: Filepath, fix_line: Optional[FilterFunc] = None) -> None:
   # log(f'fix_file: {file!r}')
   file_tmp = f'{file}.tmp'
   with open(file_tmp, 'w', encoding='utf-8') as tmp:
@@ -127,7 +135,7 @@ def fix_file(file: Filepath, fix_line: FilterFunc = None) -> None:
   # os.system(f'diff -U0 {file} {file_tmp}')
   os.rename(file_tmp, file)
 
-def assert_log(msg: Any = '') -> None:
+def assert_log(msg: Optional[str] = '') -> None:
   if msg:
     print(f'  ### assert : {msg}', file=sys.stderr)
   else:
