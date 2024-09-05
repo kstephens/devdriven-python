@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import platform
 import os
 from devdriven.util import exec_command
@@ -19,32 +19,43 @@ def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict
       "correct_percent": 0.0,
       "exit_code": 2,
     }
+  return DIFF_FUNC(DIFF_PROG, expected_file, actual_file, *diff_options)
 
-  if platform.system() == 'Darwin':
-    if os.path.isfile('/opt/homebrew/bin/diff'):
-      return diff_files_gnudiff('/opt/homebrew/bin/diff', expected_file, actual_file, *diff_options)
-  return diff_files_gnudiff('diff', expected_file, actual_file, *diff_options)
-
-def diff_files_gnudiff(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
-  expected = file_nlines(expected_file)
-  actual = file_nlines(actual_file)
+def diff_files_gnu(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
   command = [
     diff_cmd,
     '--minimal',
     '--old-line-format=-\n',
     '--new-line-format=+\n',
-    '--unchanged-line-format==\n',
+    '--unchanged-line-format=',
     *diff_options,
     expected_file, actual_file]
+  return diff_run(command, False, expected_file, actual_file)
+
+def diff_files_bsd(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
+  command = [
+    diff_cmd,
+    '--minimal',
+    '-U', '0',
+    *diff_options,
+    expected_file, actual_file]
+  return diff_run(command, True, expected_file, actual_file)
+
+def diff_run(command: List[str], has_fences: bool, expected_file: str, actual_file: str) -> Dict[str, Any]:
+  expected = file_nlines(expected_file)
+  actual = file_nlines(actual_file)
   diff_result = exec_command(command, check=False, capture_output=True)
-  old = new = 0
   if diff_result.stderr:
     raise Exception(
       f"diff_files: failed : {diff_result.returncode}"
       f": {command!r} : "
       f"{diff_result.stderr.decode().splitlines()[:5]!r}"
     )
-  for line in diff_result.stdout.splitlines():
+  old = new = 0
+  lines = diff_result.stdout.splitlines()
+  if has_fences:
+    lines = [line for line in lines[2:] if not line.startswith(b'@@ ')]
+  for line in lines:
     if line.startswith(b'-'):
       old += 1
     elif line.startswith(b'+'):
@@ -89,3 +100,17 @@ def diff_files_stats(expected: Optional[int], actual: Optional[int],
     'correct_ratio': correct_ratio,
     'correct_percent': correct_percent,
   }
+
+if platform.system() == 'Darwin':
+  if os.path.isfile('/opt/homebrew/bin/diff'):
+    DIFF_PROG = '/opt/homebrew/bin/diff'
+    DIFF_FLAVOR = 'gnu'
+    DIFF_FUNC = diff_files_gnu
+  else:
+    DIFF_PROG = '/usr/bin/diff'
+    DIFF_FLAVOR = 'bsd'
+    DIFF_FUNC = diff_files_bsd
+else:
+    DIFF_PROG = 'diff'
+    DIFF_FLAVOR = 'gnu'
+    DIFF_FUNC = diff_files_gnu
