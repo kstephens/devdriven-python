@@ -111,7 +111,7 @@ class Converter:
     return {}
 
   # pylint: disable-next=invalid-name
-  def as_DataFrame(self, data: Any) -> pd.DataFrame:
+  def as_DataFrame(self, data: Any) -> Optional[pd.DataFrame]:
     if isinstance(data, pd.DataFrame):
       return data
     if isinstance(data, str):

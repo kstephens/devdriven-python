@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import os
 import re
 import logging
@@ -138,7 +138,7 @@ def remove_index(df):
 class DataFrameIO:
   src: str = 'data/src'
   gen: str = 'data/gen'
-  processing_log: pd.DataFrame = None
+  processing_log: Optional[pd.DataFrame] = None
 
   def initialize_log(self):
     self.processing_log = pd.DataFrame(columns=['report', 'file', 'mtime', 'lines', 'bytes', 'now', 'url'])
