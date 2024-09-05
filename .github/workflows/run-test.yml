@@ -18,6 +18,6 @@ jobs:
       with:
         python-version: '3.11'
     - name: setup venv
-      run: make venv
-    - name: run make
-      run: make venv-force && . venv/bin/activate && make
+      run: tool/build create-venv
+    - name: build
+      run: tool/build
