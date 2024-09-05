@@ -22,13 +22,13 @@ REQUIREMENTS_TXT:=$(wildcard *requirements.txt)
 
 default : all
 
-all : venv check
+all : check
 
 # Environment:
 
 venv: venv/bin/activate
 
-venv/bin/activate: Makefile $(REQUIREMENTS_TXT)
+venv/bin/activate: $(REQUIREMENTS_TXT)
 	$(MAKE) venv-create venv-upgrade-tools venv-install-requirements
 
 venv-create:
