@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+
+-setup() {
+  RESOURCES_DIR=lib/devdriven/resources
+  JS_FILES="$(find ${RESOURCES_DIR}/js ${RESOURCES_DIR}/vendor/tablesort-*/src -name '*.js' | grep -v '.min.js' | sort | tr '\012' ' ')"
+}
+
+################################
+
+-default() {
+  -- all
+}
+
+-all() {
+  -- check
+}
+
+################################
+# Environment:
+
+-venv() {
+  -- venv-create venv-upgrade-tools venv-install-requirements
+}
+-venv-activate() {
+  . venv/bin/activate
+}
+-venv-create() {
+	which ${PYTHON}
+	env | grep -E 'LD_|PATH'
+	x ${PYTHON} --version
+	x ${PYTHON_BIN} -m venv ${VENV_OPTS} ./venv
+	- venv-activate
+	env | grep -E 'LD_|PATH'
+	x which ${PYTHON}
+	x ${PYTHON} --version
+# pip+3.10: SO MANY BUGS...
+# https://stackoverflow.com/questions/72439001/there-was-an-error-checking-the-latest-version-of-pip
+}
+-venv-upgrade-tools() {
+	x ${PYTHON} -m pip install --upgrade pip
+	- venv-activate
+	x which ${PYTHON}
+  # x pip install --upgrade pip
+	# x pip install --upgrade setuptools
+	# x pip install --upgrade distlib
+	x pip install --upgrade pip setuptools distlib
+	- venv-install-requirements
+}
+-venv-install-requirements() { #: ${REQUIREMENTS_TXT}
+	- install-requirements
+}
+-venv-force() {
+	x rm -rf venv/
+	-venv-create
+}
+-install-requirements() { #: $(REQUIREMENTS_TXT)
+  local requirements_txt=($REQUIREMENTS_TXT)
+	venv x ${PYTHON} -m pip install ${requirements_txt[@]/#/-r }
+}
+
+################################
+# Early:
+
+-early() {
+  -- resources
+}
+
+################################
+# Check:
+
+-check() {
+  -- early test lint typecheck
+}
+
+################################
+# Lint:
+
+-lint() {
+  -- early pylint pycodestyle
+}
+
+-pylint() {
+  venv x pylint --rcfile ./.pylintrc --recursive=y $(wildcard ${FILES:-${LINT_FILES}})
+}
+
+-pycodestyle() {
+	venv x pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard ${FILES:-${LINT_FILES}})
+}
+
+wildcard() {
+  echo " " $*
+}
+
+################################
+# Resources:
+
+-resources() {
+  - minify
+}
+
+-minify() { #: $(MIN_JS_FILES) Makefile
+  local file
+  declare -p MIN_JS_FILES
+  for file in $MIN_JS_FILES
+  do
+    minify "${file%.min.js}.js" "$file"
+  done
+}
+
+minify() { #: in out
+  venv x python3 -mrjsmin < "$1" > "$2"
+}
+
+-minify-clean() {
+	rm -f $MIN_JS_FILES
+}
+
+################################
+# Unit Test:
+
+-test() {
+  -- unit-test
+}
+
+-unit-test() {
+  -- early
+  local coverage="${COVERAGE_DIR:-coverage}"
+  x rm -rf $coverage/
+	x mkdir -p $coverage
+  local files="${FILES:-$TEST_FILES}"
+  files="${files:+$(wildcard $files)}"
+	venv x coverage run -m pytest ${PYTEST_OPTS} ${files:-all} -vv -rpP
+	venv x coverage report | tee coverage/coverage.txt
+	venv x coverage html
+	venv x coverage json
+#	venv x coverage xml
+}
+
+################################
+# Typecheck:
+
+-typing() {
+  -- typecheck
+}
+-typecheck() {
+  -- stubgen mypy
+}
+-stubgen() {
+  x ignore mypy --install-types --non-interactive
+  venv x stubgen -o lib ${FILES:-${MYPY_FILES}}
+}
+-mypy() {
+	x rm -rf $MYPY_REPORT_DIR
+	x mkdir -p $MYPY_REPORT_DIR
+  local reports=($MYPY_REPORTS)
+  local opts=($MYPY_OPTS ${reports[@]/%/ $MYPY_REPORT_DIR})
+	venv x mypy "${opts[@]}" $(wildcard ${FILES:-${MYPY_FILES:-/dev/null}})
+	x head -9999 $MYPY_REPORT_DIR/*.txt
+}
+
+################################
+# Housekeeping:
+
+-clean() {
+	x rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov "${COVERAGE_DIR:?}/"
+	find lib tests -name '__pycache__' -a -type d | sort -r | xargs --verbose rm -rf {}
+  - minify-clean
+	x find lib -name '*.pyi' -exec rm '{}' \;
+}
+
+################################
+
+venv() { # cmd
+  - venv-activate && "$@"
+}
+
+ignore() {
+  "$@" || true
+}
+
+-initialize() {
+  base_dir="$(readlink -f .)"
+  uname_a="$(uname -a)"
+  uname_m="$(uname -m)"
+}
+
+-defaults() {
+  PYTHON=python3.11
+
+  PYTHONPATH_ORIG="${PYTHONPATH}"
+  export PYTHONPATH="${base_dir}/lib:${PYTHONPATH_OTHER}:${PYTHONPATH_ORIG}"
+  PYTHON_BIN="$(which ${PYTHON} | head -1)"
+  VENV_OPTS=--clear
+  # OSX HAS WRECKED brew python3.*:
+  #VENV_OPTS+=--copies
+
+  BIN_DIRS+=" bin"
+  BIN_FILES="$(grep -Erl '^\#!.+python' ${BIN_DIRS} 2>/dev/null)"
+  LIB_DIRS+=" lib"
+  LIB_FILES="$(find ${LIB_DIRS} -name '*.py' | grep -Ev '_test\.py$$' | sort)"
+  TEST_DIRS+=" lib"
+  TEST_FILES="$(find ${TEST_DIRS} -name '*.py' | grep -E '_test\.py$$' | sort)"
+  LINT_FILES="${BIN_FILES} ${LIB_FILES} ${TEST_FILES}"
+  MYPY_FILES="$(grep -Elr '^ *from typing import ' ${LINT_FILES})"
+  REQUIREMENTS_TXT="$(echo " " *requirements.txt)"
+
+  PYTEST_OPTS= #--capture=fd --show-capture
+  PYTEST_OPTS+=' --capture=no'
+
+  COVERAGE_DIR='coverage'
+
+  MYPY_REPORT_DIR=mypy-report
+  MYPY_REPORTS=" --txt-report --html-report --any-exprs-report"
+  # MYPY_OPTS+=" --verbose"
+  MYPY_OPTS+=" --config-file ./.mypy.ini"
+  MYPY_OPTS+=" --pretty --show-column-numbers"
+  # MYPY_OPTS+=" --strict"
+  MYPY_OPTS+=" --warn-redundant-casts"
+
+  local list=($JS_FILES)
+  MIN_JS_FILES="${list[@]/%.js/.min.js}"
+  # declare -p JS_FILES MIN_JS_FILES
+}
+
+x() {
+  log info "x $*"
+  "$@"
+  local _rtn=$?
+  if [[ $_rtn != 0 ]]
+  then
+    die "  FAILED : $_rtn"
+  fi
+  return $_rtn
+}
+
+declare -A cmd_ran=()
+-() {
+  local cmd_key="$*"
+  if [[ ${cmd_ran["$cmd_key"]} ]]
+  then
+    log debug "- $* : skipping"
+    return 0
+  else
+    log info "- $* : ..."
+    cmd_ran["$cmd_key"]=1
+    "-$@"
+    local _rtn=$?
+    if [[ $_rtn != 0 ]]
+    then
+      die "- $*"
+    fi
+    return $_rtn
+  fi
+}
+
+--() {
+  local target
+  for target
+  do
+    - "$target"
+  done
+}
+
+################################
+
+log_level=info
+declare -A log_levels=(
+  [fatal]=10
+  [error]=20
+  [warn]=30
+  [info]=40
+  [debug]=80
+  [trace]=90
+)
+_esc=''
+_csi="${_esc}["
+_vt_NORM="${_csi}0m"		# Normal text.
+_vt_HI="${_csi}1m"      # Bold text.
+declare -A log_color=(
+  [fatal]="1;31"
+  [error]="31"
+  [warn]="1;33"
+  [info]="34"
+  [debug]="2;36"
+  [trace]="2;37"
+  []="1"
+)
+log() {
+  local level="$1"; shift
+  # declare -p level log_level level_num log_level_num
+  if log-enabled "$level"
+  then
+    local term_code="${log_color["$level"]:-1}"
+    printf $'\e[%sm  ### %-6s : %s%s\e[0m\n' "$term_code" "${level^^}" "$*" >&2
+  fi
+}
+log-enabled() { # level
+  local level="$1"
+  local level_num="${log_levels[$level]:-$level}"
+  local log_level_num="${log_levels[$log_level]:-$log_level}"
+  # declare -p level log_level level_num log_level_num
+  (( level_num <= log_level_num ))
+}
+
+################################
+
+die() {
+  log fatal "die: $*"
+  exit 9
+}
+
+main() {
+  -- initialize setup defaults
+  local args=("$@")
+  [[ "${#args[@]}" == 0 ]] && args=(default)
+  -- "${args[@]}"
+}
+
+################################
+
+main "$@"
