@@ -121,7 +121,8 @@ run-mypy:
 #	-open
 
 stubgen:
-	mypy --install-types --non-interactive
+	# Avoid: error: Can't determine which types to install with no files to check (and no cache from previous mypy run)
+	-mypy --install-types --non-interactive
 	@set -x; for d in $(DIRS_OTHER); do $(MAKE) -C "$$d" $@; done
 	$(MAKE) run-$@
 
