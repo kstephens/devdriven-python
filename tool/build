@@ -284,7 +284,6 @@ declare -A log_color=(
   [info]="34"
   [debug]="2;36"
   [trace]="2;37"
-  ['']="1"
 )
 log() {
   local level="$1"; shift

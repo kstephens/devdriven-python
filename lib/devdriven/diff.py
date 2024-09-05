@@ -1,10 +1,13 @@
-from typing import Any, Dict, List, Optional
+from typing import Optional, Union, List, Dict
 import platform
 import os
 from devdriven.util import exec_command
 from devdriven.file import file_nlines
 
-def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
+DiffOption = str
+DiffResult = Dict[str, Union[str, int, float, bool, None]]
+
+def diff_files(expected_file: str, actual_file: str, *diff_options: DiffOption) -> DiffResult:
   if not (os.path.isfile(expected_file) and os.path.isfile(actual_file)):
     expected = file_nlines(expected_file)
     actual = file_nlines(actual_file)
@@ -21,7 +24,7 @@ def diff_files(expected_file: str, actual_file: str, *diff_options: Any) -> Dict
     }
   return DIFF_FUNC(DIFF_PROG, expected_file, actual_file, *diff_options)
 
-def diff_files_gnu(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
+def diff_files_gnu(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: DiffOption) -> DiffResult:
   command = [
     diff_cmd,
     '--minimal',
@@ -32,7 +35,7 @@ def diff_files_gnu(diff_cmd: str, expected_file: str, actual_file: str, *diff_op
     expected_file, actual_file]
   return diff_run(command, False, expected_file, actual_file)
 
-def diff_files_bsd(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: Any) -> Dict[str, Any]:
+def diff_files_bsd(diff_cmd: str, expected_file: str, actual_file: str, *diff_options: DiffOption) -> DiffResult:
   command = [
     diff_cmd,
     '--minimal',
@@ -41,7 +44,7 @@ def diff_files_bsd(diff_cmd: str, expected_file: str, actual_file: str, *diff_op
     expected_file, actual_file]
   return diff_run(command, True, expected_file, actual_file)
 
-def diff_run(command: List[str], has_fences: bool, expected_file: str, actual_file: str) -> Dict[str, Any]:
+def diff_run(command: List[str], has_fences: bool, expected_file: str, actual_file: str) -> DiffResult:
   expected = file_nlines(expected_file)
   actual = file_nlines(actual_file)
   diff_result = exec_command(command, check=False, capture_output=True)
@@ -63,7 +66,7 @@ def diff_run(command: List[str], has_fences: bool, expected_file: str, actual_fi
   return diff_files_stats(expected, actual, old, new, diff_result.returncode)
 
 def diff_files_stats(expected: Optional[int], actual: Optional[int],
-                     old: int, new: int, diff_exit_code: int) -> Dict[str, Any]:
+                     old: int, new: int, diff_exit_code: int) -> DiffResult:
   if expected is None or actual is None or diff_exit_code > 1:
     return {
       'correct': False,

@@ -7,20 +7,21 @@ class PickleCache():
   def __init__(self, path: str, generate: Optional[Callable]):
     self.path = Path(path)
     self.generate = generate
-    self._data = None
-    self._ready = self._stale = False
+    self._data: Any = None
+    self._ready: bool = False
+    self._stale: bool = False
 
   @property
-  def ready(self):
+  def ready(self) -> bool:
     return self._ready
 
-  def exists(self):
+  def exists(self) -> bool:
     return self.path.exists()
 
   def is_ready(self) -> bool:
     return self._ready
 
-  def flush(self):
+  def flush(self) -> None:
     self.path.unlink(True)
     self._stale = True
 
