@@ -150,6 +150,7 @@ minify() { #: in out
   venv x stubgen -o lib ${FILES:-${MYPY_FILES}}
 }
 -mypy() {
+  x rm -rf .mypy-cache/
 	x rm -rf $MYPY_REPORT_DIR
 	x mkdir -p $MYPY_REPORT_DIR
   local reports=($MYPY_REPORTS)

@@ -114,6 +114,7 @@ MYPY_OPTS+= --pretty --show-column-numbers
 MYPY_OPTS+= --warn-redundant-casts
 MYPY_OPTS+= $(foreach report,$(MYPY_REPORTS), $(report) $(MYPY_REPORT_DIR))
 run-mypy:
+	rm -rf .mypy-cache/
 	rm -rf mypy-report/
 	mkdir -p mypy-report
 	mypy $(MYPY_OPTS) $(wildcard $(or $(FILES), /dev/null))
