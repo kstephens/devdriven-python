@@ -101,6 +101,7 @@ def diff_files_stats(expected: Optional[int], actual: Optional[int],
     'correct_percent': correct_percent,
   }
 
+
 if platform.system() == 'Darwin':
   if os.path.isfile('/opt/homebrew/bin/diff'):
     DIFF_PROG = '/opt/homebrew/bin/diff'
@@ -111,6 +112,6 @@ if platform.system() == 'Darwin':
     DIFF_FLAVOR = 'bsd'
     DIFF_FUNC = diff_files_bsd
 else:
-    DIFF_PROG = 'diff'
-    DIFF_FLAVOR = 'gnu'
-    DIFF_FUNC = diff_files_gnu
+  DIFF_PROG = 'diff'
+  DIFF_FLAVOR = 'gnu'
+  DIFF_FUNC = diff_files_gnu
