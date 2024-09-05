@@ -26,7 +26,9 @@ all : venv check
 
 # Environment:
 
-venv: Makefile $(REQUIREMENTS_TXT)
+venv: venv/bin/activate
+
+venv/bin/activate: Makefile $(REQUIREMENTS_TXT)
 	$(MAKE) venv-create venv-upgrade-tools venv-install-requirements
 
 venv-create:
@@ -61,6 +63,8 @@ venv-force:
 
 install-requirements: $(REQUIREMENTS_TXT)
 	$(PYTHON) -m pip install $(foreach txt,$(REQUIREMENTS_TXT), -r $(txt))
+
+.PHONY: venv venv-create venv-upgrade-tools venv-force install-requirements
 
 # Early:
 
