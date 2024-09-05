@@ -48,9 +48,7 @@ venv-upgrade-tools:
 	$(PYTHON) -m pip install --upgrade pip ;\
 	. venv/bin/activate ;\
 	which $(PYTHON) ;\
-	pip install --upgrade pip ;\
-	pip install --upgrade setuptools ;\
-	pip install --upgrade distlib ;\
+	pip install --upgrade pip setuptools distlib ;\
 	$(MAKE) venv-install-requirements
 
 venv-install-requirements: $(REQUIREMENTS_TXT)
