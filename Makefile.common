@@ -127,11 +127,8 @@ stubgen:
 	@set -x; for d in $(DIRS_OTHER); do $(MAKE) -C "$$d" $@; done
 	$(MAKE) run-$@
 
-PYI_FILES=$(LIB_FILES:%.py=%.pyi)
-run-stubgen: $(PYI_FILES)
-.SUFFIXES: .pyi .py
-%.pyi: %.py
-	stubgen -o lib $(@:%.pyi=%.py)
+run-stubgen: $(LIB_FILES)
+	stubgen -o lib $(LIB_FILES)
 
 # Unit Test:
 
