@@ -98,6 +98,7 @@ run-pycodestyle:
 
 typing: typecheck
 typecheck: stubgen
+	mypy --install-types --non-interactive
 	$(MAKE) run-$@ FILES='$(or $(FILES), $(MYPY_FILES))'
 
 run-typecheck: stubgen mypy
