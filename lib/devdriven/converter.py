@@ -106,7 +106,7 @@ class Converter:
     if isinstance(data, tuple):
       return self.as_dict(list(data), key_type, val_type)
     if isinstance(data, pd.DataFrame):
-      return {r[0]: r[1] for _i, r in data.rowiter()}
+      return {r[0]: r[1] for _i, r in data.iterrows()}
     self.cannot_convert('as_dict', data)
     return {}
 
