@@ -29,18 +29,16 @@ def delete_file(path: str) -> bool:
   except OSError:
     return False
 
-if platform.system() == 'Darwin':
-  def file_md5(file: str) -> Optional[str]:
-    result = exec_command(['/sbin/md5', file], check=False, capture_output=True, encoding='utf-8')
-    if result.returncode == 0:
-      return str(result.stdout.split(' = ')[1]).strip()
-    return None
-else:
-  def file_md5(file: str) -> Optional[str]:
-    result = exec_command(['m5sum', file], check=False, capture_output=True, encoding='utf-8')
-    if result.returncode == 0:
+
+def file_md5(file: str, md5_cmd: Optional[str] = None) -> Optional[str]:
+  if not md5_cmd:
+    md5_cmd = 'md5' if platform.system() == 'Darwin' else 'md5sum'
+  result = exec_command([md5_cmd, file], check=False, capture_output=True, encoding='utf-8')
+  if result.returncode == 0:
+    if md5_cmd.endswith('md5sum'):
       return str(result.stdout.split(' ')[0]).strip()
-    return None
+    return str(result.stdout.split(' = ')[1]).strip()
+  return None
 
 def file_size(path: str) -> Optional[int]:
   try:
