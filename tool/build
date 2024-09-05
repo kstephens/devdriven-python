@@ -25,37 +25,37 @@
   . venv/bin/activate
 }
 -venv-create() {
-	which ${PYTHON}
-	env | grep -E 'LD_|PATH'
-	x ${PYTHON} --version
-	x ${PYTHON_BIN} -m venv ${VENV_OPTS} ./venv
-	- venv-activate
-	env | grep -E 'LD_|PATH'
-	x which ${PYTHON}
-	x ${PYTHON} --version
+  which ${PYTHON}
+  env | grep -E 'LD_|PATH'
+  x ${PYTHON} --version
+  x ${PYTHON_BIN} -m venv ${VENV_OPTS} ./venv
+  - venv-activate
+  env | grep -E 'LD_|PATH'
+  x which ${PYTHON}
+  x ${PYTHON} --version
 # pip+3.10: SO MANY BUGS...
 # https://stackoverflow.com/questions/72439001/there-was-an-error-checking-the-latest-version-of-pip
 }
 -venv-upgrade-tools() {
-	x ${PYTHON} -m pip install --upgrade pip
-	- venv-activate
-	x which ${PYTHON}
+  x ${PYTHON} -m pip install --upgrade pip
+  - venv-activate
+  x which ${PYTHON}
   # x pip install --upgrade pip
-	# x pip install --upgrade setuptools
-	# x pip install --upgrade distlib
-	x pip install --upgrade pip setuptools distlib
-	- venv-install-requirements
+  # x pip install --upgrade setuptools
+  # x pip install --upgrade distlib
+  x pip install --upgrade pip setuptools distlib
+  - venv-install-requirements
 }
 -venv-install-requirements() { #: ${REQUIREMENTS_TXT}
-	- install-requirements
+  - install-requirements
 }
 -venv-force() {
-	x rm -rf venv/
-	-venv-create
+  x rm -rf venv/
+  -venv-create
 }
 -install-requirements() { #: $(REQUIREMENTS_TXT)
   local requirements_txt=($REQUIREMENTS_TXT)
-	venv x ${PYTHON} -m pip install ${requirements_txt[@]/#/-r }
+  venv x ${PYTHON} -m pip install ${requirements_txt[@]/#/-r }
 }
 
 ################################
@@ -84,7 +84,7 @@
 }
 
 -pycodestyle() {
-	venv x pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard ${FILES:-${LINT_FILES}})
+  venv x pycodestyle --config=.pycodestyle --show-source --statistics $(wildcard ${FILES:-${LINT_FILES}})
 }
 
 wildcard() {
@@ -112,7 +112,7 @@ minify() { #: in out
 }
 
 -minify-clean() {
-	rm -f $MIN_JS_FILES
+  rm -f $MIN_JS_FILES
 }
 
 ################################
@@ -126,14 +126,14 @@ minify() { #: in out
   -- early
   local coverage="${COVERAGE_DIR:-coverage}"
   x rm -rf $coverage/
-	x mkdir -p $coverage
+  x mkdir -p $coverage
   local files="${FILES:-$TEST_FILES}"
   files="${files:+$(wildcard $files)}"
-	venv x coverage run -m pytest ${PYTEST_OPTS} ${files:-all} -vv -rpP
-	venv x coverage report | tee coverage/coverage.txt
-	venv x coverage html
-	venv x coverage json
-#	venv x coverage xml
+  venv x coverage run -m pytest ${PYTEST_OPTS} ${files:-all} -vv -rpP
+  venv x coverage report | tee coverage/coverage.txt
+  venv x coverage html
+  venv x coverage json
+# venv x coverage xml
 }
 
 ################################
@@ -151,22 +151,22 @@ minify() { #: in out
 }
 -mypy() {
   x rm -rf .mypy-cache/
-	x rm -rf $MYPY_REPORT_DIR
-	x mkdir -p $MYPY_REPORT_DIR
+  x rm -rf $MYPY_REPORT_DIR
+  x mkdir -p $MYPY_REPORT_DIR
   local reports=($MYPY_REPORTS)
   local opts=($MYPY_OPTS ${reports[@]/%/ $MYPY_REPORT_DIR})
-	venv x mypy "${opts[@]}" $(wildcard ${FILES:-${MYPY_FILES:-/dev/null}})
-	x head -9999 $MYPY_REPORT_DIR/*.txt
+  venv x mypy "${opts[@]}" $(wildcard ${FILES:-${MYPY_FILES:-/dev/null}})
+  x head -9999 $MYPY_REPORT_DIR/*.txt
 }
 
 ################################
 # Housekeeping:
 
 -clean() {
-	x rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov "${COVERAGE_DIR:?}/"
-	find lib tests -name '__pycache__' -a -type d | sort -r | xargs --verbose rm -rf {}
+  x rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov "${COVERAGE_DIR:?}/"
+  find lib tests -name '__pycache__' -a -type d | sort -r | xargs --verbose rm -rf {}
   - minify-clean
-	x find lib -name '*.pyi' -exec rm '{}' \;
+  x find lib -name '*.pyi' -exec rm '{}' \;
 }
 
 ################################
@@ -275,7 +275,7 @@ declare -A log_levels=(
 )
 _esc=''
 _csi="${_esc}["
-_vt_NORM="${_csi}0m"		# Normal text.
+_vt_NORM="${_csi}0m"    # Normal text.
 _vt_HI="${_csi}1m"      # Bold text.
 declare -A log_color=(
   [fatal]="1;31"
