@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import List, Dict
 import logging
 import shlex
 import re
@@ -23,9 +23,7 @@ class MacroExpander:
   def expand_macro(self, command: Command) -> Command:
     name, *argv = command
     if macro := self.macros.get(name):
-      rx = r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$([@*])"|\$([@*]))'
-
-      def expand(m):
+      def expand(m: re.Match) -> str:
         if m[1]:   # "$n"
           return shlex.join([get_safe(command, int(m[1]), '')])
         if m[2]:   # $n
@@ -37,12 +35,15 @@ class MacroExpander:
         if m[4]:  # $@ == $*
           return ' '.join(argv)
         assert not 'here'
-        return None
-      exp = re.sub(rx, expand, macro)
+        return '<<INVALID>>'
+      exp = re.sub(MACRO_REFERERENCE_RX, expand, macro)
       return shlex.split(exp)
     return command
 
-def get_safe(a, i: int, default=None) -> Any:
+
+MACRO_REFERERENCE_RX = re.compile(r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$([@*])"|\$([@*]))')
+
+def get_safe(a: List[str], i: int, default: str) -> str:
   try:
     return a[i]
   except IndexError:
