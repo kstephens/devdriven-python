@@ -224,7 +224,7 @@ ignore() {
 }
 
 x() {
-  log info "x $*"
+  log INFO "x $*"
   "$@"
   local _rtn=$?
   if [[ $_rtn != 0 ]]
@@ -234,16 +234,39 @@ x() {
   return $_rtn
 }
 
-declare -A cmd_ran=()
+# Old Bash doesn't have assocs.
+# declare -A cmd_ran=()
+set_files=()
+trap 'rm -f "${set_files[@]}"' EXIT
+
+set-create() {
+  local var="$1" name="${2:-$1}"
+  local set_file="$(mktemp -t "ran-$$.XXXXXX")"
+  echo -n '' > "$set_file"
+  trap "rm -f '$set_file'" EXIT
+  printf -v "$var" '%s' "$set_file"
+}
+set-contains() {
+  grep -qxF "$2" "$1"
+}
+set-append() {
+  echo "$2" >> "$1"
+  sort -u -o "$1" "$1"
+  (set -x; head -9999 "$1") >&2
+}
+
+set-create ran_set
 -() {
   local cmd_key="$*"
-  if [[ ${cmd_ran["$cmd_key"]} ]]
+  # if [[ ${cmd_ran["$cmd_key"]} ]]
+  if set-contains "$ran_set" "$cmd_key"
   then
-    log debug "- $* : skipping"
+    log DEBUG "- $* : skipping"
     return 0
   else
-    log info "- $* : ..."
-    cmd_ran["$cmd_key"]=1
+    log INFO "- $* : ..."
+    set-append "$ran_set"
+    # cmd_ran["$cmd_key"]=1
     "-$@"
     local _rtn=$?
     if [[ $_rtn != 0 ]]
@@ -264,50 +287,63 @@ declare -A cmd_ran=()
 
 ################################
 
-log_level=info
-declare -A log_levels=(
-  [fatal]=10
-  [error]=20
-  [warn]=30
-  [info]=40
-  [debug]=80
-  [trace]=90
-)
-_esc=''
-_csi="${_esc}["
-_vt_NORM="${_csi}0m"    # Normal text.
-_vt_HI="${_csi}1m"      # Bold text.
-declare -A log_color=(
-  [fatal]="1;31"
-  [error]="31"
-  [warn]="1;33"
-  [info]="34"
-  [debug]="2;36"
-  [trace]="2;37"
-)
+die() {
+  log FATAL "die: $*"
+  exit 9
+}
+
+
+################################
+
+log_level=INFO
+log__FATAL__priority=10
+log__FATAL__color="1;31"
+log__ERROR__priority=20
+log__ERROR__color="31"
+log__WARN__priority=30
+log__WARN__color="1;33"
+log__INFO__priority=40
+log__INFO__color="34"
+log__DEBUG__priority=80
+log__DEBUG__color="2;36"
+log__TRACE__priority=90
+log__TRACE__color="2;37"
 log() {
   local level="$1"; shift
+  local level_num log_level_num
   # declare -p level log_level level_num log_level_num
   if log-enabled "$level"
   then
-    local term_code="${log_color["$level"]:-1}"
-    printf $'\e[%sm  ### %-6s : %s%s\e[0m\n' "$term_code" "${level^^}" "$*" >&2
+    local var="log__${level}__color"
+    local color_code="${!var:-1}"
+    printf $'\e[%sm  ### %-6s : %s%s\e[0m\n' "$color_code" "$level" "$*" >&2
   fi
 }
 log-enabled() { # level
   local level="$1"
-  local level_num="${log_levels[$level]:-$level}"
-  local log_level_num="${log_levels[$log_level]:-$log_level}"
+  local var="log__${level}__priority"
+  level_num="${!var:-$level}"
+  local var="log__${log_level}__priority"
+  log_level_num="${!var:-$log_level}"
   # declare -p level log_level level_num log_level_num
   (( level_num <= log_level_num ))
 }
 
-################################
-
-die() {
-  log fatal "die: $*"
-  exit 9
+log-test-example() {
+  (
+    for log_level in 0 10 50 100
+    do
+      for level in FATAL ERROR WARN INFO DEBUG TRACE 99
+      do
+        declare -p log_level level
+        log $level "at log_level=$log_level"
+      done
+    done
+  )
 }
+# log-test-example; exit
+
+################################
 
 main() {
   -- initialize setup defaults
