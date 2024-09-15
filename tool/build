@@ -47,7 +47,7 @@
 }
 -venv-force() {
   x rm -rf venv/
-  -venv-create
+  -venv
 }
 install-requirements() {
   local list=($requirements_txt)
