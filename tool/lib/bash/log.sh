@@ -32,11 +32,14 @@ log-() {
   # declare -p level log_level level_num log_level_num >&2
   if log-enabled "$level"
   then
+    local log_timestamp="$(TZ=$log_tz $log_date -Ins)"
     local color_code_var="log__${level}__color"
     local color_code="${!color_code_var:-1}"
-    printf $'\e[%sm  ### %05d : %-6s : %s%s\e[0m\n' "$color_code" "$SECONDS" "$level" "$*" >&2
+    printf $'\e[%sm  ### %s : %-6s : %s%s\e[0m\n' "$color_code" "$log_timestamp" "$level" "$*" >&2
   fi
 }
+log_tz=UTC
+log_date=$(which /opt/homebrew/Cellar/coreutils/*/libexec/gnubin/date date true | head -1)
 
 log-enabled() { # level
   local level="$1"
