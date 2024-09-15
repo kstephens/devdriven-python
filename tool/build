@@ -349,7 +349,7 @@ locate() {
   if [[ -n "${locate_val}" ]]
   then
     # declare -p locate_var locate_val 1>&2
-    find /dev/null $locate_val "$@" | sort -u
+    find /dev/null $locate_val "$@" 2</dev/null | sort -u
   fi
   log DEBUG "locate $locate_var : DONE"
 }
