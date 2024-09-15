@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    - name: setup venv
+    - name: create venv
       run: tool/build venv-force
-    - name: run make
+    - name: tool/build
       run: . venv/bin/activate && tool/build test
