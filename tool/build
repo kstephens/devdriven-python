@@ -332,7 +332,7 @@ append-path() {
   local append_path_var="$1"; shift
   log DEBUG "append-path $append_path_var $* : ..."
   local append_path_val="${!append_path_var}"
-  declare -g "$append_path_var=$(absolute $append_path_val "$@")"
+  declare -- "$append_path_var=$(absolute $append_path_val "$@")"
   log DEBUG "append-path $append_path_var $* : DONE"
   # declare -p append_path_var append_path_val 1>&2
 }
