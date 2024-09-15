@@ -50,7 +50,7 @@
   -venv
 }
 install-requirements() {
-  local list=($requirements_txt)
+  local list=($requirements_files)
   venv x ${PYTHON} -m pip install ${list[@]/#/-r }
 }
 
@@ -295,7 +295,10 @@ lint-dir() {
 }
 requirements-dir() {
   append-path requirements_dirs "$@"
-  requirements_txt="$(locate requirements_dirs -depth 1 -type f -name '*requirements.txt' | newline-space)"
+  requirements-file "$(locate requirements_dirs -depth 1 -type f -name '*requirements.txt' | sort -u | newline-space)"
+}
+requirements-file() {
+  requirements_files+="$(absolute "$@")"
 }
 resource-dir() {
   append-path resource_dirs "$@"
