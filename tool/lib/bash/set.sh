@@ -21,3 +21,9 @@ set-append() {
   sort -u -o "$1" "$1"
   # log INFO "set-append $1 '$2'"
 }
+set-remove() {
+  local tmp_file="$(mktemp -t "ran-$$.XXXXXX")"
+  grep --color=never -F "$2" "$1" > "$tmp_file"
+  mv "$tmp_file" "$1"
+  # log INFO "set-append $1 '$2'"
+}

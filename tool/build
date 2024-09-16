@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 
 ################################
+
+vars=()
+var() {
+  local _var_kv
+  for _var_kv
+  do
+    declare -g -- "$_var_kv"
+    vars+=("${_var_kv%%=*}")
+  done
+}
+-show-vars() {
+  declare -p -- vars "${vars[@]}"
+}
+
+
+################################
 # Top-level targets:
 
 -default() {
@@ -144,6 +160,7 @@ js-dir() {
   local list=($js_files)
   js_files_min="${list[*]/%.js/.min.js}"
 }
+var js_files js_files_min
 
 -minify() {
   # declare -p js_files js_files_min >&2
@@ -182,7 +199,7 @@ minify() { #: in out
 	x sudo apt-get update && x sudo apt-get install -y ${os_dependencies} ${os_dependencies_linux}
 }
 -os-dependencies-Darwin() {
-	x brew install ${os_dependencies} || x brew reinstall ${os_dependencies} ${os_dependencies_linux_darwin}
+	x brew install ${os_dependencies} || x brew reinstall ${os_dependencies} ${os_dependencies_darwin}
 }
 
 ################################
@@ -191,7 +208,7 @@ minify() { #: in out
 other-dir() {
   project_dirs+=" $(absolute "$@")"
   append-path other_dirs "$@"
-  declare -p project_dirs other_dirs >&2
+  # declare -p project_dirs other_dirs >&2
 }
 -load-projects() {
   # set -x
@@ -201,7 +218,7 @@ other-dir() {
     local list=($project_dirs)
     local project_dir="${list[0]}"
     project_dirs="${list[*]:1}"
-    pushd "$project_dir"
+    pushd "$project_dir" >/dev/null
     cwd="$(/bin/pwd)"
     # declare -p project_dir project_dirs cwd >&2
     local proj_file
@@ -212,10 +229,11 @@ other-dir() {
       . "$proj_file" || return $?
       x : loaded $proj_file
     done
-    popd
+    popd >/dev/null
   done
   # set +x
 }
+var project_dirs other_dirs
 
 ################################
 
@@ -276,33 +294,49 @@ bin-dir() {
   append-path bin_dirs "$@"
   bin_files="$(locate bin_dirs -type f | xargs grep -El '^\#!.+python' /dev/null 2>/dev/null | newline-space)"
   bin_files_lint="$bin_files"
+  # declare -p bin_files bin_files_lint >&2
   lint-dir "$@"
 }
+var bin_dirs bin_files bin_files_lint
+
 lib-dir() {
   append-path lib_dirs "$@"
   lib_files="$(locate lib_dirs -name '*.py' | grep -Ev '_test\.py$' | newline-space)"
+  # declare -p lib_files >&2
   pythonpath $lib_dirs
 }
+var lib_dirs lib_files
+
 test-dir() {
   append-path test_dirs "$@"
   test_files="$(locate test_dirs -name '*_test.py' | newline-space)"
+  # declare -p test_files >&2
   lint-dir "$@"
 }
+var test_dirs test_files
+
 lint-dir() {
   append-path lint_dirs "$@"
   lint_files="$(locate lint_dirs -name '*.py' | newline-space) $bin_files_lint"
   mypy_files="$(grep -El '^ *from typing import ' /dev/null $lint_files | newline-space)"
+  # declare -p lint_files mypy_files >&2
 }
+var lint_dirs lint_files mypy_files
+
 requirements-dir() {
   append-path requirements_dirs "$@"
   requirements-file "$(locate requirements_dirs -depth 1 -type f -name '*requirements.txt' | sort -u | newline-space)"
 }
 requirements-file() {
-  requirements_files+="$(absolute "$@")"
+  requirements_files="$(absolute $requirements_files "$@")"
+  # declare -p requirements_files >&2
 }
+var requirements_dirs requirements_files
+
 resource-dir() {
   append-path resource_dirs "$@"
 }
+var resource_dirs
 
 pythonpath() {
   local dirs="$* $lib_dirs"
@@ -330,17 +364,15 @@ wildcard() {
 
 append-path() {
   local append_path_var="$1"; shift
-  log DEBUG "append-path $append_path_var $* : ..."
+  log DEBUG "append-path $append_path_var $*"
   local append_path_val="${!append_path_var}"
-  declare -- "$append_path_var=$(absolute $append_path_val "$@")"
-  log DEBUG "append-path $append_path_var $* : DONE"
-  # declare -p append_path_var append_path_val 1>&2
+  declare -g -- "$append_path_var=$(absolute $append_path_val "$@")"
+  # declare -p -- "$append_path_var"
 }
 
 absolute() {
-  log DEBUG "absolute $* : ..."
+  log DEBUG "absolute $*"
   realpath "$@" 2>/dev/null | sort -u | newline-space
-  log DEBUG "absolute $* : DONE"
 }
 
 locate() {
