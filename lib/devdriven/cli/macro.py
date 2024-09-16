@@ -23,6 +23,7 @@ class MacroExpander:
   def expand_macro(self, command: Command) -> Command:
     name, *argv = command
     if macro := self.macros.get(name):
+
       def expand(m: re.Match) -> str:
         if m[1]:   # "$n"
           return shlex.join([get_safe(command, int(m[1]), '')])
