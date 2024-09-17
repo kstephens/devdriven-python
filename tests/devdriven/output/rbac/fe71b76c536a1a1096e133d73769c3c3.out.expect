@@ -1,0 +1,37 @@
+
+  # a comment
+
+allow *   admin  *
+allow *   admin  .*
+allow GET *      README.*
+allow GET read   *.c
+allow PUT write  *
+deny  *   *      *
+
+  
+assert fut('/nope', 'GET'), 'unknown' == []
+assert fut('/nope', 'GET'), 'alice' == []
+assert fut('/a/b', 'GET'), 'unknown' == ['deny']
+assert fut('/a/b', 'GET'), 'alice' == ['allow', 'deny']
+assert fut('/a/b', 'GET'), 'bob' == ['deny']
+assert fut('/a/b', 'GET'), 'frank' == ['deny']
+assert fut('/a/b.c', 'GET'), 'unknown' == ['deny']
+assert fut('/a/b.c', 'PUT'), 'unknown' == ['deny']
+assert fut('/a/b.c', 'GET'), 'alice' == ['allow', 'deny']
+assert fut('/a/b.c', 'PUT'), 'alice' == ['allow', 'deny']
+assert fut('/a/b.c', 'GET'), 'bob' == ['allow', 'deny']
+assert fut('/a/b.c', 'PUT'), 'bob' == ['deny']
+assert fut('/a/b.c', 'GET'), 'frank' == ['deny']
+assert fut('/a/b.c', 'PUT'), 'frank' == ['allow', 'deny']
+assert fut('/a/.c', 'GET'), 'unknown' == []
+assert fut('/a/.c', 'GET'), 'alice' == ['allow']
+assert fut('/a/.c', 'GET'), 'bob' == []
+assert fut('/a/.c', 'GET'), 'frank' == []
+assert fut('/a/README.md', 'GET'), 'unknown' == ['allow', 'deny']
+assert fut('/a/README.md', 'PUT'), 'unknown' == ['deny']
+assert fut('/a/README.md', 'GET'), 'alice' == ['allow', 'allow', 'deny']
+assert fut('/a/README.md', 'PUT'), 'alice' == ['allow', 'deny']
+assert fut('/a/README.md', 'GET'), 'bob' == ['allow', 'deny']
+assert fut('/a/README.md', 'PUT'), 'bob' == ['deny']
+assert fut('/a/README.md', 'GET'), 'frank' == ['allow', 'deny']
+assert fut('/a/README.md', 'PUT'), 'frank' == ['allow', 'deny']
