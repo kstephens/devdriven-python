@@ -330,7 +330,7 @@ var lint_dirs lint_files mypy_files
 
 requirements-dir() {
   append-path requirements_dirs "$@"
-  requirements-file "$(locate requirements_dirs -depth 1 -type f -name '*requirements.txt' | sort -u | newline-space)"
+  requirements-file "$(locate requirements_dirs -depth 1 -type f -name '*requirements.txt' | newline-space)"
 }
 requirements-file() {
   requirements_files="$(absolute $requirements_files "$@")"
