@@ -198,7 +198,7 @@ minify() { #: in out
 # Projects
 
 -os-dependencies() {
-  - os-dependencies-${uname_o}
+  - os-dependencies-${uname_o:?}
 }
 -os-dependencies-GNU-Linux() {
 	x sudo apt-get update && x sudo apt-get install -y ${os_dependencies} ${os_dependencies_linux}
@@ -263,8 +263,9 @@ initialize() {
   set-create ran_set
   base_dir="$(readlink -f .)"
   uname_a="$(uname -a)"
-  uname_s="$(uname -s | tr '/-' '_')"
-  uname_m="$(uname -m | tr '/-' '_')"
+  uname_o="$(uname -o | tr '/' '-')"
+  uname_s="$(uname -s | tr '/' '-')"
+  uname_m="$(uname -m | tr '/' '-')"
 }
 
 -defaults() {
