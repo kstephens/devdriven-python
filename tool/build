@@ -98,11 +98,14 @@ venv() { # cmd
 }
 
 -pylint() {
-  venv x pylint --rcfile ./.pylintrc --recursive=y $lint_files
+  override files lint_files
+  venv x pylint --rcfile ./.pylintrc --recursive=y $files
+  set +x
 }
 
 -pycodestyle() {
-  venv x pycodestyle --config=.pycodestyle --show-source --statistics $lint_files
+  override files lint_files
+  venv x pycodestyle --config=.pycodestyle --show-source --statistics $files
 }
 
 ################################
@@ -114,9 +117,10 @@ venv() { # cmd
 
 -unit-test() {
   -- early
+  override files test_files
   x rm -rf ${coverage_dir:?}/
   x mkdir -p $coverage_dir
-  venv x coverage run -m pytest ${pytest_opts} ${test_files:-all} -vv -rpP
+  venv x coverage run -m pytest ${pytest_opts} -vv -rpP ${files:-all}
   venv x coverage report | tee $coverage_dir/coverage.txt
   venv x coverage html
   venv x coverage json
@@ -131,11 +135,12 @@ venv() { # cmd
 # Typecheck:
 
 -typecheck() {
+  override files mypy_files
   -- stubgen mypy $typecheck_other
 }
 -stubgen() {
   x ignore mypy --install-types --non-interactive
-  venv x stubgen -o lib $mypy_files
+  venv x stubgen -o lib $files
 }
 -mypy() {
   x rm -rf .mypy-cache/
@@ -143,7 +148,7 @@ venv() { # cmd
   x mkdir -p $mypy_report_dir
   local reports=($mypy_reports)
   local opts=($mypy_opts ${reports[@]/%/ $mypy_report_dir})
-  venv x mypy "${opts[@]}" ${mypy_files:-/dev/null}
+  venv x mypy "${opts[@]}" ${files:-/dev/null}
   x head -9999 $mypy_report_dir/*.txt
 }
 
@@ -251,7 +256,7 @@ initialize() {
   prog_name="${0##*/}"
   prog_dir="$(dirname "$(realpath "$0")")"
   local lib_file
-  for lib_file in log.sh set.sh
+  for lib_file in log.sh set.sh argv.sh
   do
     . "$prog_dir/lib/bash/$lib_file" || exit 9
   done
@@ -358,6 +363,12 @@ pythonpath() {
 #######################################
 # Helpers:
 
+override() {
+  local _override="${argv_args}"
+  _override="${_override:-${!2}}"
+  declare -g "$1=$_override"
+}
+
 wildcard() {
   ls " " $* 2>/dev/null
 }
@@ -449,6 +460,10 @@ die() {
 
 ################################
 
+main-target() {
+  local target="$1"; shift
+  - "$target" "${argv_args[@]}"
+}
 main() {
   local args=("$@")
   initialize
@@ -459,7 +474,7 @@ main() {
   -- setup
   [[ "${#args[@]}" == 0 ]] && args=(default)
   # set -x
-  -- "${args[@]}"
+  -argv-parse-commands main-target "${args[@]}"
 }
 
 ################################
