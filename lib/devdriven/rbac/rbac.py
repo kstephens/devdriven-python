@@ -1,17 +1,27 @@
 from typing import Any, Optional, Self, Callable, List, Type, IO
 from dataclasses import dataclass, field
+from pathlib import Path
 import re
 import devdriven.glob
+# from icecream import ic
 
 Matcher = Callable[[Any, Any], bool]
 
 class Matchable:
-  def __init__(self, name: str):
+  def __init__(self, name: str, desc: str = ''):
     self.name = name
     self.matcher: Matcher = match_name
+    self.description = desc
 
   def matches(self, other: Self) -> bool:
     return self.matcher(self, other)
+
+  def __str__(self):
+    return f"{self.__class__.__name__}({self.name!r}, {self.description!r})"
+
+  def __repr__(self):
+    return self.__str__()
+
 
 def match_name(self: Matchable, other: Matchable):
   return self.name == other.name
@@ -46,6 +56,10 @@ class Rule:
   action: Action
   role: Role
   permission: Permission
+  description: str = field(default='')
+
+  def brief(self) -> str:
+    return f"({self.resource.name!r}, {self.action.name!r}, {self.role.name!r}, {self.permission.name!r})"
 
 
 Permissions = List[Permission]
@@ -133,7 +147,7 @@ class Solver:
 
 @dataclass
 class TextLoader:
-  resource: Resource
+  prefix: str
 
   def read(self, io: IO) -> Rules:
     rules = []
@@ -148,8 +162,9 @@ class TextLoader:
     if trimmed == '':
       return None
     if m := re.search(RULE_RX, trimmed):
+      resource_path = clean_path(f"{self.prefix}{m['resource']}")
       return Rule(
-        resource=self.parse_pattern(Resource, f"{self.resource.name}/{m['resource']}", False),
+        resource=self.parse_pattern(Resource, f"{resource_path}", False),
         action=self.parse_pattern(Action, m['action'], True),
         role=self.parse_pattern(Role, m['role'], True),
         permission=Permission(m['permission']),
@@ -162,13 +177,61 @@ class TextLoader:
       obj.matcher = match_true
     else:
       def matcher(self, other):
-        # ic((self.regex, other.name))
         return re.search(self.regex, other.name) is not None
       obj.regex = devdriven.glob.glob_to_regex(pattern)
+      obj.description = obj.regex
       obj.matcher = matcher
     return obj
+
+def real_open_file(file: Path) -> Optional[IO]:
+  try:
+    return open(str(file), "r", encoding='utf-8')
+  except OSError:
+    return None
+
+def clean_path(path: str) -> str:
+  prev = None
+  while path != prev:
+    prev = path
+    path = re.sub(r'//+', '/', path)
+    path = re.sub(r'^\./', '', path)
+    path = re.sub(r'^\.\.(?:$|/)', '', path, 1)
+    path = re.sub(r'(:?^/)\./', '/', path)
+    path = re.sub(r'^/\.\.(?:$|/)', '/', path, 1)
+    path = re.sub(r'^[^/]+/\.\.(?:$|/)', '', path, 1)
+    path = re.sub(r'/[^/]+/\.\./', '/', path, 1)
+  return path
 
 
 COMMENT_RX = re.compile(r'#.*$')
 LEADING_SPACE_RX = re.compile(r'^\s+')
 RULE_RX = re.compile(r'^(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)$')
+
+@dataclass
+class FileSystemLoader:
+  root: Path
+  open_file: Callable = field(default=real_open_file)
+
+  def load_rules(self, resource: Path) -> Rules:
+    resource_paths = self.resource_paths(resource)
+    rules = []
+    for path in resource_paths:
+      # ic(path)
+      path_rules = self.load_auth_file(path)
+      rules.extend(path_rules)
+    return rules
+
+  def load_auth_file(self, path: Path) -> Rules:
+    auth_file = self.auth_file(path)
+    # ic((path, auth_file))
+    io = self.open_file(auth_file)
+    if io:
+      loader = TextLoader(prefix=str(path) + '/')
+      return loader.read(io)
+    return []
+
+  def resource_paths(self, resource: Path) -> List[Path]:
+    return list(resource.parents)
+
+  def auth_file(self, path: Path) -> Path:
+    return self.root / path.relative_to('/') / '.auth.txt'
