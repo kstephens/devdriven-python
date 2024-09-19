@@ -2,7 +2,7 @@ from io import StringIO
 from pathlib import Path, PurePath
 from devdriven.rbac.rbac import \
   Resource, Action, \
-  Domain, Request, Solver, UserRoles, \
+  Domain, Request, Solver, \
   TextLoader, FileSystemLoader
 from devdriven.rbac.rbac import clean_path
 
@@ -42,9 +42,10 @@ user alice    Admins
 user bob      Readers
 user frank    Writers,Other
 user tim      Other
+user root     Other
     ''',
     '/root/.role.txt': '''
-member admin-role  Admins
+member admin-role  Admins,@root
 member read-role   Readers
 member write-role  Writers
 member other-role  Other
@@ -82,7 +83,7 @@ perm allow PUT write-role *.txt
   def print_user(user):
     nonlocal domain
     groups = list(map(lambda o: o.name, user.groups))
-    roles = list(map(lambda o: o.name, UserRoles(domain).user_roles(user)))
+    roles = list(map(lambda o: o.name, Solver(domain).user_roles(user)))
     prt(f"# identity {user.name}")
     prt(f"#   groups = {groups!r}")
     prt(f"#   roles = {roles!r}")
@@ -128,6 +129,7 @@ perm allow PUT write-role *.txt
   prt('# =========================================')
   fut('/nope', 'GET', 'unknown')
   fut('/nope', 'GET', 'alice')
+  fut('/nope', 'GET', 'root')
 
   prt('# =========================================')
   fut('/a/1', 'GET', 'unknown')

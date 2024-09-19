@@ -4,11 +4,14 @@
 #  user bob Readers
 #  user frank Writers,Other
 #  user tim Other
+#  user root Other
 #  member admin-role Admins
+#  member admin-role root
 #  member read-role Readers
 #  member write-role Writers
 #  member other-role Other
 #  member anon-role Anon
+#  role admin-role
 #  role admin-role
 #  role read-role
 #  role write-role
@@ -27,6 +30,11 @@ assert fut('/nope', 'GET'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 #   groups = ['Admins']
 #   roles = ['admin-role']
 assert fut('/nope', 'GET'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
+
+# identity root
+#   groups = ['Other']
+#   roles = ['admin-role', 'other-role']
+assert fut('/nope', 'GET'), 'root' == [('/**', '*', 'admin-role', 'allow')]
 # =========================================
 
 # identity unknown

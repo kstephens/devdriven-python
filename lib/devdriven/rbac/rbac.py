@@ -110,24 +110,12 @@ class Request:
 ########################################
 
 @dataclass
-class UserRoles:
-  domain: Domain
-
-  def user_roles(self, user: User) -> Roles:
-    roles = []
-    for role_memb in self.domain.memberships:
-      for group in user.groups:
-        if role_memb.member.name == group.name:
-          roles.append(role_memb.role)
-    return roles
-
-@dataclass
 class Solver:
   domain: Domain
 
   def find_rules(self, request: Request) -> Rules:
     rules = []
-    request.roles = UserRoles(self.domain).user_roles(request.user)
+    request.roles = self.user_roles(request.user)
     for rule in self.domain.rules:
       if self.rule_matches(rule, request):
         rules.append(rule)
@@ -142,6 +130,16 @@ class Solver:
       if rule.role.matches(role):
         return True
     return False
+
+  def user_roles(self, user: User) -> Roles:
+    roles = []
+    for role_memb in self.domain.memberships:
+      if isinstance(role_memb.member, User) and role_memb.member.name == user.name:
+        roles.append(role_memb.role)
+      for group in user.groups:
+        if isinstance(role_memb.member, Group) and role_memb.member.name == group.name:
+          roles.append(role_memb.role)
+    return roles
 
 @dataclass
 class TextLoader:
