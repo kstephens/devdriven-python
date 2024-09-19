@@ -2,35 +2,36 @@
 from typing import Optional  # List, Iterable
 import logging
 import re
+import base64
 from operator import is_not
 from functools import partial
-import ldap
-import base64
-import json
-# from ldap import VERSION3
-# from ldap.filter import escape_filter_chars
-from icecream import ic
+import ldap  # type: ignore
+# from icecream import ic
 
 class LDAPService():
   config: dict
 
   def __init__(self, config: dict):
     self.config = config
-    self.state : dict = {}
+    self.state: dict = {}
     self.ldap_obj = None
 
   def connect(self):
     ldap_obj = ldap.initialize(self.config['url'])
+    # pylint: disable-next=no-member
     ldap_obj.protocol_version = ldap.VERSION3
     if self.config['tlsrequirecert'] != 'true':
       # ??? \'TLS: hostname does not match CN in peer certificate\'}
+      # pylint: disable-next=no-member
       ldap_obj.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, 0)
     if self.config['starttls'] == 'true':
       ldap_obj.start_tls_s()
     if self.config['disable_referrals'] == 'true':
+      # pylint: disable-next=no-member
       ldap_obj.set_option(ldap.OPT_REFERRALS, 0)
     # pylint: disable-next=consider-using-f-string
     binddn = self.config['binddn'] % {'binduser': self.config['binduser']}
+    # pylint: disable-next=no-member
     ldap_obj.bind_s(binddn, self.config['bindpasswd'], ldap.AUTH_SIMPLE)
     self.ldap_obj = ldap_obj
 
@@ -40,6 +41,7 @@ class LDAPService():
     try:
       user_info = res['user_info'] = self.get_user_info(req)
       if user_info['status'] == 'success':
+        # pylint: disable-next=no-member
         self.ldap_obj.bind_s(user_info['dn'], secret, ldap.AUTH_SIMPLE)
         res['status'] = 'success'
     # pylint: disable-next=broad-except
@@ -69,6 +71,7 @@ class LDAPService():
       # attributes = ['()']
       results = self.ldap_obj.search_s(
         self.config['basedn'],
+        # pylint: disable-next=no-member
         ldap.SCOPE_SUBTREE,
         filterstr=searchfilter,
         # attrlist=attributes,
@@ -118,5 +121,5 @@ def parse_group_cn(item: bytes) -> Optional[str]:
     return m['CN']
   return None
 
-#def slice(indexable, keys):
-#  return {k: indexable[k] for k in keys if k in indexable}
+# def slice(indexable, keys):
+#   return {k: indexable[k] for k in keys if k in indexable}

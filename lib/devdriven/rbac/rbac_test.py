@@ -1,13 +1,13 @@
 from io import StringIO
 from pathlib import Path, PurePath
 from devdriven.rbac.rbac import \
-  Resource, Action, Role, Group, Membership, User, \
+  Resource, Action, \
   Domain, Request, Solver, UserRoles, \
   TextLoader, FileSystemLoader
 from devdriven.rbac.rbac import clean_path
 
 from devdriven.asserts import assert_output_by_key
-from icecream import ic
+# from icecream import ic
 
 def test_clean_path():
   assert clean_path('.a') == '.a'
@@ -95,8 +95,8 @@ perm allow PUT write-role *.txt
   for user in users:
     prt(f"#  user {user.name} {','.join(map(getter('name'), user.groups))}")
   user_by_name = {user.name: user for user in users}
-  for ms in memberships:
-    prt(f"#  member {ms.role.name} {ms.member.name}")
+  for membership in memberships:
+    prt(f"#  member {membership.role.name} {membership.member.name}")
   for role in roles:
     prt(f"#  role {role.name}")
 

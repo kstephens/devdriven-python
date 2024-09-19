@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import re
 import devdriven.glob
-from icecream import ic
+# from icecream import ic
 
 Matcher = Callable[[Any, Any], bool]
 
@@ -88,6 +88,7 @@ class User:
   name: str
   description: str = field(default='')
   groups: Groups = field(default_factory=list)
+
 
 Users = List[User]
 
@@ -221,7 +222,6 @@ class TextLoader:
 
 def read_lines(io: IO, proc: Callable) -> Any:
   while line := io.readline():
-    ic(line)
     if trimmed := trim_line(line):
       proc(trimmed)
 
