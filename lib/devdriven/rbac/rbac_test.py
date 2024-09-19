@@ -90,7 +90,10 @@ perm allow PUT write-role *.txt
 
   users = TextLoader('').read_users(open_file(root / '.user.txt'))
   memberships = TextLoader('').read_memberships(open_file(root / '.role.txt'))
-  roles = [member.role for member in memberships]
+  roles = {}
+  for member in memberships:
+    roles[member.role.name] = member.role
+  roles = roles.values()
 
   prt("")
   for user in users:

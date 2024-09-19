@@ -12,7 +12,6 @@
 #  member other-role Other
 #  member anon-role Anon
 #  role admin-role
-#  role admin-role
 #  role read-role
 #  role write-role
 #  role other-role
