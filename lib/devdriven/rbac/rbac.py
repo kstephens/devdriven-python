@@ -113,12 +113,14 @@ class Request:
 class Solver:
   domain: Domain
 
-  def find_rules(self, request: Request) -> Rules:
+  def find_rules(self, request: Request, max_rules: Optional[int] = None) -> Rules:
     rules = []
     request.roles = self.user_roles(request.user)
     for rule in self.domain.rules:
       if self.rule_matches(rule, request):
         rules.append(rule)
+        if max_rules and len(rules) >= max_rules:
+          break
     return rules
 
   def rule_matches(self, rule: Rule, request: Request) -> bool:
