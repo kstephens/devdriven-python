@@ -1,9 +1,9 @@
-from typing import Any, Optional, Self, Callable, List, Type, IO
+from typing import Any, Optional, Self, Callable, List, Dict, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
 import devdriven.glob
-# from icecream import ic
+from icecream import ic
 
 Matcher = Callable[[Any, Any], bool]
 
@@ -68,55 +68,54 @@ Rules = List[Rule]
 ########################################
 
 @dataclass
-class RoleMembership:
+class Membership:
   role: Role
   member: Any
 
 
-RoleMemberships = List[RoleMembership]
+Memberships = List[Membership]
 
 @dataclass
 class Group:
   name: str
+  description: str = field(default='')
 
 
 Groups = List[Group]
 
 @dataclass
-class Identity:
+class User:
   name: str
+  description: str = field(default='')
   groups: Groups = field(default_factory=list)
 
-
-Identities = List[Identity]
+Users = List[User]
 
 ########################################
 
 @dataclass
 class Domain:
   roles: Roles
-  role_memberships: RoleMemberships
+  memberships: Memberships
   rules: Rules
 
 @dataclass
 class Request:
   resource: Resource
   action: Action
-  identity: Identity
+  user: User
   roles: Roles = field(default_factory=list)
 
 ########################################
 
 @dataclass
-class IdentityRoles:
+class UserRoles:
   domain: Domain
 
-  def identity_roles(self, identity: Identity) -> Roles:
+  def user_roles(self, user: User) -> Roles:
     roles = []
-    for role_memb in self.domain.role_memberships:
-      # ic(role_memb)
-      for group in identity.groups:
-        # ic(group)
+    for role_memb in self.domain.memberships:
+      for group in user.groups:
         if role_memb.member.name == group.name:
           roles.append(role_memb.role)
     return roles
@@ -127,10 +126,8 @@ class Solver:
 
   def find_rules(self, request: Request) -> Rules:
     rules = []
-    request.roles = IdentityRoles(self.domain).identity_roles(request.identity)
-    # ic(request)
+    request.roles = UserRoles(self.domain).user_roles(request.user)
     for rule in self.domain.rules:
-      # ic(rule)
       if self.rule_matches(rule, request):
         rules.append(rule)
     return rules
@@ -149,17 +146,15 @@ class Solver:
 class TextLoader:
   prefix: str
 
-  def read(self, io: IO) -> Rules:
+  def read_rules(self, io: IO) -> Rules:
     rules = []
     while line := io.readline():
-      if rule := self.parse_line(line):
+      if rule := self.parse_rule(line):
         rules.append(rule)
     return rules
 
-  def parse_line(self, line: str) -> Optional[Rule]:
-    trimmed = re.sub(COMMENT_RX, '', line)
-    trimmed = trimmed.strip()
-    if trimmed == '':
+  def parse_rule(self, line: str) -> Optional[Rule]:
+    if not (trimmed := trim_line(line)):
       return None
     if m := re.search(RULE_RX, trimmed):
       resource_path = clean_path(f"{self.prefix}{m['resource']}")
@@ -169,7 +164,7 @@ class TextLoader:
         role=self.parse_pattern(Role, m['role'], True),
         permission=Permission(m['permission']),
       )
-    raise Exception(f"invalid line: {line!r}")
+    return None
 
   def parse_pattern(self, constructor: Type, pattern: str, star_always_matches: bool) -> Any:
     obj = constructor(name=pattern)
@@ -182,6 +177,69 @@ class TextLoader:
       obj.description = obj.regex
       obj.matcher = matcher
     return obj
+
+  ##############################
+
+  def read_users(self, io: IO) -> Users:
+    result: Users = []
+    while line := io.readline():
+      if user := self.parse_user(line):
+        result.append(user)
+    return result
+
+  def parse_user(self, line: str) -> Optional[User]:
+    if not (trimmed := trim_line(line)):
+      return None
+    if m := re.search(USER_RX, trimmed):
+      name = m['user']
+      user = User(name, f"@{name}")
+      user.groups = [Group(group, group) for group in m['groups'].split(',')]
+      return user
+    return None
+
+  ##############################
+
+  def read_memberships(self, io: IO) -> Memberships:
+    result: Memberships = []
+    while line := io.readline():
+      if memberships := self.parse_memberships(line):
+        result.extend(memberships)
+    roles: Dict[str, Role] = {}
+    members: Dict[str, Any] = {}
+    for memb in result:
+      roles[memb.role.name] = memb.role = roles.get(memb.role.name, memb.role)
+      members[memb.member.name] = memb.member = roles.get(memb.member.name, memb.member)
+    return result
+
+  def parse_memberships(self, line: str) -> Optional[Memberships]:
+    if not (trimmed := trim_line(line)):
+      return None
+    if m := re.search(MEMBERSHIP_RX, trimmed):
+      role = Role(m['role'])
+      return [make_membership(role, member) for member in m['members'].split(',')]
+    return None
+
+def read_lines(io: IO, proc: Callable) -> Any:
+  while line := io.readline():
+    ic(line)
+    if trimmed := trim_line(line):
+      proc(trimmed)
+
+def make_membership(role, name: str):
+  if name.startswith('@'):
+    return Membership(
+      role=role,
+      member=User(name.removeprefix('@'), name),
+    )
+  return Membership(
+    role=role,
+    member=Group(name, name),
+  )
+
+def trim_line(line: str) -> str:
+  line = line.removesuffix('\n')
+  line = re.sub(r'^\s+|\s+$', '', line)
+  return re.sub(COMMENT_RX, '', line)
 
 def real_open_file(file: Path) -> Optional[IO]:
   try:
@@ -205,7 +263,9 @@ def clean_path(path: str) -> str:
 
 COMMENT_RX = re.compile(r'#.*$')
 LEADING_SPACE_RX = re.compile(r'^\s+')
-RULE_RX = re.compile(r'^(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)$')
+RULE_RX = re.compile(r'^\s*perm\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)\s*$')
+MEMBERSHIP_RX = re.compile(r'^\s*member\s+(?P<role>\S+)\s+(?P<members>\S+)\s*$')
+USER_RX = re.compile(r'^\s*user\s+(?P<user>\S+)\s+(?P<groups>\S+)\s*$')
 
 @dataclass
 class FileSystemLoader:
@@ -216,18 +276,16 @@ class FileSystemLoader:
     resource_paths = self.resource_paths(resource)
     rules = []
     for path in resource_paths:
-      # ic(path)
       path_rules = self.load_auth_file(path)
       rules.extend(path_rules)
     return rules
 
   def load_auth_file(self, path: Path) -> Rules:
     auth_file = self.auth_file(path)
-    # ic((path, auth_file))
     io = self.open_file(auth_file)
     if io:
       loader = TextLoader(prefix=str(path) + '/')
-      return loader.read(io)
+      return loader.read_rules(io)
     return []
 
   def resource_paths(self, resource: Path) -> List[Path]:

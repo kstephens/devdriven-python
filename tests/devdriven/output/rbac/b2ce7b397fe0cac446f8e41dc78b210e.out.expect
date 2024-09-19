@@ -1,427 +1,159 @@
 
+#  user unknown Anon
+#  user alice Admins
+#  user bob Readers
+#  user frank Writers,Other
+#  user tim Other
+#  member admin-role Admins
+#  member read-role Readers
+#  member write-role Writers
+#  member other-role Other
+#  member anon-role Anon
+#  role admin-role
+#  role read-role
+#  role write-role
+#  role other-role
+#  role anon-role
+
 # ############################################
-# identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-# identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-# identity bob
-#   groups = ['readers']
-#   roles = ['read']
-# identity frank
-#   groups = ['writers', 'other']
-#   roles = ['write', 'other']
-# identity tim
-#   groups = ['other']
-#   roles = ['other']
 # =========================================
 
 # identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-
-# rules for '/nope':
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/nope', 'GET'), 'unknown' == [('/**', '*', 'anon', 'deny')]
+#   groups = ['Anon']
+#   roles = ['anon-role']
+assert fut('/nope', 'GET'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/nope':
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/nope', 'GET'), 'alice' == [('/**', '*', 'admin', 'allow')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/nope', 'GET'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
 # =========================================
 
 # identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-
-# rules for '/a/1':
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/1', 'GET'), 'unknown' == [('/**', '*', 'anon', 'deny')]
+#   groups = ['Anon']
+#   roles = ['anon-role']
+assert fut('/a/1', 'GET'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/1':
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/1', 'GET'), 'alice' == [('/**', '*', 'admin', 'allow')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/1', 'GET'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
 
 # identity bob
-#   groups = ['readers']
-#   roles = ['read']
-
-# rules for '/a/1':
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Readers']
+#   roles = ['read-role']
 assert fut('/a/1', 'GET'), 'bob' == []
 
 # identity frank
-#   groups = ['writers', 'other']
-#   roles = ['write', 'other']
-
-# rules for '/a/1':
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/1', 'GET'), 'frank' == [('/a/*', 'GET', 'other', 'allow')]
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
+assert fut('/a/1', 'GET'), 'frank' == [('/a/*', 'GET', 'other-role', 'allow')]
 
 # identity tim
-#   groups = ['other']
-#   roles = ['other']
-
-# rules for '/a/1':
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/1', 'GET'), 'tim' == [('/a/*', 'GET', 'other', 'allow')]
+#   groups = ['Other']
+#   roles = ['other-role']
+assert fut('/a/1', 'GET'), 'tim' == [('/a/*', 'GET', 'other-role', 'allow')]
 # =========================================
 
 # identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-
-# rules for '/a/b/2':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/2', 'GET'), 'unknown' == [('/**', '*', 'anon', 'deny')]
+#   groups = ['Anon']
+#   roles = ['anon-role']
+assert fut('/a/b/2', 'GET'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/b/2':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/2', 'GET'), 'alice' == [('/**', '*', 'admin', 'allow')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/b/2', 'GET'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
 
 # identity bob
-#   groups = ['readers']
-#   roles = ['read']
-
-# rules for '/a/b/2':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/2', 'GET'), 'bob' == [('/a/b/*', 'GET', 'read', 'allow')]
+#   groups = ['Readers']
+#   roles = ['read-role']
+assert fut('/a/b/2', 'GET'), 'bob' == [('/a/b/*', 'GET', 'read-role', 'allow')]
 
 # identity frank
-#   groups = ['writers', 'other']
-#   roles = ['write', 'other']
-
-# rules for '/a/b/2':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
 assert fut('/a/b/2', 'GET'), 'frank' == []
 
 # identity tim
-#   groups = ['other']
-#   roles = ['other']
-
-# rules for '/a/b/2':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Other']
+#   roles = ['other-role']
 assert fut('/a/b/2', 'GET'), 'tim' == []
 # =========================================
 
 # identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-
-# rules for '/a/b/3':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/3', 'PUT'), 'unknown' == [('/**', '*', 'anon', 'deny')]
+#   groups = ['Anon']
+#   roles = ['anon-role']
+assert fut('/a/b/3', 'PUT'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/b/3':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/3', 'PUT'), 'alice' == [('/**', '*', 'admin', 'allow')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/b/3', 'PUT'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
 
 # identity bob
-#   groups = ['readers']
-#   roles = ['read']
-
-# rules for '/a/b/3':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Readers']
+#   roles = ['read-role']
 assert fut('/a/b/3', 'PUT'), 'bob' == []
 
 # identity frank
-#   groups = ['writers', 'other']
-#   roles = ['write', 'other']
-
-# rules for '/a/b/3':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
 assert fut('/a/b/3', 'PUT'), 'frank' == []
 
 # identity tim
-#   groups = ['other']
-#   roles = ['other']
-
-# rules for '/a/b/3':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Other']
+#   roles = ['other-role']
 assert fut('/a/b/3', 'PUT'), 'tim' == []
 # =========================================
 
 # identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-
-# rules for '/a/b/c.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/c.txt', 'PUT'), 'unknown' == [('/**', '*', 'anon', 'deny')]
+#   groups = ['Anon']
+#   roles = ['anon-role']
+assert fut('/a/b/c.txt', 'PUT'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/b/c.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/c.txt', 'PUT'), 'alice' == [('/**', '*', 'admin', 'allow')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/b/c.txt', 'PUT'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
 
 # identity bob
-#   groups = ['readers']
-#   roles = ['read']
-
-# rules for '/a/b/c.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Readers']
+#   roles = ['read-role']
 assert fut('/a/b/c.txt', 'PUT'), 'bob' == []
 
 # identity frank
-#   groups = ['writers', 'other']
-#   roles = ['write', 'other']
-
-# rules for '/a/b/c.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/c.txt', 'PUT'), 'frank' == [('/a/b/*.txt', 'PUT', 'write', 'allow')]
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
+assert fut('/a/b/c.txt', 'PUT'), 'frank' == [('/a/b/*.txt', 'PUT', 'write-role', 'allow')]
 
 # identity tim
-#   groups = ['other']
-#   roles = ['other']
-
-# rules for '/a/b/c.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
+#   groups = ['Other']
+#   roles = ['other-role']
 assert fut('/a/b/c.txt', 'PUT'), 'tim' == []
 # =========================================
 
 # identity unknown
-#   groups = ['anon']
-#   roles = ['anon']
-
-# rules for '/.auth.txt':
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/.auth.txt', 'PUT'), 'unknown' == [('/**', '*', 'anon', 'deny')]
+#   groups = ['Anon']
+#   roles = ['anon-role']
+assert fut('/.auth.txt', 'PUT'), 'unknown' == [('/**', '*', 'anon-role', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/.auth.txt':
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/.auth.txt', 'PUT'), 'alice' == [('/**', '*', 'admin', 'allow')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/.auth.txt', 'PUT'), 'alice' == [('/**', '*', 'admin-role', 'allow')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/.auth.txt':
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/.auth.txt', 'PUT'), 'alice' == [('/**/.auth.txt', '*', 'admin', 'allow'), ('/**', '*', 'admin', 'allow'), ('/**/.*', '*', 'admin', 'allow'), ('/**/.auth.txt', '*', '*', 'deny')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/.auth.txt', 'PUT'), 'alice' == [('/**/.auth.txt', '*', 'admin-role', 'allow'), ('/**', '*', 'admin-role', 'allow'), ('/**/.*', '*', 'admin-role', 'allow'), ('/**/.auth.txt', '*', '*', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/b/.auth.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/.auth.txt', 'PUT'), 'alice' == [('/**/.auth.txt', '*', 'admin', 'allow'), ('/**', '*', 'admin', 'allow'), ('/**/.*', '*', 'admin', 'allow'), ('/**/.auth.txt', '*', '*', 'deny')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/b/.auth.txt', 'PUT'), 'alice' == [('/**/.auth.txt', '*', 'admin-role', 'allow'), ('/**', '*', 'admin-role', 'allow'), ('/**/.*', '*', 'admin-role', 'allow'), ('/**/.auth.txt', '*', '*', 'deny')]
 
 # identity alice
-#   groups = ['admins']
-#   roles = ['admin']
-
-# rules for '/a/b/c/.auth.txt':
-# ('/a/b/*', 'GET', 'read', 'allow')
-# ('/a/b/*.txt', 'PUT', 'write', 'allow')
-# ('/a/*', 'GET', 'other', 'allow')
-# ('/a/writable.txt', 'PUT', 'a-writer', 'allow')
-# ('/**/.auth.txt', '*', 'admin', 'allow')
-# ('/**', '*', 'admin', 'allow')
-# ('/**/.*', '*', 'admin', 'allow')
-# ('/**/.auth.txt', '*', '*', 'deny')
-# ('/**', '*', 'anon', 'deny')
-assert fut('/a/b/c/.auth.txt', 'PUT'), 'alice' == [('/**/.auth.txt', '*', 'admin', 'allow'), ('/**', '*', 'admin', 'allow'), ('/**/.*', '*', 'admin', 'allow'), ('/**/.auth.txt', '*', '*', 'deny')]
+#   groups = ['Admins']
+#   roles = ['admin-role']
+assert fut('/a/b/c/.auth.txt', 'PUT'), 'alice' == [('/**/.auth.txt', '*', 'admin-role', 'allow'), ('/**', '*', 'admin-role', 'allow'), ('/**/.*', '*', 'admin-role', 'allow'), ('/**/.auth.txt', '*', '*', 'deny')]

@@ -1,13 +1,13 @@
 from io import StringIO
 from pathlib import Path, PurePath
 from devdriven.rbac.rbac import \
-  Resource, Action, Role, Group, RoleMembership, Identity, \
-  Domain, Request, Solver, IdentityRoles, \
+  Resource, Action, Role, Group, Membership, User, \
+  Domain, Request, Solver, UserRoles, \
   TextLoader, FileSystemLoader
 from devdriven.rbac.rbac import clean_path
 
 from devdriven.asserts import assert_output_by_key
-# from icecream import ic
+from icecream import ic
 
 def test_clean_path():
   assert clean_path('.a') == '.a'
@@ -36,63 +36,94 @@ def test_file_system_loader():
 def run_file_system_loader(prt):
   root = PurePath('/root')
   files = {
+    '/root/.user.txt': '''
+user unknown  Anon
+user alice    Admins
+user bob      Readers
+user frank    Writers,Other
+user tim      Other
+    ''',
+    '/root/.role.txt': '''
+member admin-role  Admins
+member read-role   Readers
+member write-role  Writers
+member other-role  Other
+member anon-role   Anon
+    ''',
     '/root/.auth.txt': '''
-allow *   admin  **/.auth.txt
-allow *   admin  **
-allow *   admin  **/.*
-deny  *   *      **/.auth.txt
-deny  *   anon   **
+perm allow *   admin-role  **/.user.txt
+perm allow *   admin-role  **/.role.txt
+perm allow *   admin-role  **/.auth.txt
+perm allow *   admin-role  **
+perm allow *   admin-role  **/.*
+perm deny  *   *           **/.user.txt
+perm deny  *   *           **/.role.txt
+perm deny  *   *           **/.auth.txt
+perm deny  *   anon-role   **
     ''',
     '/root/a/.auth.txt': '''
-allow GET other    *
-allow PUT a-writer writable.txt
+perm allow GET other-role    *
+perm allow PUT a-writer-role writable.txt
     ''',
     '/root/a/b/.auth.txt': '''
-allow GET read  *
-allow PUT write *.txt
+perm allow GET read-role  *
+perm allow PUT write-role *.txt
     ''',
     '/root/a/b/c/.auth.txt': None,
   }
 
   def open_file(path):
-    if file := files[str(path)]:
-      return StringIO(file)
+    if content := files[str(path)]:
+      return StringIO(content)
     return None
-  domain, identity_by_name = make_domain([])
 
-  def print_identity(identity):
-    groups = list(map(lambda o: o.name, identity.groups))
-    roles = list(map(lambda o: o.name, IdentityRoles(domain).identity_roles(identity)))
-    prt(f"# identity {identity.name}")
+  domain = None
+
+  def print_user(user):
+    nonlocal domain
+    groups = list(map(lambda o: o.name, user.groups))
+    roles = list(map(lambda o: o.name, UserRoles(domain).user_roles(user)))
+    prt(f"# identity {user.name}")
     prt(f"#   groups = {groups!r}")
     prt(f"#   roles = {roles!r}")
 
-  def fut(resource, action, ident):
-    nonlocal domain
-    identity = identity_by_name[ident]
+  users = TextLoader('').read_users(open_file(root / '.user.txt'))
+  memberships = TextLoader('').read_memberships(open_file(root / '.role.txt'))
+  roles = [member.role for member in memberships]
 
-    request = Request(resource=Resource(resource), action=Action(action), identity=identity)
+  prt("")
+  for user in users:
+    prt(f"#  user {user.name} {','.join(map(getter('name'), user.groups))}")
+  user_by_name = {user.name: user for user in users}
+  for ms in memberships:
+    prt(f"#  member {ms.role.name} {ms.member.name}")
+  for role in roles:
+    prt(f"#  role {role.name}")
+
+  def fut(resource, action, user_name):
+    nonlocal domain, roles, memberships
+
+    user = user_by_name[user_name]
+    request = Request(resource=Resource(resource), action=Action(action), user=user)
 
     loader = FileSystemLoader(root=root, open_file=open_file)
     rules_for_resource = loader.load_rules(Path(request.resource.name))
 
     prt("")
-    print_identity(identity)
-    prt(f"\n# rules for {resource!r}:")
-    prt('\n'.join([f"# {rule.brief()}" for rule in rules_for_resource]))
-    domain.rules = rules_for_resource
+    domain = Domain(roles=roles, memberships=memberships, rules=rules_for_resource)
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
+    print_user(user)
+    # prt(f"\n# rules for {resource!r}:")
+    # prt('\n'.join([f"# {rule.brief()}" for rule in rules_for_resource]))
 
     result = [rule.permission.name for rule in rules]
     result = [rule.brief() for rule in rules]
     result = ', '.join(result)
 
-    prt(f"assert fut({resource!r}, {action!r}), {ident!r} == [{result}]")
+    prt(f"assert fut({resource!r}, {action!r}), {user_name!r} == [{result}]")
 
   prt("\n# ############################################")
-  for identity in identity_by_name.values():
-    print_identity(identity)
 
   prt('# =========================================')
   fut('/nope', 'GET', 'unknown')
@@ -133,108 +164,6 @@ allow PUT write *.txt
   fut('/a/b/.auth.txt', 'PUT', 'alice')
   fut('/a/b/c/.auth.txt', 'PUT', 'alice')
 
-def test_text_loader():
-  run_test('test_loader', run_test_text_loader)
-
-# pylint: disable-next=too-many-statements
-def run_test_text_loader(prt):
-  text = '''
-  # a comment
-
-allow *   admin  *
-allow *   admin  .*
-allow GET *      README.*
-allow GET read   *.c
-allow PUT write  *
-deny  *   *      *
-
-  '''
-  io = StringIO(text)
-  resource = Resource('/a')
-  loader = TextLoader(resource.name)
-  rules = loader.read(io)
-  domain, identity_by_name = make_domain(rules)
-  solver = Solver(domain=domain)
-
-  def fut(resource, action, identity):
-    ident = identity_by_name[identity]
-    request = Request(resource=Resource(resource), action=Action(action), identity=ident)
-    rules = solver.find_rules(request)
-    result = [rule.permission.name for rule in rules]
-    prt(f"assert fut({resource!r}, {action!r}), {identity!r} == {result!r}")
-
-  prt(text)
-  fut('/nope', 'GET', 'unknown')
-  fut('/nope', 'GET', 'alice')
-
-  fut('/a/b', 'GET', 'unknown')
-  fut('/a/b', 'GET', 'alice')
-  fut('/a/b', 'GET', 'bob')
-  fut('/a/b', 'GET', 'frank')
-
-  fut('/a/b.c', 'GET', 'unknown')
-  fut('/a/b.c', 'PUT', 'unknown')
-  fut('/a/b.c', 'GET', 'alice')
-  fut('/a/b.c', 'PUT', 'alice')
-  fut('/a/b.c', 'GET', 'bob')
-  fut('/a/b.c', 'PUT', 'bob')
-  fut('/a/b.c', 'GET', 'frank')
-  fut('/a/b.c', 'PUT', 'frank')
-
-  fut('/a/.c', 'GET', 'unknown')
-  fut('/a/.c', 'GET', 'alice')
-  fut('/a/.c', 'GET', 'bob')
-  fut('/a/.c', 'GET', 'frank')
-
-  fut('/a/README.md', 'GET', 'unknown')
-  fut('/a/README.md', 'PUT', 'unknown')
-  fut('/a/README.md', 'GET', 'alice')
-  fut('/a/README.md', 'PUT', 'alice')
-  fut('/a/README.md', 'GET', 'bob')
-  fut('/a/README.md', 'PUT', 'bob')
-  fut('/a/README.md', 'GET', 'frank')
-  fut('/a/README.md', 'PUT', 'frank')
-
-# pylint: disable-next=too-many-statements
-def make_domain(rules):
-  # pylint: disable=too-many-locals
-  admin_role = Role('admin')
-  read_role = Role('read')
-  write_role = Role('write')
-  other_role = Role('other')
-  anon_role = Role('anon')
-
-  admin_group = Group('admins')
-  readers_group = Group('readers')
-  writers_group = Group('writers')
-  other_group = Group('other')
-  anon_group = Group('anon')
-
-  role_memberships = [
-    RoleMembership(role=role, member=member) for role, member in [
-      (admin_role, admin_group),
-      (read_role, readers_group),
-      (write_role, writers_group),
-      (other_role, other_group),
-      (anon_role, anon_group),
-    ]
-  ]
-  identity_by_name = {
-    id.name: id for id in [
-      Identity('unknown', groups=[anon_group]),
-      Identity('alice', groups=[admin_group]),
-      Identity('bob', groups=[readers_group]),
-      Identity('frank', groups=[writers_group, other_group]),
-      Identity('tim', groups=[other_group]),
-    ]
-  }
-  domain = Domain(
-    roles=[admin_role, read_role],
-    rules=rules,
-    role_memberships=role_memberships,
-  )
-  return domain, identity_by_name
-
 def run_test(name, test_fun):
   def proc(actual_out):
     with open(actual_out, "w", encoding='utf-8') as out:
@@ -244,4 +173,4 @@ def run_test(name, test_fun):
   assert_output_by_key(name, 'tests/devdriven/output/rbac', proc)
 
 def getter(name: str):  # -> Callable:
-  return lambda obj: getattr(obj, name)()
+  return lambda obj: getattr(obj, name)
