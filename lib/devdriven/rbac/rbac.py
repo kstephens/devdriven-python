@@ -1,11 +1,10 @@
-from typing import Any, Optional, Union, Self, Callable, Iterable, List, Tuple, Dict, Type, IO
+from typing import Any, Optional, Self, Callable, Iterable, List, Dict, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
 import devdriven.glob
 # from icecream import ic
 
-# Indexable = Union[List,Tuple,Dict]
 Matcher = Callable[[Any, Any], bool]
 
 class Matchable:
@@ -158,11 +157,11 @@ class TextLoader:
         for resource in split_field(m['resource']):
           resource_path = clean_path(f"{self.prefix}{resource}")
           result.append(
-              Rule(
-                permission=permission,
-                action=self.parse_pattern(Action, action, True),
-                role=self.parse_pattern(Role, role, True),
-                resource=self.parse_pattern(Resource, resource_path, False),
+            Rule(
+              permission=permission,
+              action=self.parse_pattern(Action, action, True),
+              role=self.parse_pattern(Role, role, True),
+              resource=self.parse_pattern(Resource, resource_path, False),
             )
           )
     return result
@@ -177,9 +176,11 @@ class TextLoader:
     else:
       obj.regex = devdriven.glob.glob_to_regex(pattern)
       obj.description = repr(obj.regex)
+      # pylint: disable-next=unnecessary-lambda-assignment
       matcher = lambda self, other: re.search(self.regex, other.name) is not None
     if negate:
       negated = matcher
+      # pylint: disable-next=unnecessary-lambda-assignment
       matcher = lambda self, other: not negated(self, other)
       obj.description = f"!{obj.description}"
     obj.matcher = matcher
@@ -192,6 +193,7 @@ class TextLoader:
 
   def parse_user_line(self, m: re.Match) -> Users:
     groups = [Group(group, group) for group in split_field(m['groups'])]
+
     def make_user(name):
       return User(name, f"@{name}", groups=groups.copy())
     return [make_user(name) for name in split_field(m['user'])]
@@ -272,8 +274,8 @@ def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable:
       result.extend(parser(m))
   return result
 
-def split_field(field: str) -> Iterable:
-  return re.split(r'\s*,\s', field)
+def split_field(val: str) -> Iterable:
+  return re.split(r'\s*,\s', val)
 
 def trim_line(line: str) -> str:
   line = line.removesuffix('\n')

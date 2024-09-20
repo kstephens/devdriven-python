@@ -32,7 +32,7 @@ def test_clean_path():
 def test_file_system_loader():
   run_test('test_file_system_loader', run_file_system_loader)
 
-# pylint: disable-next=too-many-statements
+# pylint: disable-next=too-many-statements,too-many-locals
 def run_file_system_loader(prt):
   root = PurePath('/root')
   files = {
@@ -140,8 +140,8 @@ perm allow PUT write-role  *.txt
     result = [rule.brief() for rule in rules]
     result = ', '.join(result)
 
-    input = f"fut({resource!r}, {action!r}, {user_name!r})"
-    prt(f"assert {input:40s} == [{result}]")
+    given = f"fut({resource!r}, {action!r}, {user_name!r})"
+    prt(f"assert {given:40s} == [{result}]")
 
   prt("\n# ############################################")
 
@@ -151,10 +151,10 @@ perm allow PUT write-role  *.txt
   fut('/nope', 'GET', 'root')
 
   prt('# =========================================')
-  fut('/.hidden',     'GET', 'unknown')
-  fut('/.hidden',     'GET', 'alice')
-  fut('/a/.hidden',   'GET', 'unknown')
-  fut('/a/.hidden',   'GET', 'alice')
+  fut('/.hidden', 'GET', 'unknown')
+  fut('/.hidden', 'GET', 'alice')
+  fut('/a/.hidden', 'GET', 'unknown')
+  fut('/a/.hidden', 'GET', 'alice')
   fut('/a/b/.hidden', 'GET', 'unknown')
   fut('/a/b/.hidden', 'GET', 'alice')
 
