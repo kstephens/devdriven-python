@@ -242,12 +242,7 @@ class FileSystemLoader:
   open_file: Callable = field(default=real_open_file)
 
   def load_rules(self, resource: Path) -> Rules:
-    resource_paths = self.resource_paths(resource)
-    rules: List[Rule] = []
-    for path in resource_paths:
-      path_rules = self.load_auth_file(path)
-      rules.extend(path_rules)
-    return rules
+    return mapcat(self.load_auth_file, self.resource_paths(resource))
 
   def load_auth_file(self, path: Path) -> Rules:
     auth_file = self.auth_file(path)
@@ -270,6 +265,12 @@ def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable:
   while line := io.readline():
     if m := re.match(rx, trim_line(line)):
       result.extend(parser(m))
+  return result
+
+def mapcat(func: Callable[[Any], Iterable], seq: Iterable) -> Iterable:
+  result: List = []
+  for item in seq:
+    result.extend(func(item))
   return result
 
 def split_field(val: str) -> Iterable:
