@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self, Callable, Iterable, List, Dict, Type, IO
+from typing import Any, Optional, Self, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
@@ -14,10 +14,10 @@ def match_true(_self, _other):
   return True
 
 class Matchable:
-  def __init__(self, name: str, desc: str = ''):
+  def __init__(self, name: str, description: str = ''):
     self.name = name
     self.matcher: Matcher = match_name
-    self.description = desc
+    self.description = description
 
   def matches(self, other: Self) -> bool:
     return self.matcher(self, other)
@@ -132,12 +132,12 @@ class Solver:
 
   def user_roles(self, user: User) -> Roles:
     roles = []
-    for role_memb in self.domain.memberships:
-      if isinstance(role_memb.member, User) and role_memb.member.name == user.name:
-        roles.append(role_memb.role)
+    for membership in self.domain.memberships:
+      if isinstance(membership.member, User) and membership.member.name == user.name:
+        roles.append(membership.role)
       for group in user.groups:
-        if isinstance(role_memb.member, Group) and role_memb.member.name == group.name:
-          roles.append(role_memb.role)
+        if isinstance(membership.member, Group) and membership.member.name == group.name:
+          roles.append(membership.role)
     return roles
 
 ########################################
@@ -152,9 +152,9 @@ class TextLoader:
   def parse_rule_line(self, m: re.Match) -> Rules:
     result: List[Rule] = []
     permission = Permission(m['permission'])
-    for action in split_field(m['action']):
-      for role in split_field(m['role']):
-        for resource in split_field(m['resource']):
+    for action in parse_list(m['action']):
+      for role in parse_list(m['role']):
+        for resource in parse_list(m['resource']):
           resource_path = clean_path(f"{self.prefix}{resource}")
           result.append(
             Rule(
@@ -171,7 +171,7 @@ class TextLoader:
     obj.description = pattern
     if negate := pattern.startswith('!'):
       pattern = pattern.removeprefix('!')
-    if star_always_matches and pattern == '*':
+    if pattern == '*' and star_always_matches:
       matcher = match_true
     else:
       obj.regex = devdriven.glob.glob_to_regex(pattern)
@@ -192,37 +192,26 @@ class TextLoader:
     return parse_lines(io, USER_RX, self.parse_user_line)
 
   def parse_user_line(self, m: re.Match) -> Users:
-    groups = [Group(group, group) for group in split_field(m['groups'])]
+    groups = [Group(group, group) for group in parse_list(m['groups'])]
 
     def make_user(name):
       return User(name, f"@{name}", groups=groups.copy())
-    return [make_user(name) for name in split_field(m['user'])]
+    return [make_user(name) for name in parse_list(m['user'])]
 
   ##############################
 
   def read_memberships(self, io: IO) -> Memberships:
-    result: Memberships = parse_lines(io, MEMBERSHIP_RX, self.parse_membership_line)
-    roles: Dict[str, Role] = {}
-    members: Dict[str, Any] = {}
-    for memb in result:
-      roles[memb.role.name] = memb.role = roles.get(memb.role.name, memb.role)
-      members[memb.member.name] = memb.member = roles.get(memb.member.name, memb.member)
-    return result
+    return parse_lines(io, MEMBERSHIP_RX, self.parse_membership_line)
 
   def parse_membership_line(self, m: re.Match) -> Memberships:
     role = Role(m['role'])
     return [self.make_membership(role, member) for member in m['members'].split(',')]
 
-  def make_membership(self, role: Role, name: str):
-    if name.startswith('@'):
-      return Membership(
-        role=role,
-        member=User(name.removeprefix('@'), name),
-      )
-    return Membership(
-      role=role,
-      member=Group(name, name),
-    )
+  def make_membership(self, role: Role, description: str) -> Membership:
+    if description.startswith('@'):
+      name = description.removeprefix('@')
+      return Membership(role=role, member=User(name, description))
+    return Membership(role=role, member=Group(description, description))
 
 
 COMMENT_RX = re.compile(r'#.*$')
@@ -275,7 +264,7 @@ def mapcat(func: Callable[[Any], Iterable], seq: Iterable) -> Iterable:
     result.extend(func(item))
   return result
 
-def split_field(val: str) -> Iterable:
+def parse_list(val: str) -> Iterable:
   return re.split(r'\s*,\s', val)
 
 def trim_line(line: str) -> str:
