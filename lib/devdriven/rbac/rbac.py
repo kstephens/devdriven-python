@@ -225,9 +225,9 @@ class TextLoader:
 
 COMMENT_RX = re.compile(r'#.*$')
 LEADING_SPACE_RX = re.compile(r'^\s+')
-RULE_RX = re.compile(r'^\s*perm\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)\s*$')
-MEMBERSHIP_RX = re.compile(r'^\s*member\s+(?P<role>\S+)\s+(?P<members>\S+)\s*$')
-USER_RX = re.compile(r'^\s*user\s+(?P<user>\S+)\s+(?P<groups>\S+)\s*$')
+RULE_RX = re.compile(r'perm\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)')
+MEMBERSHIP_RX = re.compile(r'member\s+(?P<role>\S+)\s+(?P<members>\S+)')
+USER_RX = re.compile(r'user\s+(?P<user>\S+)\s+(?P<groups>\S+)')
 
 
 def real_open_file(file: Path) -> Optional[IO]:
@@ -268,7 +268,7 @@ class FileSystemLoader:
 def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable:
   result: List = []
   while line := io.readline():
-    if m := re.search(rx, trim_line(line)):
+    if m := re.match(rx, trim_line(line)):
       result.extend(parser(m))
   return result
 
