@@ -6,6 +6,12 @@ import devdriven.glob
 # from icecream import ic
 
 Matcher = Callable[[Any, Any], bool]
+def match_name(self, other):
+  return self.name == other.name
+def match_false(_self, _other):
+  return False
+def match_true(_self, _other):
+  return True
 
 class Matchable:
   def __init__(self, name: str, desc: str = ''):
@@ -21,14 +27,6 @@ class Matchable:
 
   def __repr__(self):
     return self.__str__()
-
-
-def match_name(self: Matchable, other: Matchable):
-  return self.name == other.name
-def match_false(_self, _other):
-  return False
-def match_true(_self, _other):
-  return True
 
 class Resource(Matchable):
   pass
