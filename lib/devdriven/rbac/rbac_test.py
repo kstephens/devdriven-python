@@ -52,23 +52,33 @@ member other-role  Other
 member anon-role   Anon
     ''',
     '/root/.auth.txt': '''
-perm allow *   admin-role  **/.user.txt
-perm allow *   admin-role  **/.role.txt
-perm allow *   admin-role  **/.auth.txt
-perm allow *   admin-role  **
-perm allow *   admin-role  **/.*
-perm deny  *   *           **/.user.txt
-perm deny  *   *           **/.role.txt
-perm deny  *   *           **/.auth.txt
-perm deny  *   anon-role   **
+# Admins have full access to authorizations controls:
+perm allow  *    admin-role  **/.user.txt
+perm allow  *    admin-role  **/.role.txt
+perm allow  *    admin-role  **/.auth.txt
+perm allow  *    admin-role  **
+
+# Admins have full access to hidden files.
+perm allow  *    admin-role  **/.*
+
+# Other have no access to authorization controls:
+perm deny   *    *           **/.user.txt
+perm deny   *    *           **/.role.txt
+perm deny   *    *           **/.auth.txt
+
+# Anonymous users have no access:
+perm deny   *    anon-role   **
+
+# All other users have GET:
+perm allow  GET  *           **
     ''',
     '/root/a/.auth.txt': '''
-perm allow GET other-role    *
-perm allow PUT a-writer-role writable.txt
+perm allow GET other-role     *
+perm allow PUT a-writer-role  writable.txt
     ''',
     '/root/a/b/.auth.txt': '''
-perm allow GET read-role  *
-perm allow PUT write-role *.txt
+perm allow GET read-role   *
+perm allow PUT write-role  *.txt
     ''',
     '/root/a/b/c/.auth.txt': None,
   }
@@ -79,6 +89,11 @@ perm allow PUT write-role *.txt
     return None
 
   domain = None
+
+  for name, content in files.items():
+    prt('#############################################')
+    prt(f"# {name}:")
+    prt(f"{content}\n")
 
   def print_user(user):
     nonlocal domain
@@ -113,10 +128,10 @@ perm allow PUT write-role *.txt
     loader = FileSystemLoader(root=root, open_file=open_file)
     rules_for_resource = loader.load_rules(Path(request.resource.name))
 
-    prt("")
     domain = Domain(roles=roles, memberships=memberships, rules=rules_for_resource)
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
+    prt("")
     print_user(user)
     # prt(f"\n# rules for {resource!r}:")
     # prt('\n'.join([f"# {rule.brief()}" for rule in rules_for_resource]))
@@ -125,7 +140,8 @@ perm allow PUT write-role *.txt
     result = [rule.brief() for rule in rules]
     result = ', '.join(result)
 
-    prt(f"assert fut({resource!r}, {action!r}), {user_name!r} == [{result}]")
+    input = f"fut({resource!r}, {action!r}, {user_name!r})"
+    prt(f"assert {input:40s} == [{result}]")
 
   prt("\n# ############################################")
 
@@ -133,6 +149,14 @@ perm allow PUT write-role *.txt
   fut('/nope', 'GET', 'unknown')
   fut('/nope', 'GET', 'alice')
   fut('/nope', 'GET', 'root')
+
+  prt('# =========================================')
+  fut('/.hidden',     'GET', 'unknown')
+  fut('/.hidden',     'GET', 'alice')
+  fut('/a/.hidden',   'GET', 'unknown')
+  fut('/a/.hidden',   'GET', 'alice')
+  fut('/a/b/.hidden', 'GET', 'unknown')
+  fut('/a/b/.hidden', 'GET', 'alice')
 
   prt('# =========================================')
   fut('/a/1', 'GET', 'unknown')

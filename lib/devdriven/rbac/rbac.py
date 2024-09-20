@@ -1,10 +1,11 @@
-from typing import Any, Optional, Self, Callable, List, Dict, Type, IO
+from typing import Any, Optional, Union, Self, Callable, Iterable, List, Tuple, Dict, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
 import devdriven.glob
 # from icecream import ic
 
+# Indexable = Union[List,Tuple,Dict]
 Matcher = Callable[[Any, Any], bool]
 
 class Matchable:
@@ -31,20 +32,17 @@ def match_true(_self, _other):
   return True
 
 class Resource(Matchable):
-  def nothing(self):
-    return None
+  pass
 
 class Action(Matchable):
-  def nothing(self):
-    return None
+  pass
 
 class Role(Matchable):
-  def nothing(self):
-    return None
+  pass
 
 
-Resources = List[Resource]
-Roles = List[Role]
+Resources = Iterable[Resource]
+Roles = Iterable[Role]
 
 @dataclass
 class Permission:
@@ -52,18 +50,18 @@ class Permission:
 
 @dataclass
 class Rule:
-  resource: Resource
+  permission: Permission
   action: Action
   role: Role
-  permission: Permission
+  resource: Resource
   description: str = field(default='')
 
   def brief(self) -> str:
-    return f"({self.resource.name!r}, {self.action.name!r}, {self.role.name!r}, {self.permission.name!r})"
+    return f"({self.permission.name!r}, {self.action.name!r}, {self.role.name!r}, {self.resource.name!r})"
 
 
-Permissions = List[Permission]
-Rules = List[Rule]
+Permissions = Iterable[Permission]
+Rules = Iterable[Rule]
 
 ########################################
 
@@ -73,7 +71,7 @@ class Membership:
   member: Any
 
 
-Memberships = List[Membership]
+Memberships = Iterable[Membership]
 
 @dataclass
 class Group:
@@ -81,7 +79,7 @@ class Group:
   description: str = field(default='')
 
 
-Groups = List[Group]
+Groups = Iterable[Group]
 
 @dataclass
 class User:
@@ -90,7 +88,7 @@ class User:
   groups: Groups = field(default_factory=list)
 
 
-Users = List[User]
+Users = Iterable[User]
 
 ########################################
 
@@ -150,63 +148,58 @@ class TextLoader:
   prefix: str
 
   def read_rules(self, io: IO) -> Rules:
-    rules = []
-    while line := io.readline():
-      if rule := self.parse_rule(line):
-        rules.append(rule)
-    return rules
+    return parse_lines(io, RULE_RX, self.parse_rule_line)
 
-  def parse_rule(self, line: str) -> Optional[Rule]:
-    if not (trimmed := trim_line(line)):
-      return None
-    if m := re.search(RULE_RX, trimmed):
-      resource_path = clean_path(f"{self.prefix}{m['resource']}")
-      return Rule(
-        resource=self.parse_pattern(Resource, f"{resource_path}", False),
-        action=self.parse_pattern(Action, m['action'], True),
-        role=self.parse_pattern(Role, m['role'], True),
-        permission=Permission(m['permission']),
-      )
-    return None
+  def parse_rule_line(self, m: re.Match) -> Rules:
+    result: List[Rule] = []
+    permission = Permission(m['permission'])
+    for action in split_field(m['action']):
+      for role in split_field(m['role']):
+        for resource in split_field(m['resource']):
+          resource_path = clean_path(f"{self.prefix}{resource}")
+          result.append(
+              Rule(
+                permission=permission,
+                action=self.parse_pattern(Action, action, True),
+                role=self.parse_pattern(Role, role, True),
+                resource=self.parse_pattern(Resource, resource_path, False),
+            )
+          )
+    return result
 
   def parse_pattern(self, constructor: Type, pattern: str, star_always_matches: bool) -> Any:
     obj = constructor(name=pattern)
+    obj.description = pattern
+    if negate := pattern.startswith('!'):
+      pattern = pattern.removeprefix('!')
     if star_always_matches and pattern == '*':
-      obj.matcher = match_true
+      matcher = match_true
     else:
-      def matcher(self, other):
-        return re.search(self.regex, other.name) is not None
       obj.regex = devdriven.glob.glob_to_regex(pattern)
-      obj.description = obj.regex
-      obj.matcher = matcher
+      obj.description = repr(obj.regex)
+      matcher = lambda self, other: re.search(self.regex, other.name) is not None
+    if negate:
+      negated = matcher
+      matcher = lambda self, other: not negated(self, other)
+      obj.description = f"!{obj.description}"
+    obj.matcher = matcher
     return obj
 
   ##############################
 
   def read_users(self, io: IO) -> Users:
-    result: Users = []
-    while line := io.readline():
-      if user := self.parse_user(line):
-        result.append(user)
-    return result
+    return parse_lines(io, USER_RX, self.parse_user_line)
 
-  def parse_user(self, line: str) -> Optional[User]:
-    if not (trimmed := trim_line(line)):
-      return None
-    if m := re.search(USER_RX, trimmed):
-      name = m['user']
-      user = User(name, f"@{name}")
-      user.groups = [Group(group, group) for group in m['groups'].split(',')]
-      return user
-    return None
+  def parse_user_line(self, m: re.Match) -> Users:
+    groups = [Group(group, group) for group in split_field(m['groups'])]
+    def make_user(name):
+      return User(name, f"@{name}", groups=groups.copy())
+    return [make_user(name) for name in split_field(m['user'])]
 
   ##############################
 
   def read_memberships(self, io: IO) -> Memberships:
-    result: Memberships = []
-    while line := io.readline():
-      if memberships := self.parse_memberships(line):
-        result.extend(memberships)
+    result: Memberships = parse_lines(io, MEMBERSHIP_RX, self.parse_membership_line)
     roles: Dict[str, Role] = {}
     members: Dict[str, Any] = {}
     for memb in result:
@@ -214,53 +207,20 @@ class TextLoader:
       members[memb.member.name] = memb.member = roles.get(memb.member.name, memb.member)
     return result
 
-  def parse_memberships(self, line: str) -> Optional[Memberships]:
-    if not (trimmed := trim_line(line)):
-      return None
-    if m := re.search(MEMBERSHIP_RX, trimmed):
-      role = Role(m['role'])
-      return [make_membership(role, member) for member in m['members'].split(',')]
-    return None
+  def parse_membership_line(self, m: re.Match) -> Memberships:
+    role = Role(m['role'])
+    return [self.make_membership(role, member) for member in m['members'].split(',')]
 
-def read_lines(io: IO, proc: Callable) -> Any:
-  while line := io.readline():
-    if trimmed := trim_line(line):
-      proc(trimmed)
-
-def make_membership(role, name: str):
-  if name.startswith('@'):
+  def make_membership(self, role: Role, name: str):
+    if name.startswith('@'):
+      return Membership(
+        role=role,
+        member=User(name.removeprefix('@'), name),
+      )
     return Membership(
       role=role,
-      member=User(name.removeprefix('@'), name),
+      member=Group(name, name),
     )
-  return Membership(
-    role=role,
-    member=Group(name, name),
-  )
-
-def trim_line(line: str) -> str:
-  line = line.removesuffix('\n')
-  line = re.sub(r'^\s+|\s+$', '', line)
-  return re.sub(COMMENT_RX, '', line)
-
-def real_open_file(file: Path) -> Optional[IO]:
-  try:
-    return open(str(file), "r", encoding='utf-8')
-  except OSError:
-    return None
-
-def clean_path(path: str) -> str:
-  prev = None
-  while path != prev:
-    prev = path
-    path = re.sub(r'//+', '/', path)
-    path = re.sub(r'^\./', '', path)
-    path = re.sub(r'^\.\.(?:$|/)', '', path, 1)
-    path = re.sub(r'(:?^/)\./', '/', path)
-    path = re.sub(r'^/\.\.(?:$|/)', '/', path, 1)
-    path = re.sub(r'^[^/]+/\.\.(?:$|/)', '', path, 1)
-    path = re.sub(r'/[^/]+/\.\./', '/', path, 1)
-  return path
 
 
 COMMENT_RX = re.compile(r'#.*$')
@@ -269,6 +229,13 @@ RULE_RX = re.compile(r'^\s*perm\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<ro
 MEMBERSHIP_RX = re.compile(r'^\s*member\s+(?P<role>\S+)\s+(?P<members>\S+)\s*$')
 USER_RX = re.compile(r'^\s*user\s+(?P<user>\S+)\s+(?P<groups>\S+)\s*$')
 
+
+def real_open_file(file: Path) -> Optional[IO]:
+  try:
+    return open(str(file), "r", encoding='utf-8')
+  except OSError:
+    return None
+
 @dataclass
 class FileSystemLoader:
   root: Path
@@ -276,7 +243,7 @@ class FileSystemLoader:
 
   def load_rules(self, resource: Path) -> Rules:
     resource_paths = self.resource_paths(resource)
-    rules = []
+    rules: List[Rule] = []
     for path in resource_paths:
       path_rules = self.load_auth_file(path)
       rules.extend(path_rules)
@@ -290,8 +257,55 @@ class FileSystemLoader:
       return loader.read_rules(io)
     return []
 
-  def resource_paths(self, resource: Path) -> List[Path]:
+  def resource_paths(self, resource: Path) -> Iterable[Path]:
     return list(resource.parents)
 
   def auth_file(self, path: Path) -> Path:
     return self.root / path.relative_to('/') / '.auth.txt'
+
+###################################
+
+def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable:
+  result: List = []
+  while line := io.readline():
+    if m := re.search(rx, trim_line(line)):
+      result.extend(parser(m))
+  return result
+
+def split_field(field: str) -> Iterable:
+  return re.split(r'\s*,\s', field)
+
+def trim_line(line: str) -> str:
+  line = line.removesuffix('\n')
+  line = re.sub(r'^\s+|\s+$', '', line)
+  return re.sub(COMMENT_RX, '', line)
+
+def cartesian_product(dims: Iterable[Iterable[Any]]) -> Iterable[Iterable[Any]]:
+  def collect(dims, rows):
+    if not dims:
+      return rows
+    new = []
+    for row in rows:
+      for val in dims[0]:
+        new.append(append_one(row, val))
+    return collect(dims[1:], new)
+  dims = tuple(dims)
+  return collect(dims[1:], [[val] for val in dims[0]])
+
+def append_one(x, y):
+  x = x.copy()
+  x.append(y)
+  return x
+
+def clean_path(path: str) -> str:
+  prev = None
+  while path != prev:
+    prev = path
+    path = re.sub(r'//+', '/', path)
+    path = re.sub(r'^\./', '', path)
+    path = re.sub(r'^\.\.(?:$|/)', '', path, 1)
+    path = re.sub(r'(:?^/)\./', '/', path)
+    path = re.sub(r'^/\.\.(?:$|/)', '/', path, 1)
+    path = re.sub(r'^[^/]+/\.\.(?:$|/)', '', path, 1)
+    path = re.sub(r'/[^/]+/\.\./', '/', path, 1)
+  return path
