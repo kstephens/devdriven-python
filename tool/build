@@ -99,7 +99,7 @@ venv() { # cmd
 
 -pylint() {
   override files lint_files
-  venv x pylint --rcfile ./.pylintrc --recursive=y $files
+  venv x pylint ${pylint_opts} ${argv_options[pylint_opts]} --rcfile ./.pylintrc --recursive=y $files
   set +x
 }
 
