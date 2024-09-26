@@ -2,7 +2,8 @@ from typing import Any, Optional, Self, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
-import devdriven.glob
+from ..path import clean_path
+from ..glob import glob_to_regex
 # from icecream import ic
 
 Matcher = Callable[[Any, Any], bool]
@@ -174,7 +175,7 @@ class TextLoader:
     if pattern == '*' and star_always_matches:
       matcher = match_true
     else:
-      obj.regex = devdriven.glob.glob_to_regex(pattern)
+      obj.regex = glob_to_regex(pattern)
       obj.description = repr(obj.regex)
       # pylint: disable-next=unnecessary-lambda-assignment
       matcher = lambda self, other: re.search(self.regex, other.name) is not None
@@ -288,16 +289,3 @@ def append_one(x, y):
   x = x.copy()
   x.append(y)
   return x
-
-def clean_path(path: str) -> str:
-  prev = None
-  while path != prev:
-    prev = path
-    path = re.sub(r'//+', '/', path)
-    path = re.sub(r'^\./', '', path)
-    path = re.sub(r'^\.\.(?:$|/)', '', path, 1)
-    path = re.sub(r'(:?^/)\./', '/', path)
-    path = re.sub(r'^/\.\.(?:$|/)', '/', path, 1)
-    path = re.sub(r'^[^/]+/\.\.(?:$|/)', '', path, 1)
-    path = re.sub(r'/[^/]+/\.\./', '/', path, 1)
-  return path
