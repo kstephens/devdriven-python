@@ -13,7 +13,6 @@ class LDAPService():
 
   def __init__(self, config: dict):
     self.config = config
-    self.state: dict = {}
     self.ldap_obj = None
 
   def connect(self):
