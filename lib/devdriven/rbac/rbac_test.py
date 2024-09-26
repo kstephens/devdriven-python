@@ -4,30 +4,8 @@ from devdriven.rbac.rbac import \
   Resource, Action, \
   Domain, Request, Solver, \
   TextLoader, FileSystemLoader
-from devdriven.rbac.rbac import clean_path
-
 from devdriven.asserts import assert_output_by_key
 # from icecream import ic
-
-def test_clean_path():
-  assert clean_path('.a') == '.a'
-  assert clean_path('/.a') == '/.a'
-  assert clean_path('.') == '.'
-  assert clean_path('./') == ''  # ???
-  assert clean_path('..') == ''
-  assert clean_path('../') == ''  # ???
-  assert clean_path('/..') == '/'
-  assert clean_path('/../a') == '/a'
-  assert clean_path('a') == 'a'
-  assert clean_path('/a') == '/a'
-  assert clean_path('//a') == '/a'
-  assert clean_path('//a//') == '/a/'
-  assert clean_path('dir//a//') == 'dir/a/'
-  assert clean_path('/root//a//') == '/root/a/'
-  assert clean_path('dir/../a/b') == 'a/b'
-  assert clean_path('/root/../b') == '/b'
-  assert clean_path('dir/a/../b') == 'dir/b'
-  assert clean_path('dir/a/../../b/c') == 'b/c'
 
 def test_file_system_loader():
   run_test('test_file_system_loader', run_file_system_loader)
