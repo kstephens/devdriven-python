@@ -38,12 +38,12 @@ var() {
   pythonpath $lib_dirs
 }
 -venv-create() {
-  which ${PYTHON}
-  env | grep -E 'LD_|PATH'
+  # env | grep -E 'LD_|PATH'
+  which ${PYTHON:?}
   x ${PYTHON} --version
   x ${PYTHON_BIN} -m venv ${venv_opts} ./venv
   -venv-activate
-  env | grep -E 'LD_|PATH'
+  # env | grep -E 'LD_|PATH'
   x which ${PYTHON}
   x ${PYTHON} --version
 # pip+3.10: SO MANY BUGS...
@@ -52,10 +52,7 @@ var() {
 -venv-upgrade-tools() {
   x ${PYTHON} -m pip install --upgrade pip
   - venv-activate
-  x which ${PYTHON}
-  # x pip install --upgrade pip
-  # x pip install --upgrade setuptools
-  # x pip install --upgrade distlib
+  x which pip
   x pip install --upgrade pip setuptools distlib
 }
 -venv-install-requirements() {
@@ -72,7 +69,6 @@ install-requirements() {
 
 venv() { # cmd
   - venv-activate || return $?
-  pythonpath "$lib_dir"
   "$@"
 }
 
@@ -100,7 +96,6 @@ venv() { # cmd
 -pylint() {
   override files lint_files
   venv x pylint ${pylint_opts} ${argv_options[pylint_opts]} --rcfile ./.pylintrc --recursive=y $files
-  set +x
 }
 
 -pycodestyle() {
@@ -217,7 +212,6 @@ other-dir() {
   # declare -p project_dirs other_dirs >&2
 }
 -load-projects() {
-  # set -x
   project_dirs=". $project_dirs"
   while [[ -n "$project_dirs" ]]
   do
@@ -231,13 +225,11 @@ other-dir() {
     for proj_file in "$cwd"/build/*-*.sh
     do
       x : loading $proj_file
-      # set -x
       . "$proj_file" || return $?
       x : loaded $proj_file
     done
     popd >/dev/null
   done
-  # set +x
 }
 var project_dirs other_dirs
 
@@ -432,9 +424,7 @@ x() {
   else
     log INFO "- $* : ..."
     set-append "$ran_set" "$cmd_key"
-    # set -x
     "-$@"; local _rtn=$?
-    # set +x
     if [[ $_rtn != 0 ]]
     then
       die "- $*"
@@ -475,7 +465,6 @@ main() {
   -- load-projects
   -- setup
   [[ "${#args[@]}" == 0 ]] && args=(default)
-  # set -x
   -argv-parse-commands main-target "${args[@]}"
 }
 
