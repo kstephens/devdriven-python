@@ -135,14 +135,15 @@ venv() { # cmd
 # Typecheck:
 
 -typecheck() {
-  override files mypy_files
   -- stubgen mypy $typecheck_other
 }
 -stubgen() {
+  override files mypy_files
   x ignore mypy --install-types --non-interactive
   venv x stubgen -o lib $files
 }
 -mypy() {
+  override files mypy_files
   x rm -rf .mypy-cache/
   x rm -rf $mypy_report_dir
   x mkdir -p $mypy_report_dir
@@ -365,7 +366,7 @@ pythonpath() {
 # Helpers:
 
 override() {
-  local _override="${argv_args}"
+  local _override="${argv_args[*]}"
   _override="${_override:-${!2}}"
   declare -g "$1=$_override"
 }
