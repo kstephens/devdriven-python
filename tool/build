@@ -24,7 +24,7 @@ var() {
 }
 
 -all() {
-  -- check $all_other
+  -- test check $all_other
 }
 
 ################################
@@ -83,7 +83,7 @@ venv() { # cmd
 # Check:
 
 -check() {
-  -- early test lint typecheck $check_other
+  -- early lint typecheck $check_other
 }
 
 ################################
