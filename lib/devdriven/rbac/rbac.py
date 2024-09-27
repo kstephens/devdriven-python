@@ -4,9 +4,9 @@ from pathlib import Path
 import re
 from ..path import clean_path
 from ..glob import glob_to_regex
-# from icecream import ic
 
 Matcher = Callable[[Any, Any], bool]
+
 def match_name(self, other):
   return self.name == other.name
 def match_false(_self, _other):
