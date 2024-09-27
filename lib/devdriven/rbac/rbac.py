@@ -13,12 +13,18 @@ def match_false(_self, _other):
   return False
 def match_true(_self, _other):
   return True
+def regex_matcher(regex) -> Matcher:
+  return lambda _self, other: re.search(regex, other.name) is not None
+def negate_matcher(matcher: Matcher) -> Matcher:
+  def negated(a: Any, b: Any) -> bool:
+    return not matcher(a, b)
+  return negated
 
 class Matchable:
-  def __init__(self, name: str, description: str = ''):
+  def __init__(self, name: str, description: str = '', matcher: Matcher = match_name):
     self.name = name
-    self.matcher: Matcher = match_name
     self.description = description
+    self.matcher = matcher
 
   def matches(self, other: Self) -> bool:
     return self.matcher(self, other)
@@ -168,23 +174,22 @@ class TextLoader:
     return result
 
   def parse_pattern(self, constructor: Type, pattern: str, star_always_matches: bool) -> Any:
-    obj = constructor(name=pattern)
-    obj.description = pattern
     if negate := pattern.startswith('!'):
       pattern = pattern.removeprefix('!')
     if pattern == '*' and star_always_matches:
+      regex = None
       matcher = match_true
+      description = pattern
     else:
-      obj.regex = glob_to_regex(pattern)
-      obj.description = repr(obj.regex)
+      regex = glob_to_regex(pattern)
       # pylint: disable-next=unnecessary-lambda-assignment
-      matcher = lambda self, other: re.search(self.regex, other.name) is not None
+      matcher = regex_matcher(regex)
+      description = repr(regex)
     if negate:
-      negated = matcher
-      # pylint: disable-next=unnecessary-lambda-assignment
-      matcher = lambda self, other: not negated(self, other)
-      obj.description = f"!{obj.description}"
-    obj.matcher = matcher
+      matcher = negate_matcher(matcher)
+      description = f"!{description}"
+    obj = constructor(name=pattern, description=pattern, matcher=matcher)
+    obj.regex = regex
     return obj
 
   ##############################
