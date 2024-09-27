@@ -20,35 +20,24 @@ file-changed() {
   local file="$1"
   case "$file"
   in
-    *requirements.txt)  requirements-changed     ;;
+    *requirements.txt)  cmd tool/build venv all  ;;
     *_test.py)          test-py-changed "$file"  ;;
     *.py)               lib-py-changed "$file"   ;;
     *)                                           ;;
   esac
 }
 
-requirements-changed() {
-  cmd tool/build venv all
-}
-
 lib-py-changed() {
   local file="$1" test_file
   local files=("$file") test_files=()
   local test_files=($(ls -d "${file/.py/_test.py}" "tests/${file#lib/}" "test/${file#lib/}" 2>/dev/null))
-  # declare -p test_files
   [[ -n "$test_files" ]] && cmd tool/build unit-test "${test_files[@]}"
-  file-py-changed "${files[@]}" "${test_files[@]}"
+  cmd tool/build check "${files[@]}" "${test_files[@]}"
 }
 
 test-py-changed() {
   cmd tool/build unit-test "$@"
-  file-py-changed "$@"
-}
-
-file-py-changed() {
   cmd tool/build check "$@"
-  # cmd tool/build lint "$@"
-  # cmd tool/build typecheck "$@"
 }
 
 ###################################
