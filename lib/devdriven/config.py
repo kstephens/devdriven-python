@@ -5,7 +5,7 @@ import logging
 import yaml  # type: ignore
 
 Command = List[str]
-Converter = Callable[[Any, str], Any]
+Converter = Callable[[Any], Any]
 
 @dataclass
 class Config:
@@ -17,11 +17,13 @@ class Config:
   env: Dict[str, str] = field(default_factory=dict)
   converters: Dict[str, Converter] = field(default_factory=dict)
   file_loaded: Optional[str] = field(default=None)
-  cache: Dict[str, Any] = field(default_factory=dict)
   parent: Optional[Any] = field(default=None)
 
+  def __post_init__(self):
+    self.cache = {}
+
   def config_file(self):
-    return self.file or self.opt('config_file') or self.file_default
+    return self.file or self.get_opt('config_file') or self.file_default
 
   def load_file(self, file: str):
     file = os.path.expanduser(file)
@@ -29,19 +31,24 @@ class Config:
     if os.path.exists(file):
       with open(file, encoding='utf-8') as inp:
         logging.info("config : load_file : %s : loading", file)
+        self.flush_cache()
         self.conf = yaml.full_load(inp)
         self.file_loaded = file
 
   def load(self):
     if file := self.config_file():
       self.load_file(file)
-    # ic(self)
     return self
 
+  def flush_cache(self):
+    self.cache = {}
+
   def opt(self, key: str, default: Optional[Any] = None, converter: Optional[Converter] = None) -> Any:
+    if not self.cache:
+      self.cache = {}
     if key in self.cache:
       return self.cache[key]
-    self.cache[key] = val = self.get_opt(key, default, converter)
+    val = self.cache[key] = self.get_opt(key, default, converter)
     return val
 
   def get_opt(self, key: str, default: Optional[Any] = None, converter: Optional[Converter] = None) -> Any:
@@ -64,17 +71,13 @@ class Config:
     return val
 
   def convert(self, key: str, value: Any, converter: Optional[Converter]):
-    converter = converter or self.converters.get(key) or CONVERTERS.get(key) or identity
-    return converter(value, key)
+    if converter := converter or self.converters.get(key):
+      return converter(value)
+    return value
 
   def __getitem__(self, key: str) -> Any:
     return self.opt(key)
 
 
-CONVERTERS = {}
-
-def register_converter(key: str, converter: Converter):
-  CONVERTERS[key] = converter
-
-def identity(x: Any, _key: str):
+def identity(x: Any):
   return x
