@@ -1,49 +1,5 @@
-  root = PurePath('/root')
-  files = {
-    '/root/.user.txt': '''
-user unknown  Anon
-user alice    Admins
-user bob      Readers
-user frank    Writers,Other
-user tim      Other
-user root     Other
-    ''',
-    '/root/.role.txt': '''
 member admin-role  Admins,@root
 member read-role   Readers
 member write-role  Writers
 member other-role  Other
 member anon-role   Anon
-    ''',
-    '/root/.auth.txt': '''
-# Admins have full access to authorizations controls:
-perm allow  *    admin-role  **/.user.txt
-perm allow  *    admin-role  **/.role.txt
-perm allow  *    admin-role  **/.auth.txt
-perm allow  *    admin-role  **
-
-# Admins have full access to hidden files.
-perm allow  *    admin-role  **/.*
-
-# Other have no access to authorization controls:
-perm deny   *    *           **/.user.txt
-perm deny   *    *           **/.role.txt
-perm deny   *    *           **/.auth.txt
-
-# Anonymous users have no access:
-perm deny   *    anon-role   **
-
-# All other users have GET:
-perm allow  GET  *           **
-    ''',
-    '/root/a/.auth.txt': '''
-perm allow GET other-role     *
-perm allow PUT a-writer-role  writable.txt
-    ''',
-    '/root/a/b/.auth.txt': '''
-perm allow GET read-role   *
-perm allow PUT write-role  *.txt
-    ''',
-    '/root/a/b/c/.auth.txt': None,
-  }
-

@@ -23,12 +23,13 @@ class Matchable:
     self.name = name
     self.description = description
     self.matcher = matcher
+    self.regex = None
 
   def matches(self, other: Self) -> bool:
     return self.matcher(self, other)
 
   def __str__(self):
-    return f"{self.__class__.__name__}({self.name!r}, {self.description!r})"
+    return f"{self.__class__.__name__}({self.name!r}, {self.description!r}, {self.regex!r})"
 
   def __repr__(self):
     return self.__str__()

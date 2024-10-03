@@ -2,16 +2,17 @@
 import copy
 from pathlib import Path
 import json
-# import sys
+import logging
+import sys
 # import os
 from icecream import ic
-from . import Solver, \
-  Request, Permission, Action, Resource, Rule, Role, User
-from .loader import DomainFileLoader
+from devdriven.rbac import Solver, \
+  Request, Permission, Action, Resource, Rule, Role, \
+  DomainFileLoader
 
 # https://www.toptal.com/python/pythons-wsgi-server-application-interface
 
-class Application:
+class AuthWebService:
   def __init__(self, base, root):
     self.base = base
     self.resource_root = root
@@ -37,7 +38,7 @@ class Application:
     # ic(env['HTTP_AUTHORIZATION'])
     action = env.get('HTTP_X_AUTH_ACTION', env.get('REQUEST_METHOD'))
     resource = env.get('HTTP_X_AUTH_RESOURCE', env.get('PATH_INFO'))
-    user = env.get('HTTP_X_AUTH_USER', env.get('REMOTE_USER'))
+    user = env.get('HTTP_X_AUTH_USER', env.get('REMOTE_USER')) or 'unknown'
     rule = self.solve(action, resource, user)
     result = {
       'action': action,
@@ -55,19 +56,23 @@ class Application:
       body,
     )
 
-  def solve(self, action, resource, user):
-    action = Action(action)
-    resource = Resource(resource)
-    user = User(user)
-    request = Request(resource=resource, action=action, user=user)
-
+  def solve(self, action_name: str, resource_name: str, user_name: str):
+    action = Action(action_name)
+    resource = Resource(resource_name)
     domain_loader = DomainFileLoader(
       users_file=self.base / "user.txt",
       memberships_file=self.base / "role.txt",
       resource_root=self.resource_root,
-      resource=Path(request.resource.name)
+      resource=Path(resource.name)
     )
     domain = domain_loader.load_domain()
+    user = domain.user_for_name(user_name)
+    request = Request(resource=resource, action=action, user=user)
+    logging.info("  files_loaded  : %s", repr(domain_loader.files_loaded))
+    logging.info("  user          : %s", repr(user))
+    logging.info("  groups        : %s", repr(user.groups))
+    logging.info("  roles         : %s", repr(domain.roles_for_user(user)))
+    logging.info("  resource      : %s", repr(resource))
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
     if rules:
@@ -87,10 +92,11 @@ class Application:
 def start_app(port=8080):
   # pylint: disable-next=import-outside-toplevel
   from wsgiref.simple_server import make_server
+  logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
   base = Path('tests/data/rbac')
   root = base / 'root'
 
-  app = Application(base=base, root=root)
+  app = AuthWebService(base=base, root=root)
   ic(app)
 
   httpd = make_server('', port, app)

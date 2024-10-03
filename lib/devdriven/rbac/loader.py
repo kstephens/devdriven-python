@@ -2,6 +2,7 @@ from typing import Any, Optional, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
+import logging
 from .identity import User, Users, Group, Groups
 from .rbac import Resource, Action, Rule, Rules, Permission, \
   Role, Roles, Membership, Memberships, \
@@ -25,14 +26,19 @@ class TextLoader:
       for role in parse_list(m['role']):
         for resource in parse_list(m['resource']):
           resource_path = clean_path(f"{self.prefix}{resource}")
-          result.append(
-            Rule(
-              permission=permission,
-              action=self.parse_pattern(Action, action, True),
-              role=self.parse_pattern(Role, role, True),
-              resource=self.parse_pattern(Resource, resource_path, False),
-            )
+          rule = Rule(
+            permission=permission,
+            action=self.parse_pattern(Action, action, True),
+            role=self.parse_pattern(Role, role, True),
+            resource=self.parse_pattern(Resource, resource_path, False),
           )
+          logging.debug(
+            '  rule: %s',
+            f"{rule.permission.name} {rule.action.name}"
+            f"{rule.role.name} {rule.resource.name}"
+            f" # {(rule.resource.regex and rule.resource.regex.pattern)!r}"
+          )
+          result.append(rule)
     return result
 
   def parse_pattern(self, constructor: Type, pattern: str, star_always_matches: bool) -> Any:
