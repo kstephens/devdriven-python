@@ -1,4 +1,4 @@
-# /root/pub/.auth.txt:
+# /root/pub/.rbac.txt:
 
 # All have access non-hidden files.
 rule allow  GET  *           *.*

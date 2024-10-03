@@ -174,24 +174,24 @@ assert fut('/a/b/c.txt', 'PUT', 'tim')          == []
 # identity unknown
 #   groups = ['Anon']
 #   roles = ['anon-role']
-assert fut('/.auth.txt', 'PUT', 'unknown')      == [('deny', '*', 'anon-role', '/**')]
+assert fut('/.rbac.txt', 'PUT', 'unknown')      == [('deny', '*', 'anon-role', '/**')]
 
 # identity alice
 #   groups = ['Admins']
 #   roles = ['admin-role']
-assert fut('/.auth.txt', 'PUT', 'alice')        == [('allow', '*', 'admin-role', '/**')]
+assert fut('/.rbac.txt', 'PUT', 'alice')        == [('allow', '*', 'admin-role', '/**')]
 
 # identity alice
 #   groups = ['Admins']
 #   roles = ['admin-role']
-assert fut('/a/.auth.txt', 'PUT', 'alice')      == [('allow', '*', 'admin-role', '/**/.auth.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.auth.txt')]
+assert fut('/a/.rbac.txt', 'PUT', 'alice')      == [('allow', '*', 'admin-role', '/**/.rbac.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.rbac.txt')]
 
 # identity alice
 #   groups = ['Admins']
 #   roles = ['admin-role']
-assert fut('/a/b/.auth.txt', 'PUT', 'alice')    == [('allow', '*', 'admin-role', '/**/.auth.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.auth.txt')]
+assert fut('/a/b/.rbac.txt', 'PUT', 'alice')    == [('allow', '*', 'admin-role', '/**/.rbac.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.rbac.txt')]
 
 # identity alice
 #   groups = ['Admins']
 #   roles = ['admin-role']
-assert fut('/a/b/c/.auth.txt', 'PUT', 'alice')  == [('allow', '*', 'admin-role', '/**/.auth.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.auth.txt')]
+assert fut('/a/b/c/.rbac.txt', 'PUT', 'alice')  == [('allow', '*', 'admin-role', '/**/.rbac.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.rbac.txt')]

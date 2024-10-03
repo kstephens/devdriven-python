@@ -113,11 +113,11 @@ def run_rbac_integration(prt):
   fut('/a/b/c.txt', 'PUT', 'tim')
 
   prt('# =========================================')
-  fut('/.auth.txt', 'PUT', 'unknown')
-  fut('/.auth.txt', 'PUT', 'alice')
-  fut('/a/.auth.txt', 'PUT', 'alice')
-  fut('/a/b/.auth.txt', 'PUT', 'alice')
-  fut('/a/b/c/.auth.txt', 'PUT', 'alice')
+  fut('/.rbac.txt', 'PUT', 'unknown')
+  fut('/.rbac.txt', 'PUT', 'alice')
+  fut('/a/.rbac.txt', 'PUT', 'alice')
+  fut('/a/b/.rbac.txt', 'PUT', 'alice')
+  fut('/a/b/c/.rbac.txt', 'PUT', 'alice')
 
 def run_test(name, test_fun):
   def proc(actual_out):

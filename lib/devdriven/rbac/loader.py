@@ -152,7 +152,7 @@ class DomainFileLoader:
 class FileSystemLoader:
   resource_root: Path
   open_file: Callable = field(default=real_open_file)
-  auth_file_name: str = field(default='.auth.txt')
+  auth_file_name: str = field(default='.rbac.txt')
   files_loaded: List[Path] = field(default_factory=list)
 
   def load_rules(self, resource: Path) -> Rules:
