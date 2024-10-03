@@ -7,11 +7,11 @@ from . import \
 from .util import getter
 # from icecream import ic
 
-def test_file_system_loader():
-  run_test('test_file_system_loader', run_file_system_loader)
+def test_rbac_integration():
+  run_test('test_rbac_integration', run_rbac_integration)
 
 # pylint: disable-next=too-many-statements,too-many-locals
-def run_file_system_loader(prt):
+def run_rbac_integration(prt):
   resource_base = PurePath('tests/data/rbac')
   resource_root = resource_base / 'root'
   domain = None
