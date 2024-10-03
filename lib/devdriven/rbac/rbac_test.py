@@ -1,10 +1,10 @@
-from io import StringIO
 from pathlib import Path, PurePath
-from devdriven.rbac.rbac import \
-  Resource, Action, \
-  Domain, Request, Solver, \
-  TextLoader, FileSystemLoader
 from devdriven.asserts import assert_output_by_key
+from . import \
+  Resource, Action, \
+  Request, Solver, \
+  TextLoader, DomainFileLoader
+from .util import getter
 # from icecream import ic
 
 def test_file_system_loader():
@@ -12,77 +12,22 @@ def test_file_system_loader():
 
 # pylint: disable-next=too-many-statements,too-many-locals
 def run_file_system_loader(prt):
-  root = PurePath('/root')
-  files = {
-    '/root/.user.txt': '''
-user unknown  Anon
-user alice    Admins
-user bob      Readers
-user frank    Writers,Other
-user tim      Other
-user root     Other
-    ''',
-    '/root/.role.txt': '''
-member admin-role  Admins,@root
-member read-role   Readers
-member write-role  Writers
-member other-role  Other
-member anon-role   Anon
-    ''',
-    '/root/.auth.txt': '''
-# Admins have full access to authorizations controls:
-perm allow  *    admin-role  **/.user.txt
-perm allow  *    admin-role  **/.role.txt
-perm allow  *    admin-role  **/.auth.txt
-perm allow  *    admin-role  **
-
-# Admins have full access to hidden files.
-perm allow  *    admin-role  **/.*
-
-# Other have no access to authorization controls:
-perm deny   *    *           **/.user.txt
-perm deny   *    *           **/.role.txt
-perm deny   *    *           **/.auth.txt
-
-# Anonymous users have no access:
-perm deny   *    anon-role   **
-
-# All other users have GET:
-perm allow  GET  *           **
-    ''',
-    '/root/a/.auth.txt': '''
-perm allow GET other-role     *
-perm allow PUT a-writer-role  writable.txt
-    ''',
-    '/root/a/b/.auth.txt': '''
-perm allow GET read-role   *
-perm allow PUT write-role  *.txt
-    ''',
-    '/root/a/b/c/.auth.txt': None,
-  }
-
-  def open_file(path):
-    if content := files[str(path)]:
-      return StringIO(content)
-    return None
-
+  resource_base = PurePath('tests/data/rbac')
+  resource_root = resource_base / 'root'
   domain = None
-
-  for name, content in files.items():
-    prt('#############################################')
-    prt(f"# {name}:")
-    prt(f"{content}\n")
 
   def print_user(user):
     nonlocal domain
     groups = list(map(lambda o: o.name, user.groups))
-    roles = list(map(lambda o: o.name, Solver(domain).user_roles(user)))
+    roles = list(map(lambda o: o.name, domain.roles_for_user(user)))
     prt(f"# identity {user.name}")
     prt(f"#   groups = {groups!r}")
     prt(f"#   roles = {roles!r}")
 
-  users = TextLoader('').read_users(open_file(root / '.user.txt'))
-  memberships = TextLoader('').read_memberships(open_file(root / '.role.txt'))
+  with open(f"{resource_base}/user.txt", encoding='utf-8') as io:
+    users = TextLoader('').read_users(io)
+  with open(f"{resource_base}/role.txt", encoding='utf-8') as io:
+    memberships = TextLoader('').read_memberships(io)
   roles = {}
   for member in memberships:
     roles[member.role.name] = member.role
@@ -103,10 +48,13 @@ perm allow PUT write-role  *.txt
     user = user_by_name[user_name]
     request = Request(resource=Resource(resource), action=Action(action), user=user)
 
-    loader = FileSystemLoader(root=root, open_file=open_file)
-    rules_for_resource = loader.load_rules(Path(request.resource.name))
-
-    domain = Domain(roles=roles, memberships=memberships, rules=rules_for_resource)
+    domain_loader = DomainFileLoader(
+      users_file=f"{resource_base}/user.txt",
+      memberships_file=f"{resource_base}/role.txt",
+      resource_root=resource_root,
+      resource=Path(request.resource.name)
+    )
+    domain = domain_loader.load_domain()
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
     prt("")
@@ -178,6 +126,3 @@ def run_test(name, test_fun):
         print(x, file=out)
       test_fun(prt)
   assert_output_by_key(name, 'tests/devdriven/output/rbac', proc)
-
-def getter(name: str):  # -> Callable:
-  return lambda obj: getattr(obj, name)

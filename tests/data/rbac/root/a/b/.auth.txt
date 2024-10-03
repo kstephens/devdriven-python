@@ -1,0 +1,3 @@
+# /root/a/b/.auth.txt:
+rule allow GET read-role   *
+rule allow PUT write-role  *.txt

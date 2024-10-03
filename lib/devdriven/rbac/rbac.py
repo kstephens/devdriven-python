@@ -1,9 +1,7 @@
-from typing import Any, Optional, Self, Callable, Iterable, List, Type, IO
+from typing import Any, Self, Callable, Iterable
 from dataclasses import dataclass, field
-from pathlib import Path
 import re
-from ..path import clean_path
-from ..glob import glob_to_regex
+from .identity import User  # , Group
 
 Matcher = Callable[[Any, Any], bool]
 
@@ -46,10 +44,6 @@ class Action(Matchable):
 class Role(Matchable):
   pass
 
-
-Resources = Iterable[Resource]
-Roles = Iterable[Role]
-
 @dataclass
 class Permission:
   name: str
@@ -65,232 +59,21 @@ class Rule:
   def brief(self) -> str:
     return f"({self.permission.name!r}, {self.action.name!r}, {self.role.name!r}, {self.resource.name!r})"
 
-
-Permissions = Iterable[Permission]
-Rules = Iterable[Rule]
-
-########################################
-
 @dataclass
 class Membership:
   role: Role
   member: Any
 
 
+Resources = Iterable[Resource]
+Roles = Iterable[Role]
+Permissions = Iterable[Permission]
+Rules = Iterable[Rule]
 Memberships = Iterable[Membership]
-
-@dataclass
-class Group:
-  name: str
-  description: str = field(default='')
-
-
-Groups = Iterable[Group]
-
-@dataclass
-class User:
-  name: str
-  description: str = field(default='')
-  groups: Groups = field(default_factory=list)
-
-
-Users = Iterable[User]
-
-########################################
-
-@dataclass
-class Domain:
-  roles: Roles
-  memberships: Memberships
-  rules: Rules
 
 @dataclass
 class Request:
   resource: Resource
   action: Action
   user: User
-  roles: Roles = field(default_factory=list)
-
-########################################
-
-@dataclass
-class Solver:
-  domain: Domain
-
-  def find_rules(self, request: Request, max_rules: Optional[int] = None) -> Rules:
-    rules = []
-    request.roles = self.user_roles(request.user)
-    for rule in self.domain.rules:
-      if self.rule_matches(rule, request):
-        rules.append(rule)
-        if max_rules and len(rules) >= max_rules:
-          break
-    return rules
-
-  def rule_matches(self, rule: Rule, request: Request) -> bool:
-    if not rule.action.matches(request.action):
-      return False
-    if not rule.resource.matches(request.resource):
-      return False
-    for role in request.roles:
-      if rule.role.matches(role):
-        return True
-    return False
-
-  def user_roles(self, user: User) -> Roles:
-    roles = []
-    for membership in self.domain.memberships:
-      if isinstance(membership.member, User) and membership.member.name == user.name:
-        roles.append(membership.role)
-      for group in user.groups:
-        if isinstance(membership.member, Group) and membership.member.name == group.name:
-          roles.append(membership.role)
-    return roles
-
-########################################
-
-@dataclass
-class TextLoader:
-  prefix: str
-
-  def read_rules(self, io: IO) -> Rules:
-    return parse_lines(io, RULE_RX, self.parse_rule_line)
-
-  def parse_rule_line(self, m: re.Match) -> Rules:
-    result: List[Rule] = []
-    permission = Permission(m['permission'])
-    for action in parse_list(m['action']):
-      for role in parse_list(m['role']):
-        for resource in parse_list(m['resource']):
-          resource_path = clean_path(f"{self.prefix}{resource}")
-          result.append(
-            Rule(
-              permission=permission,
-              action=self.parse_pattern(Action, action, True),
-              role=self.parse_pattern(Role, role, True),
-              resource=self.parse_pattern(Resource, resource_path, False),
-            )
-          )
-    return result
-
-  def parse_pattern(self, constructor: Type, pattern: str, star_always_matches: bool) -> Any:
-    if negate := pattern.startswith('!'):
-      pattern = pattern.removeprefix('!')
-    if pattern == '*' and star_always_matches:
-      regex = None
-      matcher = match_true
-      description = pattern
-    else:
-      regex = glob_to_regex(pattern)
-      # pylint: disable-next=unnecessary-lambda-assignment
-      matcher = regex_matcher(regex)
-      description = repr(regex)
-    if negate:
-      matcher = negate_matcher(matcher)
-      description = f"!{description}"
-    obj = constructor(name=pattern, description=pattern, matcher=matcher)
-    obj.regex = regex
-    return obj
-
-  ##############################
-
-  def read_users(self, io: IO) -> Users:
-    return parse_lines(io, USER_RX, self.parse_user_line)
-
-  def parse_user_line(self, m: re.Match) -> Users:
-    groups = [Group(group, group) for group in parse_list(m['groups'])]
-
-    def make_user(name):
-      return User(name, f"@{name}", groups=groups.copy())
-    return [make_user(name) for name in parse_list(m['user'])]
-
-  ##############################
-
-  def read_memberships(self, io: IO) -> Memberships:
-    return parse_lines(io, MEMBERSHIP_RX, self.parse_membership_line)
-
-  def parse_membership_line(self, m: re.Match) -> Memberships:
-    role = Role(m['role'])
-    return [self.make_membership(role, member) for member in m['members'].split(',')]
-
-  def make_membership(self, role: Role, description: str) -> Membership:
-    if description.startswith('@'):
-      name = description.removeprefix('@')
-      return Membership(role=role, member=User(name, description))
-    return Membership(role=role, member=Group(description, description))
-
-
-COMMENT_RX = re.compile(r'#.*$')
-LEADING_SPACE_RX = re.compile(r'^\s+')
-RULE_RX = re.compile(r'perm\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)')
-MEMBERSHIP_RX = re.compile(r'member\s+(?P<role>\S+)\s+(?P<members>\S+)')
-USER_RX = re.compile(r'user\s+(?P<user>\S+)\s+(?P<groups>\S+)')
-
-
-def real_open_file(file: Path) -> Optional[IO]:
-  try:
-    return open(str(file), "r", encoding='utf-8')
-  except OSError:
-    return None
-
-@dataclass
-class FileSystemLoader:
-  root: Path
-  open_file: Callable = field(default=real_open_file)
-
-  def load_rules(self, resource: Path) -> Rules:
-    return mapcat(self.load_auth_file, self.resource_paths(resource))
-
-  def load_auth_file(self, path: Path) -> Rules:
-    auth_file = self.auth_file(path)
-    io = self.open_file(auth_file)
-    if io:
-      loader = TextLoader(prefix=str(path) + '/')
-      return loader.read_rules(io)
-    return []
-
-  def resource_paths(self, resource: Path) -> Iterable[Path]:
-    return list(resource.parents)
-
-  def auth_file(self, path: Path) -> Path:
-    return self.root / path.relative_to('/') / '.auth.txt'
-
-###################################
-
-def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable:
-  result: List = []
-  while line := io.readline():
-    if m := re.match(rx, trim_line(line)):
-      result.extend(parser(m))
-  return result
-
-def mapcat(func: Callable[[Any], Iterable], seq: Iterable) -> Iterable:
-  result: List = []
-  for item in seq:
-    result.extend(func(item))
-  return result
-
-def parse_list(val: str) -> Iterable:
-  return re.split(r'\s*,\s', val)
-
-def trim_line(line: str) -> str:
-  line = line.removesuffix('\n')
-  line = re.sub(r'^\s+|\s+$', '', line)
-  return re.sub(COMMENT_RX, '', line)
-
-def cartesian_product(dims: Iterable[Iterable[Any]]) -> Iterable[Iterable[Any]]:
-  def collect(dims, rows):
-    if not dims:
-      return rows
-    new = []
-    for row in rows:
-      for val in dims[0]:
-        new.append(append_one(row, val))
-    return collect(dims[1:], new)
-  dims = tuple(dims)
-  return collect(dims[1:], [[val] for val in dims[0]])
-
-def append_one(x, y):
-  x = x.copy()
-  x.append(y)
-  return x
+  roles: Roles = field(default_factory=list)  # ???
