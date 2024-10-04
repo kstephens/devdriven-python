@@ -197,7 +197,7 @@ class FileSystemLoader:
 def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable[Any]:
   result: List[Any] = []
   while line := io.readline():
-    if m := re.match(rx, trim_line(line)):
+    if m := rx.match(trim_line(line)):
       result.extend(parser(m))
   return result
 

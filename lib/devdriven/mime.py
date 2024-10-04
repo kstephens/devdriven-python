@@ -9,7 +9,7 @@ MimeType = Tuple[Optional[str], Optional[str]]
 LONG_SUFFIX_RX = re.compile(r'(?:^|/)[^.]+(\.[^/]+)$')
 def short_and_long_suffix(path: str) -> Tuple[str, str]:
   short_suffix = long_suffix = Path(path).suffix
-  if m := re.search(LONG_SUFFIX_RX, str(path)):
+  if m := LONG_SUFFIX_RX.search(str(path)):
     long_suffix = m[1]
   return short_suffix, long_suffix
 

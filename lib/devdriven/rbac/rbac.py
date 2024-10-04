@@ -11,8 +11,8 @@ def match_false(_self, _other):
   return False
 def match_true(_self, _other):
   return True
-def regex_matcher(regex) -> Matcher:
-  return lambda _self, other: re.search(regex, other.name) is not None
+def regex_matcher(rx: re.Pattern) -> Matcher:
+  return lambda _self, other: rx.search(other.name) is not None
 def negate_matcher(matcher: Matcher) -> Matcher:
   def negated(a: Any, b: Any) -> bool:
     return not matcher(a, b)
