@@ -34,8 +34,8 @@ class TextLoader:
           )
           logging.debug(
             '  rule: %s',
-            f"{rule.permission.name} {rule.action.name}"
-            f"{rule.role.name} {rule.resource.name}"
+            f"{rule.permission.name} {rule.action.name} "
+            f"{rule.role.name} {rule.resource.name} "
             f"  # {(rule.resource.regex and rule.resource.regex.pattern)!r}"
           )
           result.append(rule)

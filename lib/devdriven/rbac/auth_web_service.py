@@ -62,8 +62,6 @@ class AuthWebService:
     )
 
   def solve(self, action_name: str, resource_path: str, user_name: str):
-    action = Action(action_name)
-    resource = Resource(resource_path)
     domain_loader = DomainFileLoader()
     domain = domain_loader.load_all(
       self.base / "user.txt",
@@ -71,15 +69,26 @@ class AuthWebService:
       self.resource_root,
       Path(resource_path),
     ).create_domain()
-    user = domain.user_for_name(user_name)
-    request = Request(resource=resource, action=action, user=user)
-    logging.info("  files_loaded  : %s", repr(domain_loader.files_loaded))
-    logging.info("  user          : %s", repr(user))
-    logging.info("  groups        : %s", repr(user.groups))
-    logging.info("  roles         : %s", repr(domain.roles_for_user(user)))
-    logging.info("  resource      : %s", repr(resource))
+
+    request = Request(
+      action=Action(action_name),
+      resource=Resource(resource_path),
+      user=domain.user_for_name(user_name)
+    )
+
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
+
+    logging.info("  files_loaded  : %s", repr([str(p) for p in domain_loader.files_loaded]))
+    logging.info("  action        : %s", repr(request.action.name))
+    logging.info("  resource      : %s", repr(request.resource.name))
+    logging.info("  user          : %s", repr(request.user.name))
+    logging.info("  groups        : %s", repr([g.name for g in request.user.groups]))
+    logging.info("  roles         : %s", repr([r.name for r in domain.roles_for_user(request.user)]))
+    logging.info("  rules         : %s", len(list(rules)))
+    for rule in rules:
+        logging.info("                  : %s", rule.brief())
+
     if rules:
       return next(iter(rules))
     return self.default_rule(request)
