@@ -76,7 +76,7 @@ class AuthWebService:
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
     if rules:
-      return rules[0]
+      return next(iter(rules))
     return self.default_rule(request)
 
   def default_rule(self, request):

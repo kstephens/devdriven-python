@@ -83,7 +83,7 @@ class Domain():
     return self.identity_domain.group_by_name(name)
 
   def role_by_name(self, name: str) -> Role:
-    return Role(name)
+    return self.role_domain.role_by_name(name)
 
   def roles_for_user(self, user: User) -> Roles:
     roles = [memb.role for memb in self.memberships_for_identity(user)]

@@ -115,10 +115,10 @@ class DomainFileLoader:
 
   def load_domain(self) -> Domain:
     with open(self.users_file, encoding='utf-8') as io:
-      self.users = TextLoader('').read_users(io)
+      self.users = TextLoader().read_users(io)
       self.files_loaded.append(Path(self.users_file))
     with open(self.memberships_file, encoding='utf-8') as io:
-      self.memberships = TextLoader('').read_memberships(io)
+      self.memberships = TextLoader().read_memberships(io)
       self.files_loaded.append(Path(self.memberships_file))
     groups = {}
     for user in self.users:
