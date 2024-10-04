@@ -87,7 +87,7 @@ class AuthWebService:
     logging.info("  roles         : %s", repr([r.name for r in domain.roles_for_user(request.user)]))
     logging.info("  rules         : %s", len(list(rules)))
     for rule in rules:
-        logging.info("                  : %s", rule.brief())
+      logging.info("                  : %s", rule.brief())
 
     if rules:
       return next(iter(rules))

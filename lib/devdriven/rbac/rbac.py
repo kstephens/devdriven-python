@@ -29,7 +29,8 @@ class Matchable:
     return self.matcher(self, other)
 
   def __str__(self):
-    return f"{self.__class__.__name__}({self.name!r}, {self.description!r}, {self.regex!r})"
+    vals = (self.name, self.description, self.regex)
+    return f"{self.__class__.__name__}({', '.join([repr(val) for val in vals if val])})"
 
   def __repr__(self):
     return self.__str__()
