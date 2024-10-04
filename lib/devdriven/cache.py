@@ -55,10 +55,10 @@ class PickleCache():
   def write(self, path: Path) -> None:
     logging.debug('%s', f'write : {path!r}')
     assert self._ready
-    pickle_bz2(path, 'wb', self._data)
+    pickle_bz2(str(path), 'wb', self._data)
     self._stale = False
 
   def read(self, path: Path) -> None:
     logging.debug('%s', f'read : {path!r}')
-    self._data = pickle_bz2(path, 'rb')
+    self._data = pickle_bz2(str(path), 'rb')
     self._ready = True

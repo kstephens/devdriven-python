@@ -160,7 +160,7 @@ class FileSystemLoader:
 
   def load_auth_file(self, path: Path) -> Rules:
     auth_file = self.auth_file(path)
-    io = self.open_file(auth_file)
+    io: IO = self.open_file(auth_file)
     if io:
       loader = TextLoader(prefix=str(path) + '/')
       self.files_loaded.append(auth_file)
@@ -175,14 +175,14 @@ class FileSystemLoader:
 
 ###################################
 
-def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable:
-  result: List = []
+def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable[Any]:
+  result: List[Any] = []
   while line := io.readline():
     if m := re.match(rx, trim_line(line)):
       result.extend(parser(m))
   return result
 
-def parse_list(val: str) -> Iterable:
+def parse_list(val: str) -> Iterable[str]:
   return re.split(r'\s*,\s', val)
 
 def trim_line(line: str) -> str:

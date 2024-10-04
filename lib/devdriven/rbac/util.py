@@ -27,10 +27,10 @@ def cartesian_product(dims: Iterable[Iterable[Any]]) -> Iterable[Iterable[Any]]:
   dims = tuple(dims)
   return collect(dims[1:], [[val] for val in dims[0]])
 
-def append_one(x, y):
+def append_one(x: list, y: Any) -> list:
   x = x.copy()
   x.append(y)
   return x
 
-def comp(f, g):
+def comp(f: Callable[[Any], Any], g: Callable[[Any], Any]) -> Callable[[Any], Any]:
   return lambda x: f(g(x))

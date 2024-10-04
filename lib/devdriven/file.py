@@ -1,4 +1,4 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, Any, List
 import platform
 import os
 import pickle
@@ -69,9 +69,10 @@ def file_nlines(path: str, eol: bytes = b'\n', buffer_size: int = BUFFER_SIZE) -
   except OSError:
     return None
 
-def pickle_bz2(file, mode, data=None):
-  with bz2.open(file, mode) as stream:
-    if mode == 'rb':
+def pickle_bz2(file: str, mode: str, data: Any = None) -> Any:
+  if mode == 'rb':
+    with bz2.open(file, 'rb') as stream:
       return pickle.load(stream)
+  with bz2.open(file, 'wb') as stream:
     pickle.dump(data, stream)
     return data

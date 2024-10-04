@@ -1,7 +1,7 @@
 from typing import Optional  # Any, Self, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
 from .identity import User, Users, Group, Groups, Identity
-from .rbac import Role, Roles, Memberships, Rule, Rules, Request  # , Action
+from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request  # , Action
 from .util import find
 
 @dataclass
@@ -36,7 +36,7 @@ class RoleDomain:
     return [memb.role for memb in self.memberships_for_identity(group)]
 
   def memberships_for_identity(self, member: Identity) -> Memberships:
-    def pred(membership):
+    def pred(membership: Membership) -> bool:
       return isinstance(membership.member, type(member)) and membership.member.name == member.name
     return [membership for membership in self.memberships if pred(membership)]
 
