@@ -77,4 +77,3 @@ class Request:
   resource: Resource
   action: Action
   user: User
-  roles: Roles = field(default_factory=list)  # ???

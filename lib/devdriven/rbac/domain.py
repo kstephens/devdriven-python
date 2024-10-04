@@ -46,20 +46,19 @@ class RuleDomain:
 
   def find_rules(self, request: Request, roles: Roles, max_rules: Optional[int] = None) -> Rules:
     rules = []
-    request.roles = roles
     for rule in self.rules:
-      if self.rule_matches(rule, request):
+      if self.rule_matches(request, roles, rule):
         rules.append(rule)
         if max_rules and len(rules) >= max_rules:
           break
     return rules
 
-  def rule_matches(self, rule: Rule, request: Request) -> bool:
+  def rule_matches(self, request: Request, roles: Roles, rule: Rule) -> bool:
     if not rule.action.matches(request.action):
       return False
     if not rule.resource.matches(request.resource):
       return False
-    for role in request.roles:
+    for role in roles:
       if rule.role.matches(role):
         return True
     return False
