@@ -5,11 +5,11 @@ from .identity import User  # , Group
 
 Matcher = Callable[[Any, Any], bool]
 
-def match_name(self, other):
+def match_name(self, other) -> bool:
   return self.name == other.name
-def match_false(_self, _other):
+def match_false(_self, _other) -> bool:
   return False
-def match_true(_self, _other):
+def match_true(_self, _other) -> bool:
   return True
 def regex_matcher(rx: re.Pattern) -> Matcher:
   return lambda _self, other: rx.search(other.name) is not None
@@ -28,11 +28,11 @@ class Matchable:
   def matches(self, other: Self) -> bool:
     return self.matcher(self, other)
 
-  def __str__(self):
+  def __str__(self) -> str:
     vals = (self.name, self.description, self.regex)
     return f"{self.__class__.__name__}({', '.join([repr(val) for val in vals if val])})"
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return self.__str__()
 
 ########################################
