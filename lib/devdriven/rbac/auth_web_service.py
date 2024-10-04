@@ -1,4 +1,4 @@
-# from typing import Any, Optional, Self, Callable, Iterable, List, Type, IO
+from typing import Dict  # Any, Optional, Self, Callable, Iterable, List, Type, IO
 import copy
 from pathlib import Path
 import json
@@ -13,10 +13,10 @@ from devdriven.rbac import Solver, \
 # https://www.toptal.com/python/pythons-wsgi-server-application-interface
 
 class AuthWebService:
-  def __init__(self, base, root):
+  def __init__(self, base: Path, root: Path):
     self.base = base
     self.resource_root = root
-    self.environ = {}
+    self.environ: Dict[str, str] = {}
     self.start_response = None
     self.request_number = 0
 
@@ -32,7 +32,7 @@ class AuthWebService:
     self.start_response(status, headers)
     yield body.encode()
 
-  def process_request(self, env):
+  def process_request(self, env: dict):
     # env = {k: v for k, v in env.items() if k not in os.environ}
     # ic(list(sorted(env.keys())))
     # ic(env['HTTP_AUTHORIZATION'])
@@ -41,17 +41,22 @@ class AuthWebService:
     user = env.get('HTTP_X_AUTH_USER', env.get('REMOTE_USER')) or 'unknown'
     rule = self.solve(action, resource, user)
     result = {
+      'permission': rule.permission.name,
       'action': action,
       'resource': resource,
       'user': user,
       'rule': str(rule),
     }
+    if rule.permission.name == 'allow':
+      status = '200 OK'
+    else:
+      status = '403 Forbidden'
     body = f"""
 {self.request_number}
 {json.dumps(result, indent=2)}
 """
     return (
-      '200 OK',
+      status,
       [('Content-type', 'text/plain')],
       body,
     )
@@ -63,8 +68,8 @@ class AuthWebService:
     domain = domain_loader.load_all(
       self.base / "user.txt",
       self.base / "role.txt",
-      Path(self.resource_root),
-      Path(resource_path)
+      self.resource_root,
+      Path(resource_path),
     ).create_domain()
     user = domain.user_for_name(user_name)
     request = Request(resource=resource, action=action, user=user)
@@ -79,7 +84,7 @@ class AuthWebService:
       return next(iter(rules))
     return self.default_rule(request)
 
-  def default_rule(self, request):
+  def default_rule(self, request: Request):
     return Rule(
       permission=Permission('deny'),
       action=request.action,
