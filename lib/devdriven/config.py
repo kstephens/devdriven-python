@@ -1,4 +1,4 @@
-from typing import Any, Optional, List, Dict, Callable
+from typing import Any, Optional, Self, List, Dict, Callable
 from dataclasses import dataclass, field
 import os
 import logging
@@ -35,9 +35,10 @@ class Config:
       self.file_loaded = file
       self.flush_cache()
 
-  def load(self, ok_if_missing: bool = True) -> None:
+  def load(self, ok_if_missing: bool = True) -> Self:
     if file := self.config_file():
       self.load_file(file, ok_if_missing=ok_if_missing)
+    return self
 
   def flush_cache(self) -> None:
     self.cache = {}
