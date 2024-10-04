@@ -1,4 +1,4 @@
-from typing import Any, Optional, Callable, Iterable, List, Type, IO
+from typing import Any, Self, Optional, Callable, Iterable, Tuple, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
@@ -103,41 +103,60 @@ def real_open_file(file: Path) -> Optional[IO]:
 
 @dataclass
 class DomainFileLoader:
-  users_file: Path
-  memberships_file: Path
-  resource_root: Path
-  resource: Path
+  '''
+  Loads user/group file, role/membership file, rules for a resource path.
+  Creates a static Domain.
+  '''
+  files_loaded: List[Path] = field(default_factory=list)
   users: Users = field(default_factory=list)
   groups: Groups = field(default_factory=list)
   memberships: Memberships = field(default_factory=list)
   roles: Roles = field(default_factory=list)
-  files_loaded: List[Path] = field(default_factory=list)
+  rules: Rules = field(default_factory=list)
 
-  def load_domain(self) -> Domain:
-    with open(self.users_file, encoding='utf-8') as io:
-      self.users = TextLoader().read_users(io)
-      self.files_loaded.append(Path(self.users_file))
-    with open(self.memberships_file, encoding='utf-8') as io:
-      self.memberships = TextLoader().read_memberships(io)
-      self.files_loaded.append(Path(self.memberships_file))
-    groups = {}
-    for user in self.users:
-      for group in user.groups:
-        groups[group.name] = group
-    self.groups = sorted(groups.values(), key=getter('name'))
-    roles = {}
-    for member in self.memberships:
-      roles[member.role.name] = member.role
-    self.roles = sorted(roles.values(), key=getter('name'))
-    loader = FileSystemLoader(resource_root=self.resource_root)
-    rules_for_resource = loader.load_rules(self.resource)
-    self.files_loaded.extend(loader.files_loaded)
-
+  def create_domain(self) -> Domain:
     return Domain(
       identity_domain=IdentityDomain(users=self.users, groups=self.groups),
       role_domain=RoleDomain(memberships=self.memberships, roles=self.roles),
-      rule_domain=RuleDomain(rules=rules_for_resource),
+      rule_domain=RuleDomain(rules=self.rules),
     )
+
+  def load_all(self,
+               users_file: Path,
+               memberships_file: Path,
+               resource_root: Path,
+               resource_path: Path) -> Self:
+    self.load_users_file(users_file)
+    self.load_memberships_file(memberships_file)
+    self.load_rules_for_resource(Path(resource_root), Path(resource_path))
+    return self
+
+  def load_users_file(self, users_file: Path) -> Tuple[Users, Groups]:
+    with open(users_file, encoding='utf-8') as io:
+      self.users = TextLoader().read_users(io)
+      self.files_loaded.append(users_file)
+    group_by_name = {}
+    for user in self.users:
+      for group in user.groups:
+        group_by_name[group.name] = group
+    self.groups = sorted(group_by_name.values(), key=getter('name'))
+    return self.users, self.groups
+
+  def load_memberships_file(self, memberships_file: Path) -> Tuple[Memberships, Roles]:
+    with open(memberships_file, encoding='utf-8') as io:
+      self.memberships = TextLoader().read_memberships(io)
+      self.files_loaded.append(memberships_file)
+    role_by_name = {}
+    for member in self.memberships:
+      role_by_name[member.role.name] = member.role
+    self.roles = sorted(role_by_name.values(), key=getter('name'))
+    return self.memberships, self.roles
+
+  def load_rules_for_resource(self, resource_root: Path, resource_path: Path) -> Rules:
+    loader = FileSystemLoader(resource_root=resource_root)
+    self.rules = loader.load_rules(resource_path)
+    self.files_loaded.extend(loader.files_loaded)
+    return self.rules
 
   def show(self, prt=print):
     prt("")

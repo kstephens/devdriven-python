@@ -48,19 +48,16 @@ def run_rbac_integration(prt):
     user = user_by_name[user_name]
     request = Request(resource=Resource(resource), action=Action(action), user=user)
 
-    domain_loader = DomainFileLoader(
-      users_file=f"{resource_base}/user.txt",
-      memberships_file=f"{resource_base}/role.txt",
+    domain = DomainFileLoader().load_all(
+      users_file=Path(f"{resource_base}/user.txt"),
+      memberships_file=Path(f"{resource_base}/role.txt"),
       resource_root=resource_root,
-      resource=Path(request.resource.name)
-    )
-    domain = domain_loader.load_domain()
+      resource_path=Path(request.resource.name)
+    ).create_domain()
     solver = Solver(domain=domain)
     rules = solver.find_rules(request)
     prt("")
     print_user(user)
-    # prt(f"\n# rules for {resource!r}:")
-    # prt('\n'.join([f"# {rule.brief()}" for rule in rules_for_resource]))
 
     result = [rule.permission.name for rule in rules]
     result = [rule.brief() for rule in rules]

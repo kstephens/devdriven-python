@@ -56,16 +56,16 @@ class AuthWebService:
       body,
     )
 
-  def solve(self, action_name: str, resource_name: str, user_name: str):
+  def solve(self, action_name: str, resource_path: str, user_name: str):
     action = Action(action_name)
-    resource = Resource(resource_name)
-    domain_loader = DomainFileLoader(
-      users_file=self.base / "user.txt",
-      memberships_file=self.base / "role.txt",
-      resource_root=self.resource_root,
-      resource=Path(resource.name)
-    )
-    domain = domain_loader.load_domain()
+    resource = Resource(resource_path)
+    domain_loader = DomainFileLoader()
+    domain = domain_loader.load_all(
+      self.base / "user.txt",
+      self.base / "role.txt",
+      Path(self.resource_root),
+      Path(resource_path)
+    ).create_domain()
     user = domain.user_for_name(user_name)
     request = Request(resource=resource, action=action, user=user)
     logging.info("  files_loaded  : %s", repr(domain_loader.files_loaded))
