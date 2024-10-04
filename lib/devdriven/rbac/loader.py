@@ -79,7 +79,7 @@ class TextLoader:
 
   def parse_membership_line(self, m: re.Match) -> Memberships:
     role = Role(m['role'])
-    return [self.make_membership(role, member) for member in m['members'].split(',')]
+    return [self.make_membership(role, member) for member in parse_list(m['members'])]
 
   def make_membership(self, role: Role, description: str) -> Membership:
     if description.startswith('@'):
@@ -202,7 +202,7 @@ def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable[Any]:
   return result
 
 def parse_list(val: str) -> Iterable[str]:
-  return re.split(r'\s*,\s', val)
+  return re.split(r'\s*,\s*', val)
 
 def trim_line(line: str) -> str:
   line = line.removesuffix('\n')

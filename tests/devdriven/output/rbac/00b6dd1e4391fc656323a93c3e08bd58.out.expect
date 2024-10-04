@@ -83,9 +83,9 @@ assert fut('/a/1', 'GET', 'alice')              == [('allow', '*', 'admin-role',
 assert fut('/a/1', 'GET', 'bob')                == [('allow', 'GET', '*', '/**')]
 
 # identity frank
-#   groups = ['Writers,Other']
-#   roles = []
-assert fut('/a/1', 'GET', 'frank')              == []
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
+assert fut('/a/1', 'GET', 'frank')              == [('allow', 'GET', 'other-role', '/a/*'), ('allow', 'GET', '*', '/**')]
 
 # identity tim
 #   groups = ['Other']
@@ -109,9 +109,9 @@ assert fut('/a/b/2', 'GET', 'alice')            == [('allow', '*', 'admin-role',
 assert fut('/a/b/2', 'GET', 'bob')              == [('allow', 'GET', 'read-role', '/a/b/*'), ('allow', 'GET', '*', '/**')]
 
 # identity frank
-#   groups = ['Writers,Other']
-#   roles = []
-assert fut('/a/b/2', 'GET', 'frank')            == []
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
+assert fut('/a/b/2', 'GET', 'frank')            == [('allow', 'GET', '*', '/**')]
 
 # identity tim
 #   groups = ['Other']
@@ -135,8 +135,8 @@ assert fut('/a/b/3', 'PUT', 'alice')            == [('allow', '*', 'admin-role',
 assert fut('/a/b/3', 'PUT', 'bob')              == []
 
 # identity frank
-#   groups = ['Writers,Other']
-#   roles = []
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
 assert fut('/a/b/3', 'PUT', 'frank')            == []
 
 # identity tim
@@ -161,9 +161,9 @@ assert fut('/a/b/c.txt', 'PUT', 'alice')        == [('allow', '*', 'admin-role',
 assert fut('/a/b/c.txt', 'PUT', 'bob')          == []
 
 # identity frank
-#   groups = ['Writers,Other']
-#   roles = []
-assert fut('/a/b/c.txt', 'PUT', 'frank')        == []
+#   groups = ['Writers', 'Other']
+#   roles = ['write-role', 'other-role']
+assert fut('/a/b/c.txt', 'PUT', 'frank')        == [('allow', 'PUT', 'write-role', '/a/b/*.txt')]
 
 # identity tim
 #   groups = ['Other']
