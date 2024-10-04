@@ -24,5 +24,3 @@ def glob_to_regex(glob: str, deep_matches_empty: bool = False) -> re.Pattern:
     assert not 'here'
     return None
   return re.compile('^(?:' + re.sub(GLOB_RX, scan, glob) + ')$')
-  # ic((glob, rx))
-  # return rx
