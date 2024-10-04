@@ -36,7 +36,7 @@ class TextLoader:
             '  rule: %s',
             f"{rule.permission.name} {rule.action.name}"
             f"{rule.role.name} {rule.resource.name}"
-            f" # {(rule.resource.regex and rule.resource.regex.pattern)!r}"
+            f"  # {(rule.resource.regex and rule.resource.regex.pattern)!r}"
           )
           result.append(rule)
     return result
@@ -52,7 +52,7 @@ class TextLoader:
       regex = glob_to_regex(pattern)
       # pylint: disable-next=unnecessary-lambda-assignment
       matcher = regex_matcher(regex)
-      description = repr(regex)
+      description = regex.pattern
     if negate:
       matcher = negate_matcher(matcher)
       description = f"!{description}"
