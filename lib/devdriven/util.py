@@ -15,6 +15,8 @@ Predicate = Callable[[Any], Any]
 Func1 = Callable[[Any], Any]
 FuncAny = Callable[..., Any]
 SubprocessResult = Any  # subprocess.CompletedProcess
+Data = Union[str, bytes]
+Number = Union[int, float]
 
 #####################################################################
 # Access
@@ -34,7 +36,7 @@ def none_as_blank(value: Any) -> Any:
 #####################################################################
 # String, Bytes
 
-def shorten_string(a_str, max_len, placeholder='...'):
+def shorten_string(a_str: str, max_len: int, placeholder: str = '...') -> str:
   if len(a_str) > max_len:
     end = max(0, max_len - len(placeholder) + 1)
     return a_str[:end] + placeholder
@@ -48,7 +50,7 @@ def maybe_decode_bytes(obj: Optional[bytes], encoding: str = 'utf-8') -> Optiona
   except UnicodeDecodeError:
     return None
 
-def unpad_lines(lines):
+def unpad_lines(lines: List[str]) -> List[str]:
   lines = lines.copy()
   while lines and not lines[0]:
     lines.pop(0)
@@ -58,7 +60,7 @@ def unpad_lines(lines):
       break
   return [re.sub(pad, '', line) for line in lines]
 
-def wrap_words(words, width, _punctuation=r'[.,?;:]'):
+def wrap_words(words: str, width: int, _punctuation: str = r'[.,?;:]') -> List[str]:
   result = []
   current = ''
   rx = re.compile(r'^(?P<left>.*?)(?P<sep>\s+|\n|[.,?;:])(?P<rest>.*)')
@@ -83,6 +85,16 @@ def splitkeep(s, delimiter):
     datums.append(split[-1])
   return datums
 
+def humanize(num: float, radix: int = 1024) -> Tuple[str, str]:
+  if num == 0:
+    return ("0", "")
+  for unit in ("", "K", "M", "G", "T", "P", "E", "Z"):
+    if abs(num) < float(radix):
+      return (f"{num:3.2f}", unit)
+    num /= float(radix)
+  return (f"{num:.1f}", "Y")
+
+
 #####################################################################
 # Time
 
@@ -92,12 +104,12 @@ DATETIME_ISO8601_FMT = '%Y-%m-%d %H:%M:%S.%f%z'
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
 
 # pylint: disable-next=invalid-name
-def datetime_iso8601(dt: Any, tz=None) -> Union[str, Any]:
+def datetime_iso8601(dt: datetime, tz: Optional[timezone] = None) -> str:
   if not tz:
     tz = timezone.utc
-  return (dt and dt.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT))
+  return dt.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT)
 
-def convert_windows_timestamp_to_iso8601(ts_str):
+def convert_windows_timestamp_to_iso8601(ts_str: Union[int, str]) -> str:
   # pylint: disable-next=invalid-name
   ts = int(ts_str) / 1000
   # pylint: disable-next=invalid-name
@@ -111,12 +123,11 @@ def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
   return (result, (time_1 - time_0) * 1000)
 
 def elapsed_ms_exception(
-  exc_klass: Any,
+  exc_klass: Any,  # BaseException,
   func: FuncAny,
   *args: Any,
   **kwargs: Any
 ) -> Tuple[Any, float, Optional[Exception]]:
-  assert exc_klass is not None
   time_0 = time.time()
   try:
     result = func(*args, **kwargs)
@@ -174,13 +185,13 @@ def exec_command_unless_dry_run(cmd_line: List[str], dry_run: bool, **options: A
 #####################################################################
 # Dict
 
-def merge_dicts(*dicts):
+def merge_dicts(*dicts) -> dict:
   return {k: v for d in dicts for k, v in d.items()}
 
 #####################################################################
 # Sequence
 
-def reorder_list(items, front, back):
+def reorder_list(items: Iterable[Any], front: Iterable[Any], back: Iterable[Any]) -> List:
   front = [i for i in front if i in items]
   back = [i for i in back if i in items]
   middle = items
@@ -236,14 +247,14 @@ def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
 #####################################################################
 # Range
 
-def parse_range(x, n):
+def parse_range(x: str, n: int) -> Union[None, range]:
   if m := re.match(r'^(-?\d+)?:(-?\d+)?(?::(-?\d+))?$', x):
     if m[0] == '-' or m[1] == '-' or m[2] == '-':
       return None
     return make_range(int(m[1] or 0), int(m[2] or n), int(m[3] or 1), n)
   return None
 
-def make_range(start, end, step, n):
+def make_range(start: Number, end: Number, step: Number, n: Number) -> Union[range, None]:
   if not start:
     start = 0
   if not end:
@@ -258,7 +269,7 @@ def make_range(start, end, step, n):
     end = n + end
   if step > 0 and start > end:
     step = - step
-  return range(start, end, step)
+  return range(start, end, step)  # type: ignore[arg-type]
 
 #####################################################################
 # Misc
@@ -281,7 +292,7 @@ def printe(x):
 #####################################################################
 # Regexp
 
-def glob_to_rx(glob, glob_terminator=None):
+def glob_to_rx(glob: str, glob_terminator: Optional[str] = None) -> re.Pattern:
   assert not glob_terminator
   rx = glob
   rx = rx.replace('.', r'[^/]')
@@ -295,17 +306,17 @@ def set_from_match(obj, match: re.Match):
 #####################################################################
 # Misc
 
-def setattr_from_dict(obj, attrs):
+def setattr_from_dict(obj, attrs: dict) -> None:
   for name, val in attrs.items():
     setattr(obj, name, val)
 
-def dataclass_from_dict(klass, opts, defaults=None):
+def dataclass_from_dict(klass, opts, defaults=None) -> Any:
   defaults = defaults or {}
   args = {f.name: opts.get(f.name, defaults.get(f.name, None))
           for f in dataclasses.fields(klass) if f.init}
   return klass(**args)
 
-def module_fullname(obj):
+def module_fullname(obj) -> str:
   '''
   Does not work as expected.
   '''
@@ -315,17 +326,17 @@ def module_fullname(obj):
     return klass.__qualname__  # avoid outputs like 'builtins.str'
   return module + '.' + klass.__qualname__
 
-# pylint: disable-next=invalid-name
-def rr(x):
-  '''Returns an object where `__repr__` it `str(x)`.'''
-  return RawRepr(x)
-
 class RawRepr:
-  def __init__(self, x):
-    self._x = x
+  def __init__(self, x: Any) -> None:
+    self._x: Any = x
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return str(self._x)
 
-  def __str__(self):
+  def __str__(self) -> Any:
     return self._x
+
+# pylint: disable-next=invalid-name
+def rr(x: Any) -> RawRepr:
+  '''Returns an object where `__repr__` it `str(x)`.'''
+  return RawRepr(x)

@@ -1,0 +1,473 @@
+#!/usr/bin/env bash
+
+################################
+
+vars=()
+var() {
+  local _var_kv
+  for _var_kv
+  do
+    declare -g -- "$_var_kv"
+    vars+=("${_var_kv%%=*}")
+  done
+}
+-show-vars() {
+  declare -p -- vars "${vars[@]}"
+}
+
+
+################################
+# Top-level targets:
+
+-default() {
+  -- all
+}
+
+-all() {
+  -- test check $all_other
+}
+
+################################
+# Environment:
+
+-venv() {
+  -- venv-create venv-upgrade-tools venv-install-requirements
+}
+-venv-activate() {
+  . venv/bin/activate || return $?
+  pythonpath $lib_dirs
+}
+-venv-create() {
+  # env | grep -E 'LD_|PATH'
+  which ${PYTHON:?}
+  x ${PYTHON} --version
+  x ${PYTHON_BIN} -m venv ${venv_opts} ./venv
+  -venv-activate
+  # env | grep -E 'LD_|PATH'
+  x which ${PYTHON}
+  x ${PYTHON} --version
+# pip+3.10: SO MANY BUGS...
+# https://stackoverflow.com/questions/72439001/there-was-an-error-checking-the-latest-version-of-pip
+}
+-venv-upgrade-tools() {
+  x ${PYTHON} -m pip install --upgrade pip
+  - venv-activate
+  x which pip
+  x pip install --upgrade pip setuptools distlib
+}
+-venv-install-requirements() {
+  install-requirements
+}
+-venv-force() {
+  x rm -rf venv/
+  -venv
+}
+install-requirements() {
+  local list=($requirements_files)
+  venv x ${PYTHON} -m pip install ${list[@]/#/-r }
+}
+
+venv() { # cmd
+  - venv-activate || return $?
+  "$@"
+}
+
+################################
+# Early:
+
+-early() {
+  -- resources $early_other
+}
+
+################################
+# Check:
+
+-check() {
+  -- early lint typecheck $check_other
+}
+
+################################
+# Lint:
+
+-lint() {
+  -- early pylint pycodestyle $lint_other
+}
+
+-pylint() {
+  override files lint_files
+  venv x pylint ${pylint_opts} ${argv_options[pylint_opts]} --rcfile ./.pylintrc --recursive=y $files
+}
+
+-pycodestyle() {
+  override files lint_files
+  venv x pycodestyle --config=.pycodestyle --show-source --statistics $files
+}
+
+################################
+# Unit Test:
+
+-test() {
+  -- unit-test integration-test
+}
+
+-unit-test() {
+  -- early
+  override files test_files
+  x rm -rf ${coverage_dir:?}/
+  x mkdir -p $coverage_dir
+  venv x coverage run -m pytest ${pytest_opts} -vv -rpP ${files:-all}
+  venv x coverage report | tee $coverage_dir/coverage.txt
+  venv x coverage html
+  venv x coverage json
+# venv x coverage xml
+}
+
+-integration-test() {
+  :
+}
+
+################################
+# Typecheck:
+
+-typecheck() {
+  -- stubgen mypy $typecheck_other
+}
+-stubgen() {
+  override files mypy_files
+  x ignore mypy --install-types --non-interactive
+  venv x stubgen -o lib $files
+}
+-mypy() {
+  override files mypy_files
+  x rm -rf .mypy-cache/
+  x rm -rf $mypy_report_dir
+  x mkdir -p $mypy_report_dir
+  local reports=($mypy_reports)
+  local opts=($mypy_opts ${reports[@]/%/ $mypy_report_dir})
+  venv x mypy "${opts[@]}" ${files:-/dev/null}
+  x head -9999 $mypy_report_dir/*.txt
+}
+
+################################
+# Resources:
+
+-resources() {
+  - minify
+}
+
+js-dir() {
+  append-path js_dirs "$@"
+  js_files="$(locate js_dirs -depth 1 -name '*.js' | grep -Ev '\.min\.js$' | newline-space)"
+  local list=($js_files)
+  js_files_min="${list[*]/%.js/.min.js}"
+}
+var js_files js_files_min
+
+-minify() {
+  # declare -p js_files js_files_min >&2
+  local file
+  for file in $js_files_min
+  do
+    : venv x minify "${file%.min.js}.js" "$file"
+  done
+}
+
+minify() { #: in out
+  python3 -mrjsmin < "$1" > "$2"
+}
+
+-minify-clean() {
+  rm -f $js_files_min
+}
+
+################################
+# Housekeeping:
+
+-clean() {
+  x rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov "${coverage_dir:?}/"
+  find /dev/null $lib_dirs $test_dirs -name '__pycache__' -a -type d | sort -r | xargs --verbose rm -rf {}
+  - minify-clean
+  x find /dev/null $lib_dirs $test_dirs '*.pyi' -exec rm '{}' \;
+}
+
+################################
+# Projects
+
+-os-dependencies() {
+  - os-dependencies-${uname_o:?}
+}
+-os-dependencies-GNU-Linux() {
+	x sudo apt-get update && x sudo apt-get install -y ${os_dependencies} ${os_dependencies_linux}
+}
+-os-dependencies-Darwin() {
+	x brew install ${os_dependencies} || x brew reinstall ${os_dependencies} ${os_dependencies_darwin}
+}
+
+################################
+# Projects
+
+other-dir() {
+  project_dirs+=" $(absolute "$@")"
+  append-path other_dirs "$@"
+  # declare -p project_dirs other_dirs >&2
+}
+-load-projects() {
+  project_dirs=". $project_dirs"
+  while [[ -n "$project_dirs" ]]
+  do
+    local list=($project_dirs)
+    local project_dir="${list[0]}"
+    project_dirs="${list[*]:1}"
+    pushd "$project_dir" >/dev/null
+    cwd="$(/bin/pwd)"
+    # declare -p project_dir project_dirs cwd >&2
+    local proj_file
+    for proj_file in "$cwd"/build/*-*.sh
+    do
+      x : loading $proj_file
+      . "$proj_file" || return $?
+      x : loaded $proj_file
+    done
+    popd >/dev/null
+  done
+}
+var project_dirs other_dirs
+
+################################
+
+-setup() {
+  :
+}
+setup() {
+  :
+}
+
+-initialize() {
+  :
+}
+initialize() {
+  prog_name="${0##*/}"
+  prog_dir="$(dirname "$(realpath "$0")")"
+  local lib_file
+  for lib_file in log.sh set.sh argv.sh
+  do
+    . "$prog_dir/lib/bash/$lib_file" || exit 9
+  done
+  set-create ran_set
+  base_dir="$(readlink -f .)"
+  uname_a="$(uname -a)"
+  uname_o="$(uname -o | tr '/' '-')"
+  uname_s="$(uname -s | tr '/' '-')"
+  uname_m="$(uname -m | tr '/' '-')"
+}
+
+-defaults() {
+  :
+}
+defaults() {
+  : "${PYTHON:=python3.11}"
+
+  PYTHONPATH_ORIG="${PYTHONPATH}"
+  PYTHON_BIN="$(which ${PYTHON} | head -1)"
+  venv_opts=--clear
+  # OSX HAS WRECKED brew python3.*:
+  #venv_opts+=--copies
+
+  # pytest_opts+=' --capture=fd --show-capture '
+  pytest_opts+=' --capture=no'
+
+  coverage_dir='coverage'
+
+  mypy_report_dir=mypy-report
+  mypy_reports=" --txt-report --html-report --any-exprs-report"
+  # mypy_opts+=" --verbose"
+  mypy_opts+=" --config-file ./.mypy.ini"
+  mypy_opts+=" --pretty --show-column-numbers"
+  # mypy_opts+=" --strict"
+  mypy_opts+=" --warn-redundant-casts"
+}
+
+################################
+
+bin-dir() {
+  append-path bin_dirs "$@"
+  bin_files="$(locate bin_dirs -type f | xargs grep -El '^\#!.+python' /dev/null 2>/dev/null | newline-space)"
+  bin_files_lint="$bin_files"
+  # declare -p bin_files bin_files_lint >&2
+  lint-dir "$@"
+}
+var bin_dirs bin_files bin_files_lint
+
+lib-dir() {
+  append-path lib_dirs "$@"
+  lib_files="$(locate lib_dirs -name '*.py' | grep -Ev '_test\.py$' | newline-space)"
+  # declare -p lib_files >&2
+  pythonpath $lib_dirs
+}
+var lib_dirs lib_files
+
+test-dir() {
+  append-path test_dirs "$@"
+  test_files="$(locate test_dirs -name '*_test.py' | newline-space)"
+  # declare -p test_files >&2
+  lint-dir "$@"
+}
+var test_dirs test_files
+
+lint-dir() {
+  append-path lint_dirs "$@"
+  lint_files="$(locate lint_dirs -name '*.py' | newline-space) $bin_files_lint"
+  mypy_files="$(grep -El '^ *from typing import ' /dev/null $lint_files | newline-space)"
+  # declare -p lint_files mypy_files >&2
+}
+var lint_dirs lint_files mypy_files
+
+requirements-dir() {
+  append-path requirements_dirs "$@"
+  requirements-file $(locate requirements_dirs -depth 1 -type f -name '*requirements.txt' | newline-space)
+}
+requirements-file() {
+  requirements_files="$(absolute $requirements_files "$@")"
+  # declare -p requirements_dirs requirements_files >&2
+}
+var requirements_dirs requirements_files
+
+resource-dir() {
+  append-path resource_dirs "$@"
+}
+var resource_dirs
+
+pythonpath() {
+  local dirs="$* $lib_dirs"
+  dirs="${dirs% }"
+  dirs="${dirs# }"
+  local path="${dirs// /:}:${PYTHONPATH_OTHER}:${PYTHONPATH_ORIG}"
+  path="${path//::/:}"
+  path="${path%:}"
+  path="${path#:}"
+  export PYTHONPATH="$path"
+  if [[ "$PYTHONPATH_prev" != "$PYTHONPATH" ]]
+  then
+    PYTHONPATH_prev="$PYTHONPATH"
+    log INFO "PYTHONPATH=${PYTHONPATH}"
+  fi
+  # exit 9
+}
+
+#######################################
+# Helpers:
+
+override() {
+  local _override="${argv_args[*]}"
+  _override="${_override:-${!2}}"
+  declare -g "$1=$_override"
+}
+
+wildcard() {
+  ls " " $* 2>/dev/null
+}
+
+append-path() {
+  local append_path_var="$1"; shift
+  log DEBUG "append-path $append_path_var $*"
+  local append_path_val="${!append_path_var}"
+  declare -g -- "$append_path_var=$(absolute $append_path_val "$@")"
+  # declare -p -- "$append_path_var"
+}
+
+absolute() {
+  log DEBUG "absolute $*"
+  realpath "$@" 2>/dev/null | sort -u | newline-space
+}
+
+locate() {
+  local locate_var="$1"; shift
+  local locate_val="${!locate_var}"
+  locate_val="${locate_val# }"
+  locate_val="${locate_val% }"
+  log DEBUG "locate $locate_var $* : '$locate_val'"
+  if [[ -n "${locate_val}" ]]
+  then
+    # declare -p locate_var locate_val 1>&2
+    find /dev/null $locate_val "$@" 2</dev/null | sort -u
+  fi
+  log DEBUG "locate $locate_var : DONE"
+}
+
+newline-space() {
+  tr '\012' ' '
+}
+
+#######################################
+
+ignore() {
+  "$@" || true
+}
+
+x() {
+  log INFO "x $*"
+  "$@"
+  local _rtn=$?
+  if [[ $_rtn != 0 ]]
+  then
+    die "  FAILED : $_rtn"
+  fi
+  return $_rtn
+}
+
+-() {
+  local cmd_key="$*"
+  if set-contains "$ran_set" "$cmd_key"
+  then
+    log DEBUG "- $* : skipping"
+    return 0
+  else
+    log INFO "- $* : ..."
+    set-append "$ran_set" "$cmd_key"
+    "-$@"; local _rtn=$?
+    if [[ $_rtn != 0 ]]
+    then
+      die "- $*"
+    else
+      log DEBUG "- $* : OK"
+    fi
+    return $_rtn
+  fi
+}
+
+--() {
+  local target
+  for target
+  do
+    - "$target"
+  done
+}
+
+################################
+
+die() {
+  log FATAL "die: $*"
+  exit 9
+}
+
+################################
+
+main-target() {
+  local target="$1"; shift
+  - "$target" "${argv_args[@]}"
+}
+main() {
+  local args=("$@")
+  initialize
+  log-level INFO
+  -- initialize
+  defaults
+  -- load-projects
+  -- setup
+  [[ "${#args[@]}" == 0 ]] && args=(default)
+  -argv-parse-commands main-target "${args[@]}"
+}
+
+################################
+
+main "$@"

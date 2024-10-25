@@ -32,6 +32,7 @@ def test_diff_files():
   }
   assert result == expected
 
+def test_diff_files_non_existant():
   result = diff.diff_files('tests/devdriven/data/expected.txt', 'Does-Not-Exist.txt')
   expected = {
     "correct": False,
@@ -43,6 +44,34 @@ def test_diff_files():
     "correct_ratio": 0.0,
     "correct_percent": 0.0,
     "exit_code": 2
+  }
+  assert result == expected
+
+  result = diff.diff_files('Does-Not-Exist.txt', 'tests/devdriven/data/expected.txt')
+  expected = {
+    'actual': 11,
+    'correct': False,
+    'correct_percent': 0.0,
+    'correct_ratio': 0.0,
+    'differences': None,
+    'exit_code': 2,
+    'expected': None,
+    'new': None,
+    'old': None,
+  }
+  assert result == expected
+
+  result = diff.diff_files('Does-Not-Exist.txt', 'Does-Not-Exist.txt')
+  expected = {
+    'actual': None,
+    'correct': False,
+    'correct_percent': 0.0,
+    'correct_ratio': 0.0,
+    'differences': None,
+    'exit_code': 2,
+    'expected': None,
+    'new': None,
+    'old': None,
   }
   assert result == expected
 

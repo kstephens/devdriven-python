@@ -52,9 +52,9 @@ def binary_op(operator: str) -> Optional[Arity2]:
   if operator in ("or"):
     return lambda a, b: a or b
   if operator in ("~=", "=~", "~"):
-    return lambda a, b: re.match(b, str(a)) is not None
+    return lambda a, b: re.search(b, str(a)) is not None
   if operator in ("~!", "!~"):
-    return lambda a, b: re.match(b, str(a)) is None
+    return lambda a, b: re.search(b, str(a)) is None
   return None
 
 def binary_op_const(operator: str, b: Any) -> Optional[Arity1]:

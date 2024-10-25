@@ -4,8 +4,6 @@ import json
 import yaml  # type: ignore
 import pandas as pd  # type: ignore
 from devdriven.util import splitkeep  # type: ignore
-# from icecream import ic
-# from devdriven.to_dict import to_dict
 
 JSON = 'json'
 YAML = 'yaml'
@@ -108,12 +106,12 @@ class Converter:
     if isinstance(data, tuple):
       return self.as_dict(list(data), key_type, val_type)
     if isinstance(data, pd.DataFrame):
-      return {r[0]: r[1] for _i, r in data.rowiter()}
+      return {r[0]: r[1] for _i, r in data.iterrows()}
     self.cannot_convert('as_dict', data)
     return {}
 
   # pylint: disable-next=invalid-name
-  def as_DataFrame(self, data: Any) -> pd.DataFrame:
+  def as_DataFrame(self, data: Any) -> Optional[pd.DataFrame]:
     if isinstance(data, pd.DataFrame):
       return data
     if isinstance(data, str):

@@ -11,8 +11,8 @@ def git_repo_url(location: str) -> str:
   return location
 
 class GitDiff:
-  def __init__(self, directory='.'):
-    self.directory = os.path.normpath(directory)
+  def __init__(self, directory: str = '.'):
+    self.directory: str = os.path.normpath(directory)
 
   def files_changed(self, ref1: str, ref2: str) -> List[str]:
     result = util.exec_command(
@@ -27,7 +27,7 @@ class GitDiff:
 
 class GitCommit:
   def __init__(self, directory: str, line: str):
-    self.directory = directory
+    self.directory: str = directory
     self.ref, self.timestamp, self.committer_email, self.subject = line.split('\t', 4)
 
   def to_dict(self) -> Dict[str, Any]:
@@ -40,9 +40,9 @@ class GitCommit:
     }
 
 class GitLog:
-  def __init__(self, directory='.'):
-    self.directory = os.path.normpath(directory)
-    self.commands = []
+  def __init__(self, directory: str = '.'):
+    self.directory: str = os.path.normpath(directory)
+    self.commands: List[List[str]] = []
 
   def all(self) -> List[GitCommit]:
     return self.git_log([])
@@ -67,8 +67,8 @@ class GitLog:
       '--', '.',
     ]
     self.commands.append(command)
-    return util.exec_command(command, check=True, capture_output=True) \
-      .stdout.decode('utf-8').splitlines()
+    result = util.exec_command(command, check=True, capture_output=True)
+    return result.stdout.decode('utf-8').splitlines()
 
   def parse_lines(self, lines: List[str]) -> List[GitCommit]:
     logging.debug('lines %d', len(lines))
@@ -76,7 +76,7 @@ class GitLog:
                   key=lambda g: g.timestamp)
 
 class GitRevParse:
-  def __init__(self, directory='.'):
+  def __init__(self, directory: str):
     self.directory = os.path.normpath(directory)
 
   def rev_parse(self, ref: str, *opts) -> List[str]:
@@ -90,5 +90,5 @@ class GitRevParse:
       check=True, capture_output=True)
     return sorted(result.stdout.decode('utf-8').splitlines())
 
-def rev_parse(directory, ref: str, *opts) -> List[str]:
+def rev_parse(directory: str, ref: str, *opts) -> List[str]:
   return GitRevParse(directory).rev_parse(ref, *opts)

@@ -1,4 +1,5 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, Any, List
+import platform
 import os
 import pickle
 import bz2
@@ -28,10 +29,15 @@ def delete_file(path: str) -> bool:
   except OSError:
     return False
 
-def file_md5(file: str) -> Optional[str]:
-  result = exec_command(['md5sum', file], check=False, capture_output=True)
+
+def file_md5(file: str, md5_cmd: Optional[str] = None) -> Optional[str]:
+  if not md5_cmd:
+    md5_cmd = 'md5' if platform.system() == 'Darwin' else 'md5sum'
+  result = exec_command([md5_cmd, file], check=False, capture_output=True, encoding='utf-8')
   if result.returncode == 0:
-    return str(result.stdout.decode('utf-8').split(' ')[0])
+    if md5_cmd.endswith('md5sum'):
+      return str(result.stdout.split(' ')[0]).strip()
+    return str(result.stdout.split(' = ')[1]).strip()
   return None
 
 def file_size(path: str) -> Optional[int]:
@@ -63,9 +69,10 @@ def file_nlines(path: str, eol: bytes = b'\n', buffer_size: int = BUFFER_SIZE) -
   except OSError:
     return None
 
-def pickle_bz2(file, mode, data=None):
-  with bz2.open(file, mode) as stream:
-    if mode == 'rb':
+def pickle_bz2(file: str, mode: str, data: Any = None) -> Any:
+  if mode == 'rb':
+    with bz2.open(file, 'rb') as stream:
       return pickle.load(stream)
+  with bz2.open(file, 'wb') as stream:
     pickle.dump(data, stream)
     return data

@@ -2,26 +2,26 @@ from typing import Any, Optional, Callable
 import logging
 from pathlib import Path
 from .file import pickle_bz2
-# from icecream import ic
 
 class PickleCache():
   def __init__(self, path: str, generate: Optional[Callable]):
     self.path = Path(path)
     self.generate = generate
-    self._data = None
-    self._ready = self._stale = False
+    self._data: Any = None
+    self._ready: bool = False
+    self._stale: bool = False
 
   @property
-  def ready(self):
+  def ready(self) -> bool:
     return self._ready
 
-  def exists(self):
+  def exists(self) -> bool:
     return self.path.exists()
 
   def is_ready(self) -> bool:
     return self._ready
 
-  def flush(self):
+  def flush(self) -> None:
     self.path.unlink(True)
     self._stale = True
 
@@ -55,10 +55,10 @@ class PickleCache():
   def write(self, path: Path) -> None:
     logging.debug('%s', f'write : {path!r}')
     assert self._ready
-    pickle_bz2(path, 'wb', self._data)
+    pickle_bz2(str(path), 'wb', self._data)
     self._stale = False
 
   def read(self, path: Path) -> None:
     logging.debug('%s', f'read : {path!r}')
-    self._data = pickle_bz2(path, 'rb')
+    self._data = pickle_bz2(str(path), 'rb')
     self._ready = True
