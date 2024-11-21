@@ -3,26 +3,12 @@ from dataclasses import dataclass, field
 import re
 from .identity import User  # , Group
 
-Matcher = Callable[[Any, Any], bool]
-
-def match_name(self, other) -> bool:
-  return self.name == other.name
-def match_false(_self, _other) -> bool:
-  return False
-def match_true(_self, _other) -> bool:
-  return True
-def regex_matcher(rx: re.Pattern) -> Matcher:
-  return lambda _self, other: rx.search(other.name) is not None
-def negate_matcher(matcher: Matcher) -> Matcher:
-  def negated(a: Any, b: Any) -> bool:
-    return not matcher(a, b)
-  return negated
 
 class Matchable:
-  def __init__(self, name: str, description: str = '', matcher: Matcher = match_name):
+  def __init__(self, name: str, description: str = '', matcher=None):
     self.name = name
     self.description = description
-    self.matcher = matcher
+    self.matcher: Matcher = matcher or match_name
     self.regex = None
 
   def matches(self, other: Self) -> bool:
@@ -34,6 +20,22 @@ class Matchable:
 
   def __repr__(self) -> str:
     return self.__str__()
+
+
+Matcher = Callable[[Matchable, Matchable], bool]
+
+def match_false(_self: Matchable, _other: Matchable) -> bool:
+  return False
+def match_true(_self: Matchable, _other: Matchable) -> bool:
+  return True
+def match_name(self: Matchable, other: Matchable) -> bool:
+  return self.name == other.name
+def regex_matcher(rx: re.Pattern) -> Matcher:
+  return lambda _self, other: rx.search(other.name) is not None
+def negate_matcher(matcher: Matcher) -> Matcher:
+  def negated(a: Any, b: Any) -> bool:
+    return not matcher(a, b)
+  return negated
 
 ########################################
 

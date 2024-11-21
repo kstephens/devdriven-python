@@ -6,7 +6,7 @@ import logging
 from .identity import User, Users, Group, Groups
 from .rbac import Resource, Action, Rule, Rules, Permission, \
   Role, Roles, Membership, Memberships, \
-  match_true, regex_matcher, negate_matcher
+  Matcher, match_true, regex_matcher, negate_matcher
 from .domain import Domain, IdentityDomain, RoleDomain, RuleDomain
 from .util import getter, mapcat
 from ..path import clean_path
@@ -44,9 +44,9 @@ class TextLoader:
   def parse_pattern(self, constructor: Type, pattern: str, star_always_matches: bool) -> Any:
     if negate := pattern.startswith('!'):
       pattern = pattern.removeprefix('!')
+    matcher: Matcher = match_true
     if pattern == '*' and star_always_matches:
       regex = None
-      matcher = match_true
       description = pattern
     else:
       regex = glob_to_regex(pattern)
