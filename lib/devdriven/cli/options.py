@@ -85,19 +85,24 @@ class Options:
       self.arg_by_name[name] = m[2].strip()
       self.args.append(name)
 
-    if m := re.match(r'^(-) +[\|] *(.*)', line):
-      add_arg(m)
-      return self
-    if option := Option().parse_doc(line):
-      self.opt_by_name[option.name] = option
-      self.opts.append(option)
-      for alias in option.aliases:
-        self.opt_aliases[alias.name] = alias
-      return self
-    if m := re.match(r'^([^\|]+)[\|] *(.*)', line):
-      add_arg(m)
-      return self
-    return None
+    try:
+      if m := re.match(r'^(-) +[\|] *(.*)', line):
+        add_arg(m)
+        return self
+      if option := Option().parse_doc(line):
+        self.opt_by_name[option.name] = option
+        self.opts.append(option)
+        for alias in option.aliases:
+          self.opt_aliases[alias.name] = alias
+        return self
+      if m := re.match(r'^([^\|]+)[\|] *(.*)', line):
+        add_arg(m)
+        return self
+      return None
+    #finally:
+    #  pass
+    except Exception as e:
+      raise Exception(f'parse_docstring: could not parse : {line!r} : {e!r}') from e
 
   def command_synopsis(self) -> Argv:
     cmd = []
