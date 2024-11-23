@@ -38,7 +38,7 @@ class Option:
 
   def parse_alias(self, opt: str, target: Self):
     alias = Option().parse_simple(opt)
-    assert alias is not None
+    assert alias is not None, "parse_alias: expected simple option"
     alias.style = target.style
     alias.kind = target.kind
     alias.aliases = []

@@ -1,12 +1,15 @@
 from typing import Any, Callable, Iterable, List
 
+Composable = Callable[..., Any]
+Composable1 = Callable[[Any], Any]
+
 def find(pred: Callable[[Any], bool], seq: Iterable, default: Any = None) -> Any:
   for item in seq:
     if pred(item):
       return item
   return default
 
-def getter(name: str) -> Callable[[Any], Any]:
+def getter(name: str) -> Composable1:
   return lambda obj: getattr(obj, name)
 
 def mapcat(func: Callable[[Any], Iterable], seq: Iterable) -> Iterable:
@@ -32,5 +35,8 @@ def append_one(x: list, y: Any) -> list:
   x.append(y)
   return x
 
-def comp(f: Callable[[Any], Any], g: Callable[[Any], Any]) -> Callable[[Any], Any]:
+def comp1(f: Composable1, g: Composable1) -> Composable1:
   return lambda x: f(g(x))
+
+def comp(f: Composable1, g: Composable) -> Composable:
+  return lambda *args: f(g(*args))

@@ -288,6 +288,7 @@ REPL_PROMPT = f'{rgb_24bit(90, 140, 176)}#>{ANSI_NORMAL} '
 QUESTION_PROMPT = f'{rgb_24bit(217, 101, 72)}#{ANSI_BLINK}?{ANSI_NORMAL} '
 ERROR_COLOR = rgb_24bit(255, 50, 50)
 
+
 class ConvertJupyterToCode():
   def __init__(self):
     self.file = self.content = self.data = self.sections = None
@@ -313,7 +314,7 @@ class ConvertJupyterToCode():
       transform = identity
       if cell['cell_type'] == 'markdown':
         transform = markdown
-      section = ''.join(list(map(transform, cell['source'])))
+      section = ''.join(map(transform, cell['source']))
       sections.append(section)
     self.sections = sections
     return self
