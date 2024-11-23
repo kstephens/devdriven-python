@@ -1,4 +1,30 @@
 # %% [markdown]
+# # (Imports)
+
+# %%
+from typing import Any, Optional, Union, List, Tuple, Dict, Iterable, Mapping, Callable, Type, Literal
+from numbers import Number
+from collections.abc import Collection, Sequence
+from dataclasses import dataclass, field
+from pprint import pprint
+import re
+import sys
+import logging
+import functools
+from pprint import pformat
+import dis
+from icecream import ic
+#ic.configureOutput(includeContext=True)
+map_ = map
+reduce_ = functools.reduce
+
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
+# https://stackoverflow.com/a/47024809/1141958
+from IPython.core.interactiveshell import InteractiveShell
+InteractiveShell.ast_node_interactivity = "all"
+
+# %% [markdown]
 # # One, Two, One, Two, Mic-check, ... Combinators
 #
 #
@@ -11,27 +37,10 @@
 # * function types.
 #
 
-# %%
-
-from typing import Any, Optional, Union, List, Tuple, Dict, Mapping, Callable, Type, Literal
-from numbers import Number
-from collections.abc import Collection, Sequence
-from dataclasses import dataclass, field
-import re
-import sys
-import logging
-from pprint import pformat
-import dis
-from icecream import ic
-
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
-# https://stackoverflow.com/a/47024809/1141958
-from IPython.core.interactiveshell import InteractiveShell
-InteractiveShell.ast_node_interactivity = "all"
-
 # %% [markdown]
 # # Function Types
+
+# %% [markdown]
 #
 # Basic Types
 #
@@ -50,11 +59,15 @@ InteractiveShell.ast_node_interactivity = "all"
 #   and returns a `Tuple` of `int` and `int`:
 Callable[[str, int], Tuple[int, int]]
 
-def f(a: str, b: int) -> Tuple[int, int]:
+def h(a: str, b: int) -> Tuple[int, int]:
   return (len(a), len(a) * b)
+
+h("ab", 21)
 
 # %% [markdown]
 # # First-Order Functions
+
+# %% [markdown]
 #
 # can be:
 #
@@ -68,22 +81,22 @@ def f(a: str, b: int) -> Tuple[int, int]:
 
 # %%
 print(2)
-f = print
-f
-f(2)
+g = print
+g
+g(2)
 
 # %% [markdown]
 # ## Don't know where that thing's been!
 
 # %%
-def do_f_three_times(f: Callable):
+def call_func_three_times(func: Callable):
   for x in range(3):
-    f(x)
+    func(x)
 
-do_f_three_times(print)
+call_func_three_times(print)
 
 # %%
-do_f_three_times(f)
+call_func_three_times(g)
 
 # %% [markdown]
 # ## The most useful useless function
@@ -94,9 +107,9 @@ def identity(x: Any) -> Any:
   return x
 
 identity(2)
-f = identity
-f
-f(3)
+h = identity
+h
+h(3)
 
 # %% [markdown]
 # ## Anonymous Functions
@@ -111,26 +124,37 @@ plus_three
 plus_three(2)
 
 # %% [markdown]
-# # Second-Order Functions
-#
-# Second-Order Functions return other functions.
-#
-# They often have the form:
-#
-# ```python
-# def f(a: Any, ...):
-#   return lambda b: Any, ...: \
-#     do_something_with(a, b)
-# ```
-#
-# or
-#
-# ```python
-# def f(a: Any, ...):
-#   def g(b: Any, ...):  # `g` has access to `a`
-#     return do_something_with(a, b)
-#   return g
-# ```
+# # Closures
+
+# %% [markdown]
+# Functions with closure are information hiders.
+# The have access to values that are otherwise not visible outside...
+# They "close over variables".
+
+# %% [markdown]
+# ## Stateless Closures
+
+# %% [markdown]
+# ### Constantly return a value
+
+# %%
+def constantly(val: Any) -> Callable[[], Any]:
+  return lambda : val
+
+# %%
+constantly_5 = constantly(5)
+constantly_5()
+constantly_5()
+
+# %%
+# Fails with arguments
+try:
+  constantly_5(13, 17)
+except Exception as exc:
+  exc
+
+# %% [markdown]
+# ### A more robust version
 
 # %%
 # Functions with zero or more arguments that return anything.
@@ -140,18 +164,16 @@ def constantly(x: Any) -> Variadic:
   'Returns a function that returns a constant value.'
   return lambda *_args, **_kwargs: x
 
-always_7 = constantly(7)
-always_7
-
-# %%
-always_7()
-always_7(13, 17)
+constantly_7 = constantly(7)
+constantly_7
+constantly_7()
+constantly_7(13, 17)
 
 # %% [markdown]
-# # Object Adapters
+# ### Adapters
 
 # %% [markdown]
-# ## Indexable Getters
+# ### Indexable Getters
 
 # %%
 # Function with one argument that returns anything.
@@ -160,32 +182,39 @@ Unary = Callable[[Any], Any]
 # A value `x` that supports `x[i]`:
 Indexable = Union[List, Tuple, Dict]
 
+# %%
 def at(i: Any) -> Unary:
   'Returns a function `f(x)` that returns `x[i]`.'
   return lambda x: x[i]
-
-def indexed(x: Indexable) -> Unary:
-  'Returns a function `f(i)` that returns `x[i]`.'
-  return lambda i: x[i]
 
 a = [0, 1, 2, 3]
 f = at(2)
 f(a)
 
-g = indexed(a)
-g(2)
-
 # %%
+def indexed(x: Indexable) -> Unary:
+  'Returns a function `f(i)` that returns `x[i]`.'
+  return lambda i: x[i]
 
-d = {"a": 1, "b": 2}
-g = at("a")
-g(d)
-
-g = indexed({"a": 1, "b": 2})
-g("a")
+a = [0, 1, 2, 3]
+f = indexed(a)
+f(2)
 
 # %% [markdown]
-# ## Object Accessors
+# #### Works with Strings and Dicts
+
+# %%
+s = "abcdef"
+indexed("abcdef")(4)
+at(3)(s)
+
+d = {"a": 2, "b": 3}
+indexed(d)("b")
+at("b")(d)
+
+
+# %% [markdown]
+# ### Object Accessors
 
 # %%
 @dataclass
@@ -207,17 +236,17 @@ def object_get(obj):
 g = getter('x')
 g(p)
 
-f = object_get(p)
-f('x')
+h = object_get(p)
+h('x')
+
+# %%
+h('z', 999)
 
 # %%
 try:
-  f('z')
+  h('z')
 except AttributeError as e:
   print(repr(e))
-
-# %%
-f('z', 999)
 
 # %%
 def setter(name: str) -> Unary:
@@ -242,10 +271,57 @@ a(p, 7)
 p
 
 # %% [markdown]
-# # Generators
+# ## Stateful Functions
+
+# %% [markdown]
+# ### Generators
 
 # %%
-def counter(i: int = 0) -> Callable[[], int]:
+def counter(start: int = 0, increment: int = 1) -> Callable[[], int]:
+  def g() -> int:
+    nonlocal start
+    result = start
+    start += increment
+    return result
+  return g
+
+# %%
+c = counter(2, 3)
+c()
+c()
+c()
+
+# %% [markdown]
+# # Second-Order Functions
+
+# %% [markdown]
+#
+# Second-Order Functions return other functions.
+#
+# They often have the form:
+#
+# ```python
+# def f(a: Any, ...):
+#   return lambda b: Any, ...: \
+#     do_something_with(a, b)
+# ```
+#
+# or
+#
+# ```python
+# def f(a: Any, ...):
+#   def g(b: Any, ...):  # `g` has access to `a`
+#     return do_something_with(a, b)
+#   return g
+# ```
+
+# %% [markdown]
+# ## A Counter
+
+# %%
+Generator = Callable[[], Any]
+
+def counter(i: int = 0) -> Generator:
   'Returns a "generator" function that returns `i`, `i + 1`, `i + 2`, ... .'
   i -= 1
   def g() -> int:
@@ -260,13 +336,13 @@ c()
 c()
 
 # %% [markdown]
+# ## Combinators
+#
 # Combinators:
 #
 # * are functions that construct functions from other functions.
 # * provides a powerful mechanism for reusing logic...
 #   without having to anticpate the future.
-#
-# # Combinators
 #
 # A combinator `c` make have the form:
 #
@@ -288,15 +364,17 @@ c()
 # # Stateful Combinators
 
 # %%
-def with_index(f: Callable, i: int = 0) -> Callable:
+def with_counter(f: Callable, i: int = 0) -> Callable:
+  'Returns a Callable that applies a counter to f.'
   c = counter(i)
   return lambda *args, **kwargs: \
     f(c(), *args, **kwargs)
 
-def conjoin(a, b):
-  return (a, b)
+def multiply(x, y):
+  return x * y
 
-dict(map(with_index(conjoin), ["a", "b", "c", "d"]))
+f = with_counter(multiply, 21)
+[f(2), f(2), f(3), f(5)]
 
 # %% [markdown]
 # # Predicates
@@ -313,7 +391,7 @@ is_string("hello")
 is_string(3)
 
 # %% [markdown]
-# # Predicate Combinators
+# # Predicate Combinators - NOT STATEFUL!
 
 # %%
 # Functions that take a Predicate and return a new Predicate.
@@ -323,31 +401,45 @@ def not_(f: Predicate) -> Predicate:
   'Returns a function that logically negates the result of the given function.'
   return lambda *args, **kwargs: not f(*args, **kwargs)
 
-f = not_(is_string)
-f("hello")
-f(3)
+h = not_(is_string)
+h("hello")
+h(3)
 
 # %% [markdown]
-# # Mapping functions over sequences
+# # Manipulating Sequences
+
+# %% [markdown]
+# ## Mapping functions over sequences
 
 # %%
 def map(f: Unary, xs: Sequence) -> Sequence:
   'Returns a sequence of `f(x)` for each element `x` in `xs`.'
   acc = []
   for x in xs:
+    ic(x)
     acc.append(f(x))
   return acc
 
 items = [1, "string", False, True, None]
 items
 map(identity, items)
-map(always_7, items)
+map(constantly_7, items)
 map(is_string, items)
 map(not_(is_string), items)
 map(plus_three, [3, 5, 7, 11])
 
+# %%
+map = map_
+
+# %%
+def conjoin(a, b) -> Callable[[Any, Any], Tuple[Any, Any]]:
+  'Creates a Tuple from two arguments.'
+  return (a, b)
+
+dict(map(with_counter(conjoin, 21), ["a", "b", "c", "d"]))
+
 # %% [markdown]
-# # Filtering Sequences with Predicates
+# ## Filtering Sequences with Predicates
 
 # %%
 def filter(f: Unary, xs: Sequence) -> Sequence:
@@ -359,7 +451,7 @@ filter(is_string, items)
 filter(not_(is_string), items)
 
 # %% [markdown]
-# # Reducing Sequences with Binary Functions
+# ## Reducing Sequences with Binary Functions
 
 # %%
 # Functions with two arguments that return anything.
@@ -371,12 +463,12 @@ def reduce(f: Binary, init: Any, xs: Sequence) -> Sequence:
     init = f(init, x)
   return init
 
-def add(x, y):
+def multiply(x, y):
   return x + y
 
-reduce(add, 2, [3, 5, 7])
+reduce(multiply, 2, [3, 5, 7])
 a_list_of_strings = ["A", "List", 'Of', 'Strings']
-reduce(add, "Here Is ", a_list_of_strings)
+reduce(multiply, "Here Is ", a_list_of_strings)
 
 # %%
 def conjoin(x, y):
@@ -387,18 +479,18 @@ reduce(conjoin, 2, items)
 
 # %%
 # Concat all strings:
-reduce(add, "", filter(is_string, items))
+reduce(multiply, "", filter(is_string, items))
 
 # Sum of all numbers:
 def is_number(x: Any) -> bool:
   return not isinstance(x, bool) and isinstance(x, Number)
-reduce(add, 0, filter(is_number, items))
+reduce(multiply, 0, filter(is_number, items))
 
 # Sum all non-strings:
-reduce(add, 0, filter(not_(is_string), items))
+reduce(multiply, 0, filter(not_(is_string), items))
 
 # %% [markdown]
-# # Map as a Reduction
+# ## Map as a Reduction
 
 # %%
 def map_r(f: Unary, xs: Sequence) -> Sequence:
@@ -410,7 +502,7 @@ map(plus_three, [3, 5, 7, 11])
 map_r(plus_three, [3, 5, 7, 11])
 
 # %% [markdown]
-# # Filter as a Reduction
+# ## Filter as a Reduction
 
 # %%
 def filter_r(f: Unary, xs: Sequence) -> Sequence:
@@ -443,8 +535,8 @@ def multiply_by_3(x):
 
 plus_three(multiply_by_3(5))
 
-f = compose(plus_three, multiply_by_3)
-f(5)
+h = compose(plus_three, multiply_by_3)
+h(5)
 
 # %% [markdown]
 # # Interlude
@@ -457,8 +549,8 @@ mod_3 = modulo(3)
 map(mod_3, range(10))
 
 # %%
-f = compose(indexed(a_list_of_strings), mod_3)
-map(f, range(10))
+h = compose(indexed(a_list_of_strings), mod_3)
+map(h, range(10))
 
 # %% [markdown]
 # # Partial Application
@@ -475,23 +567,39 @@ def partial(f: Callable, *args, **kwargs) -> Callable:
     return f(*(args + args2), **dict(kwargs, **kwargs2))
   return g
 
-f = partial(add_and_multiply, 2)
-f(3, 5)
+h = partial(add_and_multiply, 2)
+h(3, 5)
 
 # %% [markdown]
-# # Methods are Partially Applied Functions
+# ## Methods are Partially Applied Functions
 
 # %%
 a = 2
 b = 3
 a + b
 a.__add__(b)    # eqv. to `a + b`
-f = a.__add__
-f
-f(7)
+h = a.__add__
+h
+h(7)
 
 # %% [markdown]
-# # Debugging
+# ## Arity Reduction
+
+# %%
+def unary(f: Variadic) -> Unary:
+  return lambda *args, **kwargs: f((args, kwargs))
+
+h = unary(identity)
+h()
+h(1)
+h(1, 2)
+h(a=1, b=2)
+
+# %% [markdown]
+# # Developer Affordance
+
+# %% [markdown]
+# ## Debugging
 
 # %%
 def trace(
@@ -513,10 +621,10 @@ def format_args(args, kwargs):
 def log(msg):
   sys.stderr.write(f'  ## {msg}\n')
 
-f = compose(str, plus_three)
-map(f, [2, 3, 5])
+h = compose(str, plus_three)
+map(h, [2, 3, 5])
 
-g = trace("g", log, f, )
+g = trace("g", log, h, )
 map(g, [2, 3, 5])
 
 map_g = trace("map_g", log, partial(map, g))
@@ -524,7 +632,7 @@ map_g([2, 3, 5])
 
 
 # %% [markdown]
-# # Error Handlers
+# ## Error Handlers
 
 # %%
 def except_(f: Variadic, ex_class, error: Unary) -> Callable:
@@ -535,25 +643,214 @@ def except_(f: Variadic, ex_class, error: Unary) -> Callable:
       return error((exc, args, kwargs))
   return g
 
-f = except_(plus_three, TypeError, compose(partial(logging.error, 'plus_three: %s'), repr))
-f(2)
-f('Nope')
+h = except_(plus_three, TypeError, compose(partial(logging.error, 'plus_three: %s'), repr))
+h(2)
+h('Nope')
 
 # %% [markdown]
-# # Arity Reduction
+# # Web Application Archecture
+#
+# Application middleware combinators inspired Python WSGI and Ruby Rack.
+#
+# An "App" is anything callable with a single dict argument:
+# It receives a "Request": typically a Dict of input: headers, body and customer values passed along an "application stack".
+# It returns a "Response": Tuple of HTTP status code, headers and a body (sequence of response chunks).
+# Both applications and middleware follow the same protocol.
+# Combinators create new Apps by wrapping others.
+#
 
 # %%
-def unary(f: Variadic) -> Unary:
-  return lambda *args, **kwargs: f((args, kwargs))
-
-f = unary(identity)
-f()
-f(1)
-f(1, 2)
-f(a=1, b=2)
+Status = int
+Headers = Dict[str, Any]
+Body = Iterable
+Res = Tuple[Status, Headers, Body]
+Req = Dict[str, Any]
+App = Callable[[Req], Res]
 
 # %% [markdown]
-# # Predicators
+# ## Simple Applications
+
+# %% [markdown]
+# ### Hello, World!
+
+# %%
+def hello_world_app(req: Req) -> Res:
+  return 200, {}, ("Hello, World!",)
+app = hello_world_app
+app({})
+
+# %% [markdown]
+# ### Do Something Useful
+
+# %%
+def something_useful_app(req: Req) -> Res:
+  x, y = req['input.data']
+  return 200, {}, (x * y,)
+
+app = something_useful_app
+app({'input.data': [2, 5]})
+
+app = something_useful_app
+app({'input.data': ["ab", 3]})
+
+# %% [markdown]
+# ## Application Combinators
+
+# %% [markdown]
+# Input combinators follow this pattern:
+
+# %%
+def compose_input_handler(app: App) -> App:
+  def input_handler(req: Req) -> Res:
+    # do something with req...
+    return app(req)
+  return input_handler
+
+# %% [markdown]
+# Output combinators follow this pattern:
+
+# %%
+def compose_output_handler(app: App) -> App:
+  def output_handler(req: Req) -> Res:
+    status, headers, body = response = app(req)  # <<<
+    # do something with response...
+    return status, headers, body
+  return output_handler
+
+# %% [markdown]
+# ## Tracing
+
+# %%
+def trace(app: App, ident="", stream=sys.stderr) -> App:
+    "Traces requests and responses."
+    def indent(msg):
+        stream.write(f"{'  ' * TRACE_INDENT[0]}{msg}")
+    def log(msg):
+        indent(f" #{msg} {ident}\n")
+    def pp(data):
+        indent("")
+        pprint(data, stream=stream)
+    def tracing(req):
+        log(">>>")
+        TRACE_INDENT[0] += 1
+        pp(req)
+        result = app(req)
+        log("...")
+        pp(result)
+        TRACE_INDENT[0] -= 1
+        log("<<<")
+        return result
+    return tracing
+TRACE_INDENT = [0]
+
+# %%
+app = something_useful_app
+app = trace(app, 'my_app')
+app({'input.data': [5, 7]})
+
+# %% [markdown]
+# ### Exception Handling
+
+# %%
+def capture_exception(app: App, cls=Exception, status=500) -> App:
+    def capturing_exception(req: Req) -> Res:
+        try:
+            return app(req)
+        except cls as exc:
+            return status, {"Content-Type": "text/plain"}, (repr(exc),)
+    return capturing_exception
+
+# %%
+app = something_useful_app
+app = capture_exception(app)
+app({'input.data': [{"a": 1}, 7]})
+
+# %% [markdown]
+# ## Reading Inputs, Writing Outputs
+
+# %%
+Content = str
+Data = Any
+
+def read_input(app: App, read: Callable[[Data], Content]) -> App:
+    "Reads body.stream"
+    def reader(req: Req) -> Res:
+        req["input.content"] = read(req["input.stream"])
+        return app(req)
+    return reader
+
+# %% [markdown]
+# ## Decoding Inputs, Encoding Outputs
+
+# %%
+Encoder = Callable[[Data], Content]
+Decoder = Callable[[Content], Data]
+
+def decode_content(app: App, decoder: Decoder, content_types=None, strict=False) -> App:
+    """
+    Decodes body with decoder(input.content) for content_types.
+    If strict and Content-Type is not expected, return 400.
+    """
+
+    def decoding_content(req: Req) -> Res:
+        req["input.data"] = decoder(req["input.content"])
+        content_type = req.get("Content-Type")
+        if strict and content_types and content_type not in content_types:
+            msg = f"Unexpected Content-Type {content_type!r} : expected: {content_types!r} : "
+            return 400, {"Content-Type": 'text/plain'}, (msg,)
+        return app(req)
+    return decoding_content
+
+
+def encode_content(app: App, encoder: Encoder, content_type="text/plain") -> App:
+    "Encodes body with encoder.  Sets Content-Type."
+    def encoding_content(req: Req) -> Res:
+        status, headers, body = app(req)
+        content = "".join(map(encoder, body))
+        headers |= {
+            "Content-Type": content_type,
+            "Content-Length": len(content),
+        }
+        return status, headers, [content]
+    return encoding_content
+
+
+# %% [markdown]
+# ## Decode JSON, Encode JSON
+
+# %%
+import json
+
+def decode_json(app: App, **kwargs) -> App:
+    "Decodes JSON content."
+    def decoding_json(content: Content) -> Any:
+        return json.loads(content, **kwargs)
+    return decode_content(app, decoding_json, content_types={'application/json', 'text/plain'}, strict=True)
+
+
+def encode_json(app: App, **kwargs) -> App:
+    "Encodes data as JSON."
+    def encoding_json(data: Data) -> Content:
+        return json.dumps(data, **kwargs) + "\n"
+    return encode_content(app, encoding_json, content_type='application/json')
+
+# %% [markdown]
+# ## Simple App Handles JSON!
+
+# %%
+app = something_useful_app
+# app = trace(app, 'hello_world_app')
+app = decode_json(app)
+# app = trace(app, 'decode_json')
+app = encode_json(app)
+# app = trace(app, 'encode_json')
+app({'input.content': "[11, 13]", "Content-Type": 'application/json'})
+
+# %% [markdown]
+# # Logical Combinators
+
+# %% [markdown]
+# ## Predicators
 
 # %%
 def re_pred(pat: str, re_func: Callable = re.search) -> Predicate:
@@ -576,7 +873,7 @@ def default(f: Variadic, g: Variadic) -> Variadic:
 # asdf
 
 # %% [markdown]
-# # Logical Predicate Composers
+# ## Logical Predicate Composers
 
 # %%
 def and_(f: Variadic, g: Variadic) -> Variadic:
@@ -598,11 +895,11 @@ is_word(None)
 
 # %%
 # If x is a number add three:
-f = and_(is_number, plus_three)
+h = and_(is_number, plus_three)
 # If x is a string, is it a word?:
 g = and_(is_string, is_word)
 # One or the other:
-h = or_(f, g)
+func = or_(h, g)
 items = ["hello", "not-a-word", 2, None]
 map(g, items)
 
@@ -617,7 +914,10 @@ def if_(f: Variadic, g: Unary, h: Unary) -> Variadic:
   return i
 
 # %% [markdown]
-# # Operator Predicates
+# # Interpreters
+
+# %% [markdown]
+# ## Operator Predicates
 
 # %%
 
@@ -663,9 +963,9 @@ def op_pred(op: str, b: Any) -> Optional[Predicate]:
   return None
 
 # %%
-f = op_pred(">", 3)
-f(2)
-f(5)
+h = op_pred(">", 3)
+h(2)
+h(5)
 
 # %%
 g = op_pred("~=", 'ab+c')
@@ -674,7 +974,7 @@ g('ab')
 g('abbbcc')
 
 # %% [markdown]
-# # Sequencing
+# ## Sequencing
 
 # %%
 def progn(*fs: Sequence[Callable]) -> Callable:
@@ -697,10 +997,6 @@ def prog1(*fs: Sequence[Callable]) -> Callable:
   return g
 
 # %%
-##############################################
-## Extraction
-##############################################
-
 def reverse_apply(x: Any) -> Callable:
   return lambda f, *args, **kwargs: f(x, *args, **kwargs)
 
@@ -714,7 +1010,7 @@ def demux(*funcs) -> Unary:
 demux(identity, len, compose(tuple, reversed))("abcd")
 
 # %% [markdown]
-# # Parser Combinators
+# ## Parser Combinators
 
 # %%
 # Parser input: a sequence of lexemes:
@@ -747,9 +1043,9 @@ def equals(x) -> Parser:
       return (y, rest(input))
   return g
 
-f = equals('a')
-f(['a'])
-f(['b', 2])
+h = equals('a')
+h(['a'])
+h(['b', 2])
 
 
 # %%
@@ -779,7 +1075,7 @@ g([False])
 
 
 # %% [markdown]
-# # Sequence Parsers
+# ## Sequence Parsers
 
 # %%
 ParsedSequence = Tuple[Sequence, Input]
@@ -880,7 +1176,7 @@ g(['a', 2, 3, False])
 g(['a', 2, 3, False, 'more'])
 
 # %% [markdown]
-# # Parser Grammar
+# ## Parser Grammar
 
 # %%
 
@@ -1010,14 +1306,17 @@ def projection(key: Any, default: Any = None) -> Callable:
 
 
 # %% [markdown]
-# # Mapcat (aka Flat-Map)
+# # Other
+
+# %% [markdown]
+# ## Mapcat (aka Flat-Map)
 
 # %%
 ConcatableUnary = Callable[[Any], Sequence]
 
 def mapcat(f: ConcatableUnary, xs: Sequence):
   'Concatenate the results of `map(f, xs)`.'
-  return reduce(add, [], map(f, xs))
+  return reduce(multiply, [], map(f, xs))
 
 def duplicate(n, x):
   return [x] * n
@@ -1028,7 +1327,7 @@ duplicate_each_3_times(range(4, 7))
 
 
 # %% [markdown]
-# # Manipulating Arguments
+# ## Manipulating Arguments
 
 # %%
 def reverse_args(f: Callable) -> Callable:
@@ -1042,7 +1341,7 @@ def divide(x, y):
 divide(2, 3)
 reverse_args(divide)(2, 3)
 
-reduce(reverse_args(add), " reversed ", a_list_of_strings)
+reduce(reverse_args(multiply), " reversed ", a_list_of_strings)
 reduce(reverse_args(conjoin), 2, [3, 5, 7])
 
 
