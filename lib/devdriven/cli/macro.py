@@ -1,8 +1,7 @@
-from typing import Any, List, Dict
+from typing import List, Dict
 import logging
 import shlex
 import re
-# from icecream import ic
 
 Command = List[str]
 
@@ -16,7 +15,7 @@ class MacroExpander:
     for _i in range(self.max_expansions):
       prev = curr
       curr = self.expand_macro(prev)
-      if prev == curr:
+      if prev == curr or prev[0] == curr[0]:
         return curr
     logging.warning('config : command : expanded %d times %s ', self.max_expansions, command)
     return curr
@@ -24,27 +23,39 @@ class MacroExpander:
   def expand_macro(self, command: Command) -> Command:
     name, *argv = command
     if macro := self.macros.get(name):
-      rx = r'(?:"\$(-?\d+)"|\$(-?\d+)|"\$([@*])"|\$([@*]))'
 
-      def expand(m):
-        if m[1]:   # "$n"
-          return shlex.join([get_safe(command, int(m[1]), '')])
-        if m[2]:   # $n
-          return get_safe(command, int(m[2]), '')
-        if m[3] == '@':   # "$@"
-          return shlex.join(argv)
-        if m[3] == '*':   # "$*"
-          return shlex.join([' '.join(argv)])
-        if m[4]:  # $@ == $*
+      def expand(m: re.Match) -> str:
+        if indx := m['indx']:
+          return get_safe(command, int(indx))
+        if m['glob'] or m['args']:
           return ' '.join(argv)
+        if indx := m['indx_q']:
+          return shlex.join([get_safe(command, int(indx))])
+        if m['glob_q']:
+          arg = m['glob_q_pre'] + ' '.join(argv) + m['glob_q_post']
+          return shlex.join([arg])
+        if m['args_q']:
+          args = [m['args_q_pre'] + arg + m['args_q_post'] for arg in argv]
+          return shlex.join(args)
         assert not 'here'
-        return None
-      exp = re.sub(rx, expand, macro)
+        return '<<INVALID>>'
+      exp = re.sub(MACRO_REFERERENCE_RX, expand, macro)
       return shlex.split(exp)
     return command
 
-def get_safe(a, i: int, default=None) -> Any:
+def arg_rx(name, pat):
+  return f'(?:"(?P<{name}_q_pre>[^$]*)\\$(?P<{name}_q>{pat})(?P<{name}_q_post>[^"]*)")|\\$(?P<{name}>{pat})'
+
+
+MACRO_REFERERENCE_RX = re.compile(
+  '|'.join([
+    arg_rx('indx', r'-?\d+'),
+    arg_rx('glob', r'[*]'),
+    arg_rx('args', r'[@]'),
+  ]))
+
+def get_safe(a: List[str], i: int) -> str:
   try:
     return a[i]
   except IndexError:
-    return default
+    return ''

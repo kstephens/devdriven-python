@@ -1,0 +1,5 @@
+member admin-role  Admins,@root
+member read-role   Readers
+member write-role  Writers
+member other-role  Other
+member anon-role   Anon

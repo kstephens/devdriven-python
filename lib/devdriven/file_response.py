@@ -3,13 +3,13 @@ from io import StringIO, BytesIO, TextIOBase, TextIOWrapper
 import sys
 import hashlib
 import json
-import mimetypes
 from datetime import datetime
 from email.utils import formatdate
 from http.client import responses
 from urllib3 import HTTPHeaderDict
 from devdriven.url import url_normalize
 from devdriven.util import not_implemented
+from devdriven import mime
 
 TEXT_IO_CLASSES = (TextIOBase, TextIOWrapper, StringIO)
 DEFAULT_ENCODING = 'utf-8'
@@ -228,7 +228,7 @@ class FileResponse():
         self.read_io = open(self.file_path, 'rb')
         # ???: Can return multiple shapes?
         # See https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type
-        (content_type, _encoding) = mimetypes.guess_type(self.file_path)
+        (content_type, _encoding) = mime.guess_type(self.file_path)
         if content_type:
           self.headers['Content-Type'] = content_type
         self._start(200)

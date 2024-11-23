@@ -1,6 +1,4 @@
-# import dis
 import devdriven.converter as sut
-# from icecream import ic
 import pandas as pd
 
 def make_dataframe():

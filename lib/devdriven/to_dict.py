@@ -4,11 +4,13 @@ import subprocess
 import re
 import dataclasses
 import inspect
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from devdriven.util import maybe_decode_bytes, datetime_iso8601
 
 class ToDict:
+  tz = timezone.utc
+
   def __call__(self, data: Any) -> Any:
     return self.walk(data)
 
@@ -52,7 +54,7 @@ class ToDict:
     if issubclass(obj_type, Path):
       return repr(obj)
     if issubclass(obj_type, datetime):
-      return datetime_iso8601(obj)
+      return datetime_iso8601(obj.astimezone(self.tz))
     if issubclass(obj_type, subprocess.CompletedProcess):
       return self.walk(vars(obj))
     if issubclass(obj_type, BaseException):

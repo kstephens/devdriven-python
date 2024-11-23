@@ -4,7 +4,6 @@ import contextlib
 import sys
 from devdriven.user_agent import UserAgent
 from devdriven.file_response import FileResponse
-# from icecream import ic
 
 TEST_FILE = 'tmp/user-agent-test.csv'
 

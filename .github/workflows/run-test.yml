@@ -1,0 +1,32 @@
+name: run test
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name:  checkout repo
+      uses:  actions/checkout@main
+    - name:  Set up Homebrew
+      if:    ${{ startsWith(matrix.os, 'macos') }}
+      uses:  Homebrew/actions/setup-homebrew@master
+    - name:  install bash
+      if:    ${{ startsWith(matrix.os, 'macos') }}
+      run:   brew install bash
+    - name:  setup python-version
+      uses:  actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name:  show env
+      run:   env | sort
+    - name:  create venv
+      run:   tool/build venv-force
+    - name:  tool/build
+      run:   . venv/bin/activate && tool/build show-vars, test

@@ -1,7 +1,5 @@
 from urllib.parse import ParseResult
 import devdriven.url as sut
-# from devdriven.combinator import compose
-# from icecream import ic
 
 URLS = [
   'http://a/b',

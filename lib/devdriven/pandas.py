@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional, Dict, Callable
 import os
 import re
 import logging
@@ -10,10 +10,10 @@ import pandas as pd  # type: ignore
 from .util import reorder_list
 from .html import Table
 
-def column_type_names(dframe):
+def column_type_names(dframe: pd.DataFrame) -> Dict[str, str]:
   return {col: str(dtype) for col, dtype in dframe.dtypes.to_dict().items()}
 
-def dtype_to_dict(dtype: Any) -> dict:
+def dtype_to_dict(dtype: Any) -> Dict[str, Any]:
   return {k: getattr(dtype, k, None) for k in DTYPE_ATTRS}
 
 
@@ -44,7 +44,7 @@ def select_rows(rows, match):
   selected.drop(['level_0', 'index'], axis=1, errors='ignore', inplace=True)
   return selected
 
-def new_empty_df_like(other):
+def new_empty_df_like(other: pd.DataFrame) -> pd.DataFrame:
   # https://stackoverflow.com/a/39174024/1141958
   df = pd.DataFrame().reindex_like(other)
   df.drop(df.index, inplace=True)
@@ -57,7 +57,7 @@ def normalize_column_name(name: str) -> str:
   name = re.sub(r'([^A-Z]+)([A-Z]+)', decamel, name)
   return re.sub(r'(?i)[^A-Z0-9]', '_', name)
 
-def push_row(dframe, row):
+def push_row(dframe: pd.DataFrame, row: Any) -> pd.DataFrame:
   dframe.loc[len(dframe)] = row
   return dframe
 
@@ -73,25 +73,32 @@ agg_fun_aliases = {
   'r': 'rank',
 }
 
-def count_by(df, by, name='count', sort_by=None, sort_ascending=None):
+def count_by(df: pd.DataFrame, by, name='count', sort_by=None, sort_ascending=None) -> pd.DataFrame:
   return summary_by(df, by, None, 'size', name, sort_by, sort_ascending)
 
 # pylint: disable-next=too-many-arguments
-def summary_by(df, by, val_col, fun, name, sort_by=None, sort_ascending=None):
+def summary_by(df: pd.DataFrame, by, val_col, fun, name, sort_by=None, sort_ascending=None) -> Any:  # pd.DataFrame:
   group = df.groupby(by)
   if val_col:
     group = group[val_col]
-  df = getattr(group, agg_fun_aliases.get(fun, fun))()
-  df = df.reset_index(name=name)
+  df_2 = getattr(group, agg_fun_aliases.get(fun, fun))()
+  df_2 = df_2.reset_index(name=name)
   if sort_by is not None or sort_ascending is not None:
     sort_by = sort_by or name
     sort_ascending = sort_ascending is not False
-    df = df.sort_values(sort_by, ascending=sort_ascending)
-  remove_index(df)
-  return df
+    df_2 = df_2.sort_values(sort_by, ascending=sort_ascending)
+  remove_index(df_2)
+  return df_2
 
 # pylint: disable-next=too-many-arguments
-def summarize(dframe, col_agg_funs, group_by=None, rename=None, sort_by=None, sort_ascending=True, cols_to_end=None):
+def summarize(dframe: pd.DataFrame,
+              col_agg_funs,
+              group_by=None,
+              rename=None,
+              sort_by=None,
+              sort_ascending=True,
+              cols_to_end=None
+              ) -> pd.DataFrame:
   cols = list(map(lambda x: x[0], col_agg_funs))
   aggs = summary_aggs(col_agg_funs)
   if group_by:
@@ -109,7 +116,7 @@ def summarize(dframe, col_agg_funs, group_by=None, rename=None, sort_by=None, so
     summary = reorder_cols(summary, back=cols_to_end)
   return summary
 
-def summary_aggs(col_agg_funs):
+def summary_aggs(col_agg_funs) -> OrderedDict:
   aggs = OrderedDict()
   for col, funs in col_agg_funs:
     for fun in funs:
@@ -117,7 +124,7 @@ def summary_aggs(col_agg_funs):
       aggs[agg_col] = pd.NamedAgg(column=col, aggfunc=agg_fun_aliases.get(fun, fun))
   return aggs
 
-def reorder_cols(dframe, front=None, back=None):
+def reorder_cols(dframe: pd.DataFrame, front=None, back=None) -> pd.DataFrame:
   remove_index(dframe)
   cols = list(dframe.columns)
   new = reorder_list(cols, (front or []), (back or []))
@@ -126,7 +133,7 @@ def reorder_cols(dframe, front=None, back=None):
 #    dframe.reset_index(drop=True, inplace=True)
   return dframe
 
-def remove_index(df):
+def remove_index(df: pd.DataFrame) -> pd.DataFrame:
   df.reset_index(drop=True, inplace=True)
   df.drop(labels=['index'], axis=1, errors='ignore', inplace=True)
   df.drop(labels=['index'], axis=0, errors='ignore', inplace=True)
@@ -138,20 +145,20 @@ def remove_index(df):
 class DataFrameIO:
   src: str = 'data/src'
   gen: str = 'data/gen'
-  processing_log: pd.DataFrame = None
+  processing_log: Optional[pd.DataFrame] = None
 
-  def initialize_log(self):
+  def initialize_log(self) -> None:
     self.processing_log = pd.DataFrame(columns=['report', 'file', 'mtime', 'lines', 'bytes', 'now', 'url'])
 
-  def write_logs(self, basename):
+  def write_logs(self, basename: str) -> None:
     if self.processing_log and not self.processing_log.empty:
       self.processing_log.sort_values(by=['report'], ascending=True, inplace=True)
       self.write_df(self.processing_log, f'00-{basename}-log')
 
-  def read_pickle(self, file, **kwargs):
+  def read_pickle(self, file: str, **kwargs) -> pd.DataFrame:
     return pd.read_pickle(file, compression='xz', **kwargs)
 
-  def read_tsv(self, file, **_kwargs):
+  def read_tsv(self, file: str, **_kwargs) -> pd.DataFrame:
     return pd.read_table(file,
                          sep='\t', quotechar='\\',
                          doublequote=False,
@@ -159,10 +166,10 @@ class DataFrameIO:
                          float_precision='round_trip',
                          header=0)
 
-  def read_json(self, file, **_kwargs):
+  def read_json(self, file: str, **_kwargs) -> pd.DataFrame:
     return pd.read_json(file, orient='records', convert_dates=True)
 
-  def write_df(self, dframe, report, dirpath=None, **_kwargs):
+  def write_df(self, dframe: pd.DataFrame, report: str, dirpath: Optional[str] = None, **_kwargs) -> pd.DataFrame:
     remove_index(dframe)
     file = f'{(dirpath or self.gen)}/{report}'
     msg = f'write_df : {file}.* : {len(dframe)} rows'
@@ -178,7 +185,7 @@ class DataFrameIO:
     logging.info('%s', f'{msg} : DONE\n')
     return dframe
 
-  def saving_df(self, fun, dframe, report, file):
+  def saving_df(self, fun: Callable, dframe: pd.DataFrame, report: str, file: str) -> str:
     logging.info('%s', f"Saving {file} : ...")
     fun(dframe, file)
     if self.processing_log and dframe is not self.processing_log:
@@ -186,7 +193,7 @@ class DataFrameIO:
       push_row(self.processing_log, log_row)
     return file
 
-  def saving_df_log(self, report, file):
+  def saving_df_log(self, report: str, file: str) -> dict:
     file_name = Path(file).name
     log_row = {
       'report': report,
@@ -200,22 +207,22 @@ class DataFrameIO:
     logging.info('%s', f'Saving {file} : {log_row!r}')
     return log_row
 
-  def write_pickle(self, dframe, file, **kwargs):
+  def write_pickle(self, dframe: pd.DataFrame, file: str, **kwargs) -> None:
     dframe.to_pickle(file, compression='xz', **kwargs)
 
-  def write_tsv(self, dframe, file, **_kw):
+  def write_tsv(self, dframe: pd.DataFrame, file: str, **_kw) -> None:
     dframe.to_csv(file,
                   sep='\t', escapechar='\\',
                   date_format='iso',
                   header=True, index=False)
 
-  def write_json(self, dframe, file, **_kw):
+  def write_json(self, dframe: pd.DataFrame, file: str, **_kw) -> None:
     dframe.to_json(file, orient="records", date_format='iso', indent=2)
 
-  def write_md(self, dframe, file, **kw):
+  def write_md(self, dframe: pd.DataFrame, file: str, **kw) -> None:
     dframe.to_markdown(file, index=False, **kw)
 
-  def write_html(self, dframe, file, **kwargs):
+  def write_html(self, dframe: Any, file: str, **kwargs) -> None:
     with open(file, "w", encoding='utf-8') as output:
       Table(columns=dframe.columns(),
             rows=dframe.as_iterable(),

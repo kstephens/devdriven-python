@@ -1,0 +1,20 @@
+# /root/.rbac.txt:
+# Admins have full access to authorizations controls:
+rule allow  *    admin-role  **/.user.txt
+rule allow  *    admin-role  **/.role.txt
+rule allow  *    admin-role  **/.rbac.txt
+rule allow  *    admin-role  **
+
+# Admins have full access to hidden files.
+rule allow  *    admin-role  **/.*
+
+# Other have no access to authorization controls:
+rule deny   *    *           **/.user.txt
+rule deny   *    *           **/.role.txt
+rule deny   *    *           **/.rbac.txt
+
+# Anonymous users have no access:
+rule deny   *    anon-role   **
+
+# All other users have GET:
+rule allow  GET  *           **

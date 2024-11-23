@@ -6,13 +6,14 @@ import urllib.parse
 from .to_dict import dump_json
 from .util import elapsed_ms
 
-Headers = Optional[Dict[str, str]]
+Headers = Dict[str, str]
 HttpResult = Dict[str, Any]
 Options = Dict[str, Any]
+Data = Union[str, bytes, None]
 
-def send_to_url(url: str, data: Any,
-                headers: Headers = None,
-                **options: Any) -> HttpResult:
+def send_to_url(url: str, data: Data,
+                headers: Optional[Headers] = None,
+                **options) -> HttpResult:
   if not headers:
     headers = {}
   if options.get('raw', False):
@@ -29,7 +30,7 @@ def send_to_url(url: str, data: Any,
   return http_post(url, data, headers=headers, **options)
 
 def http_method_url(maybe_method_and_url: str,
-                    context: Any = None) -> Tuple[str, Optional[str]]:
+                    context: Optional[Dict] = None) -> Tuple[str, Union[str, None]]:
   if context:
     maybe_method_and_url = maybe_method_and_url.format(**context)
   match = re.match(r'^(GET|HEAD|POST|PUT|DELETE|PATCH) (.*)$', maybe_method_and_url)
@@ -39,8 +40,8 @@ def http_method_url(maybe_method_and_url: str,
 
 # pylint: disable=too-many-locals
 def http_post(url: str, body: Union[str, bytes],
-              headers: Headers = None,
-              **options: Any) -> HttpResult:
+              headers: Optional[Headers] = None,
+              **options) -> HttpResult:
   url, method = http_method_url(url, context=options.get('context'))
   if not method:
     method = options.get('method', 'POST')

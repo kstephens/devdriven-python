@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self, List, Tuple, Dict
+from typing import Any, Union, Optional, Self, List, Tuple, Dict, IO
 from io import StringIO
 from pathlib import Path
 import re
@@ -8,7 +8,6 @@ import cmath
 from devdriven.resource import Resources
 from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
-# from icecream import ic
 
 res_html = Resources([]).add_file_dir(__file__, 'resources/html')
 res_table = Resources([]).add_file_dir(__file__, 'resources/html/table')
@@ -21,7 +20,7 @@ class Table:
   columns: list = field(default_factory=list)
   rows: List[Any] = field(default_factory=list)
   options: dict = field(default_factory=dict)
-  output: Any = None
+  output: Union[IO, None] = None
   data: dict = field(default_factory=dict)
   width: int = 0
   height: int = 0
@@ -39,6 +38,7 @@ class Table:
     self.colspan = len(self.columns) + 1 if self.opt('row_index') else len(self.columns)
     self.data = vars(self) | {
       'this': self,
+      'dom_id': self.opt('dom_id', 'cx-table'),  # ??? IMPLEMENT
       'h': self.h,
       'opt': self.opt,
       'col_opt': self.col_opt,
@@ -72,26 +72,26 @@ class Table:
     templates += [TABLE_INIT]
     return self.join_templates(templates)
 
-  def render_template(self, text) -> Self:
+  def render_template(self, text: str) -> Self:
     template, context = self.template_context(text)
     template.render_context(context)
     return self
 
-  def template_context(self, text) -> Tuple[Template, Context]:
+  def template_context(self, text: str) -> Tuple[Template, Context]:
     return (
       Template(text=text, strict_undefined=True),
       Context(self.output, **self.data)
     )
 
-  def join_templates(self, templates):
-    def strip_it(text):
+  def join_templates(self, templates: List[str]):
+    def strip_it(text: str) -> str:
       return re.sub(r'^\s*\n+|\s*\n+$', '', text, count=1)
     return ''.join(map(strip_it, templates))
 
   ######################################
   # Options:
 
-  def prepare_options(self):
+  def prepare_options(self) -> None:
     self.options = {} | self.options
     if self.opt('simple'):
       self.options['styled'] = False
@@ -101,29 +101,53 @@ class Table:
       self.options['styled'] = True
     # Merge and amend column options:
     opt_cols = self.options.get('columns', {})
-    # ic(opt_cols)
     self._col_opts = {col: {} | opt_cols.get(col, {}) for col in self.columns}
-    # ic(self._col_opts)
+    col_idx = 0
     for col, opts in self._col_opts.items():
+      col_idx += 1
+      opts['col_idx'] = col_idx
       opts['none'] = self.opt('none', opts.get('none', None))
       opts['td_class'] = self.col_class(col)
-    # ic(self._col_opts)
+      opts['col_attrs'] = self.col_attrs(col, opts)
 
-  def col_class(self, col):
-    cls = []
+  def col_attrs(self, col: str, opts: dict) -> dict:
+    col_idx = opts['col_idx']
+    col_attrs = {
+      "class": "cx-column",
+      "title": f'name: {col}; index: {col_idx}; type: {self.col_opt(col, "type", "UNKNOWN")}',
+    }
+    if self.opt('filtering'):
+      col_attrs.update({
+        "data-column-index": col_idx,
+        "data-filter-name": col,
+        "data-filter-name-full": col,
+      })
+    if self.opt('sorting'):
+      col_attrs['data-sort-method'] = self.col_sort_method(col) or 'string'
+    return col_attrs
+
+  def col_sort_method(self, col: str) -> str:
+    sort_method = self.col_opt(col, 'sort_method')
+    if not sort_method:
+      if self.col_opt(col, 'numeric'):
+        sort_method = 'number'
+    return sort_method
+
+  def col_class(self, col: str) -> Union[str, None]:
+    classes: List[str] = []
     align = None
     if self.col_opt(col, 'numeric'):
       align = 'right'
     if align := (self.col_opt(col, 'align') or align):
-      cls.append(f'cx-{align}')
+      classes.append(f'cx-{align}')
     if self.col_opt(col, 'wrap', False):
-      cls.append('cx-wrap')
+      classes.append('cx-wrap')
     else:
-      cls.append('cx-nowrap')
-    cls.append(self.col_opt(col, 'class', ''))
-    cls = ' '.join([x for x in cls if x])
-    if cls:
-      return cls
+      classes.append('cx-nowrap')
+    classes.append(self.col_opt(col, 'class', ''))
+    class_str = ' '.join([x for x in classes if x])
+    if class_str:
+      return class_str
     return None
 
   ######################################
@@ -132,10 +156,10 @@ class Table:
   def h(self, x: Any) -> str:
     return html.escape(str(x))
 
-  def opt(self, name, default: Any = None) -> Any:
+  def opt(self, name, default: Optional[Any] = None) -> Any:
     return self.options.get(name, default)
 
-  def col_opt(self, col: str, opt: str, default=None) -> Any:
+  def col_opt(self, col: str, opt: str, default: Optional[Any] = None) -> Any:
     return self._col_opts[col].get(opt, default)
 
   def attrs(self, attrs: Optional[dict]) -> str:
@@ -143,19 +167,20 @@ class Table:
       return ''
     return ' '.join([self.attr(name, val) for name, val in attrs.items()]).strip()
 
-  def attr(self, name, val):
+  def attr(self, name: Optional[str], val) -> str:
     if name and val is not None and self.data['allow_attributes']:
       return f'{name}="{val}"'
     return ''
 
-  def class_(self, val):
+  def class_(self, val: Any) -> str:
     return self.attr('class', val)
 
   ######################################
   # Content:
 
   # pylint: disable-next=invalid-name
-  def th(self, name: Any, attrs: Optional[dict] = None) -> str:
+  def th(self, name: str, attrs: Optional[dict] = None) -> str:
+    attrs = attrs or self.col_opt(name, 'col_attrs')
     return f'''\
 <th {self.attrs(attrs)}>\
 <span class="cx-column-name">{self.h(name)}</span>\
@@ -342,6 +367,7 @@ ${this.javascript(this.resource_min(js, "filter.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/tablesort.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.number.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.date.js"))}
+${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.monthname.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.dotsep.js"))}
 ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort.filesize.js"))}
 %endif
@@ -350,13 +376,23 @@ ${this.javascript(this.resource_min(vendor, "tablesort-5.3.0/src/sorts/tablesort
 <script>
   var cx_filter;
 $(document).ready(function() {
-  console.log( "psv : document ready!" );
 % if opt('sorting'):
+  // See: tablesort.js: var caseInsensitiveSort:
+  Tablesort.extend('string', function(item) {
+    return true;
+  }, function(a, b) {
+    a = a.trim().toLowerCase();
+    b = b.trim().toLowerCase();
+    if (a === b) return 0;
+    if (a < b) return 1;
+    return -1;
+  });
   new Tablesort(document.getElementById('cx-table'));
 %endif
 % if opt('filtering'):
   cx_filter = cx_make_filter('cx-table');
 %endif
+  console.log( "psv : document ready!" );
 });
 </script>
 %endif
@@ -390,24 +426,7 @@ THEAD_COLUMNS = '''
 ${ th('#', {'class': 'cx-right', 'title': row_title, "data-sort-method": "number"}) }
 %endif
 % for col in columns:
-<%
-  col_idx += 1
-  col_attrs = {
-    "class": "cx-column",
-    "title": f'name: {col}; index: {col_idx}; type: {this.col_opt(col, "type", "UNKNOWN")}',
-  }
-  col_sort = None
-  if opt('sorting'):
-    if this.col_opt(col, 'numeric'):
-      col_attrs['data-sort-method'] = 'number'
-  if opt('filtering'):
-    col_attrs.update({
-      "data-column-index": col_idx,
-      "data-filter-name": col,
-      "data-filter-name-full": col,
-    })
-%>
-${ th(col, col_attrs) }
+${ th(col) }
 % endfor
 </tr>
 '''

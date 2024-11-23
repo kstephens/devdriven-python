@@ -1,6 +1,5 @@
 import re
 import devdriven.combinator as sut
-# from icecream import ic
 
 def test_constantly():
   assert sut.constantly(2)() == 2

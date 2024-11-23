@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from logging import LogRecord
 import re
 import pytest
@@ -15,7 +15,7 @@ def test_json_formatter():
   message_data = {'a': 1, 'b': 'str'}
   arg_data = {
     'rx': re.compile(r'foo/bar.*'),
-    'now': datetime.fromtimestamp(123.456 * 2),
+    'now': datetime.fromtimestamp(123.456 * 2, tz=timezone.utc),
   }
   assert_message(
     ["MESSAGE"],
@@ -35,7 +35,7 @@ def test_json_formatter():
     ''.join([
       '"message":"MESSAGE -> arg1 4",',
       '"DATA_KEY":{"rx":"re.compile(\'foo/bar.*\')",',
-      '"now":"1969-12-31 18:04:06.912000+0000"}'
+      '"now":"1970-01-01 00:04:06.912000+0000"}'
     ]))
   assert_message(
     [message_data],
@@ -48,7 +48,7 @@ def test_json_formatter():
     ''.join([
       '"message":"arg1 | 2 | 4",',
       '"DATA_KEY":{"a":1,"b":"str","rx":"re.compile(\'foo/bar.*\')",',
-      '"now":"1969-12-31 18:04:06.912000+0000"}'
+      '"now":"1970-01-01 00:04:06.912000+0000"}'
     ])
   )
 
