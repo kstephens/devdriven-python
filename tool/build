@@ -115,11 +115,12 @@ venv() { # cmd
   override files test_files
   x rm -rf ${coverage_dir:?}/
   x mkdir -p $coverage_dir
-  venv x coverage run -m pytest ${pytest_opts} -vv -rpP ${files:-all}
-  venv x coverage report | tee $coverage_dir/coverage.txt
-  venv x coverage html
-  venv x coverage json
-# venv x coverage xml
+  venv :
+  x coverage run -m pytest ${pytest_opts} -vv -rpP ${files:-all}
+  x coverage report | tee $coverage_dir/coverage.txt
+  x coverage html
+  x coverage json
+# x coverage xml
 }
 
 -integration-test() {
