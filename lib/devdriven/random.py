@@ -6,21 +6,25 @@ DEFAULT = SystemRandom()
 CURRENT = None
 SEED = None
 
+
 def random() -> Random:
-  return CURRENT or DEFAULT
+    return CURRENT or DEFAULT
+
 
 def set_seed(seed: Any) -> Random:
-  # pylint: disable-next=global-statement
-  global CURRENT, SEED
-  SEED = str(seed)
-  CURRENT = Random()
-  CURRENT.seed(SEED, version=2)
-  return CURRENT
+    # pylint: disable-next=global-statement
+    global CURRENT, SEED
+    SEED = str(seed)
+    CURRENT = Random()
+    CURRENT.seed(SEED, version=2)
+    return CURRENT
+
 
 def get_seed() -> Optional[str]:
-  return SEED
+    return SEED
+
 
 def uuid() -> str:
-  if CURRENT:
-    return str(UUID(bytes=random().randbytes(16), version=4))
-  return str(uuid4())
+    if CURRENT:
+        return str(UUID(bytes=random().randbytes(16), version=4))
+    return str(uuid4())

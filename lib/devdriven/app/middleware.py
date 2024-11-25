@@ -42,14 +42,14 @@ Req = MutableMapping[str, Any]
 App = Callable[[Req], Res]
 
 
-### Developer Affordance
+# ### Developer Affordance
 
 
 def is_success(status: Status) -> bool:
     return status in range(200, 300)
 
 
-#### Exception Handling
+# #### Exception Handling
 
 
 def capture_exception(app: App, status=500, cls=Exception, with_traceback=False) -> App:
@@ -72,7 +72,7 @@ def capture_exception(app: App, status=500, cls=Exception, with_traceback=False)
     return _capture_exception
 
 
-#### Tracing
+# #### Tracing
 
 
 def trace(app: App, ident="", stream=sys.stderr) -> App:
@@ -104,12 +104,12 @@ def trace(app: App, ident="", stream=sys.stderr) -> App:
 
 TRACE_INDENT = [0]
 
-## Reading Input, Writing Output
+# ## Reading Input, Writing Output
 
 Content = str
 Data = Any
 
-### Reading input
+# ### Reading input
 
 
 def read_input(app: App, read: Optional[Callable[[Data], Content]] = None) -> App:
@@ -126,7 +126,7 @@ def read_input(app: App, read: Optional[Callable[[Data], Content]] = None) -> Ap
     return _read_input
 
 
-### Writing Output
+# ### Writing Output
 
 
 def write_output(app: App) -> App:
@@ -180,7 +180,7 @@ def capitalize(k: str):
 WORD_RX = re.compile(r"\b([a-z]+)\b")
 
 
-## Decoding Inputs, Encoding Outputs
+# ## Decoding Inputs, Encoding Outputs
 
 Encoder = Callable[[Data], Content]
 Decoder = Callable[[Content], Data]
@@ -218,7 +218,7 @@ def encode_content(app: App, encoder: Encoder, content_type="text/plain") -> App
     return _encode_content
 
 
-## Decode JSON, Encode JSON
+# ## Decode JSON, Encode JSON
 
 
 def decode_json(app: App, **kwargs) -> App:
@@ -241,7 +241,7 @@ def encode_json(app: App, **kwargs) -> App:
     return encode_content(app, _encode_json, content_type="application/json")
 
 
-## Header Management
+# ## Header Management
 
 
 def content_length(app: App) -> App:
@@ -253,7 +253,10 @@ def content_length(app: App) -> App:
     return _content_length
 
 
-## Injection
+# # Injection
+
+
+# ## Request Injection
 
 
 def default_req(app: App, defaults: Req) -> App:
@@ -277,6 +280,9 @@ def override_req(app: App, overrides: Req) -> App:
 
 ResOptional = Tuple[Optional[Status], Optional[Headers], Optional[Body]]
 AppOptional = Callable[[Req], ResOptional]
+
+
+# ## Response Injection
 
 
 def default_res(app: AppOptional, defaults: ResOptional) -> App:
@@ -320,10 +326,10 @@ def default_dict(d, defaults):
     return d
 
 
-## Composition
+# ## Composition
 
 
-### Adapters
+# ### Adapters
 
 
 def read_wsgi(app: App) -> App:
