@@ -1,5 +1,5 @@
 from pathlib import Path, PurePath
-from devdriven.asserts import assert_output_by_key
+from ..asserts import assert_output_by_key
 from . import \
   Resource, Action, \
   Request, Solver, \

@@ -2,10 +2,10 @@
 from typing import Optional  # List, Iterable
 import logging
 import re
-import base64
 from operator import is_not
 from functools import partial
 import ldap  # type: ignore
+from .cipher import Cipher
 # from icecream import ic
 
 class LDAPService():
@@ -50,13 +50,14 @@ class LDAPService():
     return res
 
   def encode_auth_token(self, req):
-    token = '|'.join(['1', req['user'], req['secret']])
-    token = base64.b64encode(token.encode('utf-8')).decode('utf-8')
-    return token
+    return Cipher(self.auth_token_key()).encipher_token((req['user'], req['secret']))
 
   def decode_auth_token(self, token):
-    version, user, secret = base64.b64decode(token.encode('utf-8')).decode('utf-8').split('|')
-    return {'version': version, 'user': user, 'secret': secret}
+    user, secret = Cipher(self.auth_token_key()).decipher_token(token)
+    return {'user': user, 'secret': secret}
+
+  def auth_token_key(self) -> str:
+    return self.config.get('auth_key', '')
 
   # pylint: disable-next=too-many-locals
   def get_user_info(self, req):
