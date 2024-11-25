@@ -130,6 +130,9 @@ venv() { # cmd
 ################################
 # Typecheck:
 
+-typing() {
+  -typecheck "$@"
+}
 -typecheck() {
   -- stubgen mypy $typecheck_other
 }
@@ -301,7 +304,7 @@ var bin_dirs bin_files bin_files_lint
 
 lib-dir() {
   append-path lib_dirs "$@"
-  lib_files="$(locate lib_dirs -name '*.py' | grep -Ev '_test\.py$' | newline-space)"
+  lib_files="$(locate lib_dirs -name '*.py' | grep -vF '/__init__.py' | grep -Ev '_test\.py$' | newline-space)"
   # declare -p lib_files >&2
   pythonpath $lib_dirs
 }
@@ -309,7 +312,7 @@ var lib_dirs lib_files
 
 test-dir() {
   append-path test_dirs "$@"
-  test_files="$(locate test_dirs -name '*_test.py' | newline-space)"
+  test_files="$(locate test_dirs -name '*_test.py' | grep -vF '/__init__.py' | newline-space)"
   # declare -p test_files >&2
   lint-dir "$@"
 }
@@ -329,7 +332,10 @@ requirements-dir() {
 }
 requirements-file() {
   requirements_files="$(absolute $requirements_files "$@")"
-  # declare -p requirements_dirs requirements_files >&2
+  for rf in $requirements_files
+  do
+    sort -u -o "$rf" "$rf"
+  done
 }
 var requirements_dirs requirements_files
 
