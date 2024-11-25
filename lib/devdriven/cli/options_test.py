@@ -1,4 +1,4 @@
-from devdriven.cli.options import Options
+from . import Options
 
 def test_parse_argv():
   argv = ['-abc', '--flag', '--opt=g', 'h', 'i', '-j']

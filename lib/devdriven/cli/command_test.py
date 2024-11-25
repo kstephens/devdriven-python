@@ -1,5 +1,5 @@
 import shlex
-from devdriven.cli import Command
+from . import Command
 
 def test_parse_argv():
   examples = [

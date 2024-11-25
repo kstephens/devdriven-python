@@ -1,4 +1,4 @@
-from devdriven.cli.macro import MacroExpander
+from .macro import MacroExpander
 
 MACROS = {
   'indx': 'b arg1 "$1" $-1 "$2" arg2',

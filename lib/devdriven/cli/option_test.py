@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from devdriven.cli.option import Option
+from . import Option
 
 def test_parse_doc_long_value():
   obj = Option().parse_doc('--opt=STRING  |  desc.')

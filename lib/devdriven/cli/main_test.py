@@ -1,4 +1,4 @@
-from devdriven.cli import Main, Command
+from . import Main, Command
 
 class MainTest(Main):
   def make_command(self, argv):
