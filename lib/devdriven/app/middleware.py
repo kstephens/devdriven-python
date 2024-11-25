@@ -130,7 +130,7 @@ def read_input(app: App, read: Optional[Callable[[Data], Content]] = None) -> Ap
 
 
 def write_output(app: App) -> App:
-    "Reads body.stream"
+    "Writes body to output.stream."
 
     def _write_output(req: Req) -> Res:
         status, headers, body = app(req)
@@ -209,10 +209,12 @@ def encode_content(app: App, encoder: Encoder, content_type="text/plain") -> App
     def _encode_content(req: Req) -> Res:
         status, headers, body = app(req)
         content = "".join(map(encoder, body))
-        headers |= {
-            "Content-Type": content_type,
-            "Content-Length": len(content),
-        }
+        headers.update(
+            {
+                "Content-Type": content_type,
+                "Content-Length": len(content),
+            }
+        )
         return status, headers, [content]
 
     return _encode_content
