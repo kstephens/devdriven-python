@@ -53,13 +53,11 @@ def test_json_formatter():
 
 
 def assert_message(args, expected):
-    assert (
-        format_message(*args)
-        == 'MESSAGE_PREFIX: {"level":"DEBUG","timestamp":123.456,'
-        + '"pid":789,"thread":"MainThread",'
-        + expected
-        + ',"program":"TEST"}'
-    )
+    result = 'MESSAGE_PREFIX: {'
+    result += '"level":"DEBUG","timestamp":123.456,"pid":789,"thread":"MainThread",'
+    result += expected
+    result += ',"program":"TEST"}'
+    assert format_message(*args) == expected
 
 
 def format_message(msg, *args):

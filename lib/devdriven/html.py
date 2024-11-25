@@ -48,9 +48,7 @@ class Table:
             "th": self.th,
             "td": self.td,
             "unicode": UNICODE,
-            "allow_attributes": self.opt("styled")
-            or self.opt("filtering")
-            or self.opt("sorting"),
+            "allow_attributes": self.opt("styled") or self.opt("filtering") or self.opt("sorting"),
             "attr": self.attr,
             "attrs": self.attrs,
             "class_": self.class_,

@@ -73,7 +73,7 @@ class JsonFormatter:  # (logging.Formatter):
 
 def trim_message(msg, max_len, suffix="..."):
     if len(msg) >= max_len:
-        return msg[0 : (max_len - len(suffix))] + suffix
+        return msg[0:(max_len - len(suffix))] + suffix
     return msg
 
 

@@ -4,7 +4,9 @@ import logging
 import re
 from operator import is_not
 from functools import partial
-import ldap  # type: ignore
+import urllib.parse
+import ssl
+import ldap3  # type: ignore
 from .cipher import Cipher
 
 # from icecream import ic
@@ -15,26 +17,32 @@ class LDAPService:
 
     def __init__(self, config: dict):
         self.config = config
-        self.ldap_obj = None
+        self.conn = None
 
     def connect(self):
-        ldap_obj = ldap.initialize(self.config["url"])
-        # pylint: disable-next=no-member
-        ldap_obj.protocol_version = ldap.VERSION3
-        if self.config["tlsrequirecert"] != "true":
-            # ??? \'TLS: hostname does not match CN in peer certificate\'}
-            # pylint: disable-next=no-member
-            ldap_obj.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, 0)
-        if self.config["starttls"] == "true":
-            ldap_obj.start_tls_s()
-        if self.config["disable_referrals"] == "true":
-            # pylint: disable-next=no-member
-            ldap_obj.set_option(ldap.OPT_REFERRALS, 0)
-        # pylint: disable-next=consider-using-f-string
-        binddn = self.config["binddn"] % {"binduser": self.config["binduser"]}
-        # pylint: disable-next=no-member
-        ldap_obj.bind_s(binddn, self.config["bindpasswd"], ldap.AUTH_SIMPLE)
-        self.ldap_obj = ldap_obj
+        # ???: cleanup option names:
+        host = urllib.parse.urlparse(self.config["url"]).hostname
+        tls = ldap3.Tls(
+            validate=(
+                ssl.CERT_REQUIRED
+                if self.config["ssl_cert_required"] == "true"
+                else ssl.CERT_OPTIONAL
+            ),
+        )
+        server = ldap3.Server(
+            host=host,
+            use_ssl=self.config["ssl"] == "true",
+            tls=tls,
+        )
+        conn = ldap3.Connection(
+            server,
+            self.config["bind_user"],
+            self.config["bind_password"],
+            version=3,
+            auto_referrals=self.config["referrals"] == "true",
+            read_only=True,
+        )
+        self.conn = conn
 
     def authenticate_user(self, req):
         res = req | {"status": "unknown", "exception": None}
@@ -43,7 +51,7 @@ class LDAPService:
             user_info = res["user_info"] = self.get_user_info(req)
             if user_info["status"] == "success":
                 # pylint: disable-next=no-member
-                self.ldap_obj.bind_s(user_info["dn"], secret, ldap.AUTH_SIMPLE)
+                self.conn.bind_s(user_info["dn"], secret, ldap3.SIMPLE)
                 res["status"] = "success"
         # pylint: disable-next=broad-except
         except Exception as exc:
@@ -69,17 +77,16 @@ class LDAPService:
         try:
             template = self.config.get("template") or "(sAMAccountName=%(username)s)"
             # pylint: disable-next=consider-using-f-string
-            searchfilter = template % {"username": req["user"]}
+            search_filter = template % {"username": req["user"]}
             # attributes = ['*']  # ['objectclass']
             # attributes = ['(objectClass=*)']
             # attributes = ['()']
-            results = self.ldap_obj.search_s(
-                self.config["basedn"],
-                # pylint: disable-next=no-member
-                ldap.SCOPE_SUBTREE,
-                filterstr=searchfilter,
-                # attrlist=attributes,
-                attrsonly=0,
+            results = self.conn.search(
+                search_base=self.config["basedn"],
+                search_filter=search_filter,
+                search_scope=ldap3.SUBTREE,
+                dereference_aliases=ldap3.DEREF_SEARCH,
+                attributes=ldap3.ALL_OPERATIONAL_ATTRIBUTES,
             )
             nres = len(results)
             if nres < 1:
@@ -89,7 +96,7 @@ class LDAPService:
                     "note: filter match multiple objects: {nres}, using first"
                 )
             user_entry = results[0]
-            res["dn"], user_attributes = user_entry
+            res["dn"], raw_attributes = user_entry["dn"], user_entry["raw_attributes"]
             # ic(sorted(user_attributes.keys()))
             interesting_attributes = (
                 "name",
@@ -108,8 +115,8 @@ class LDAPService:
             )
             attrs = res["attrs"] = {}
             for attr in interesting_attributes:
-                attrs[attr] = [b.decode("utf-8") for b in user_attributes.get(attr, [])]
-            member_of = user_attributes.get("memberOf", [])
+                attrs[attr] = [b.decode("utf-8") for b in raw_attributes.get(attr, [])]
+            member_of = raw_attributes.get("memberOf", [])
             attrs["groups"] = sorted(
                 list(filter(partial(is_not, None), map(parse_group_cn, member_of)))
             )

@@ -48,13 +48,14 @@ class WebAuthService:
         return [res.body]
 
     def make_auth_request(self, env):
+        token = env.get("X-Authorization")
+        token = token or parse_bearer_token(env["Authorization"])
         return AuthRequest(
             method=env.get("X-Action") or env["REQUEST_METHOD"],
             resource=env.get("X-Resource") or env["PATH_INFO"],
             user=env.get("X-User"),
             password=env.get("X-Pass"),
-            token=env.get("X-Authorization")
-            or parse_bearer_token(env["Authorization"]),
+            token=token,
             env=env,
         )
 

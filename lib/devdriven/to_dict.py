@@ -30,11 +30,8 @@ class ToDict:
                 return f"<< {repr(obj)} >>"
                 # raise _exc
         obj_type = type(obj)
-        if (
-            issubclass(obj_type, int)
-            or issubclass(obj_type, float)
-            or issubclass(obj_type, str)
-        ):
+        is_numeric = issubclass(obj_type, int) or issubclass(obj_type, float) or issubclass(obj_type, str)
+        if is_numeric:
             return obj
         if issubclass(obj_type, bytes):
             decoded = maybe_decode_bytes(obj)
@@ -81,17 +78,15 @@ class ToDict:
                 }
             )
         if issubclass(obj_type, OSError):
-            return self.walk(
-                {
-                    "class": obj_type.__name__,
-                    "message": str(obj),
-                    "errno": obj.errno,
-                    "strerror": obj.strerror,
-                    "filename": obj.filename,
-                    "filename2": obj.filename2,
-                }
-                | vars(obj)
-            )
+            attrs = {
+                "class": obj_type.__name__,
+                "message": str(obj),
+                "errno": obj.errno,
+                "strerror": obj.strerror,
+                "filename": obj.filename,
+                "filename2": obj.filename2,
+            }
+            return self.walk(attrs) | vars(obj)
         return self.walk({"class": obj_type.__name__, "message": str(obj)} | vars(obj))
 
 

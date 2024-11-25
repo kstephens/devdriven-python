@@ -22,10 +22,8 @@ def test_walk():
         "c": "<BYTES[4]:wsad>",
     }
     assert fut(re.compile(r"^rx", re.IGNORECASE)) == "re.compile('^rx', re.IGNORECASE)"
-    assert (
-        fut(datetime.fromtimestamp(1699571701.203033, tz=timezone.utc))
-        == "2023-11-09 23:15:01.203033+0000"
-    )
+    actual = fut(datetime.fromtimestamp(1699571701.203033, tz=timezone.utc))
+    assert actual == "2023-11-09 23:15:01.203033+0000"
     assert fut(Exception("E")) == {"class": "Exception", "message": "E"}
     other = devdriven.to_dict.ToDict()
     assert fut(other)["class"] == "ToDict"
@@ -35,11 +33,9 @@ def test_walk():
 
 def test_dump_json():
     fut = devdriven.to_dict.dump_json
-    result = fut({"a": b"xyz", "b": 123, "c": b"wsad"}, 2)
-    assert (
-        result
-        == '{\n  "a": "<BYTES[3]:xyz>",\n  "b": 123,\n  "c": "<BYTES[4]:wsad>"\n}'
-    )
+    actual = fut({"a": b"xyz", "b": 123, "c": b"wsad"}, 2)
+    expected = '{\n  "a": "<BYTES[3]:xyz>",\n  "b": 123,\n  "c": "<BYTES[4]:wsad>"\n}'
+    assert actual == expected
 
 
 def test_walk_oserror():

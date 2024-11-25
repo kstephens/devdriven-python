@@ -39,10 +39,7 @@ class RoleDomain:
 
     def memberships_for_identity(self, member: Identity) -> Memberships:
         def pred(membership: Membership) -> bool:
-            return (
-                isinstance(membership.member, type(member))
-                and membership.member.name == member.name
-            )
+            return isinstance(membership.member, type(member)) and membership.member.name == member.name
 
         return [membership for membership in self.memberships if pred(membership)]
 

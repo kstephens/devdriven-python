@@ -129,7 +129,7 @@ def cmp_list_right(a: VersionElements, b: VersionElements) -> int:
 
 def cmp_elem(a: Any, b: Any) -> int:
     # pylint: disable-next=unidiomatic-typecheck
-    if type(a) == type(b):
+    if type(a) is type(b):
         return cmp_same(a, b)
     return cmp_same(str(a), str(b))
 
