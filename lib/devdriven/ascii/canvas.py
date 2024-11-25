@@ -26,14 +26,14 @@ class Canvas:
             more_rows = [[None] * size[0] for _i in range(size_delta[1])]
             self._rows.extend(more_rows)
         if size_delta[1] < 0:
-            self._rows[size[1]:] = []
+            self._rows[size[1] :] = []
 
         if size_delta[0] > 0:
             for line in self._rows:
-                line[size_curr[0]:] = [None] * size_delta[0]
+                line[size_curr[0] :] = [None] * size_delta[0]
         if size_delta[0] < 0:
             for line in self._rows:
-                line[size[0]:] = []
+                line[size[0] :] = []
 
         self._size = size
         return self
@@ -82,7 +82,7 @@ class Canvas:
                 row = list(text)
                 if background:
                     row = [background if c == background else c for c in row]
-                self._rows[pos[1]][pos[0]:pos[0] + len(row)] = row
+                self._rows[pos[1]][pos[0] : pos[0] + len(row)] = row
             pos = (pos[0], pos[1] + 1)
         self.cursor = pos
         return self

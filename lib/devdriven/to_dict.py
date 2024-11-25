@@ -30,7 +30,11 @@ class ToDict:
                 return f"<< {repr(obj)} >>"
                 # raise _exc
         obj_type = type(obj)
-        is_numeric = issubclass(obj_type, int) or issubclass(obj_type, float) or issubclass(obj_type, str)
+        is_numeric = (
+            issubclass(obj_type, int)
+            or issubclass(obj_type, float)
+            or issubclass(obj_type, str)
+        )
         if is_numeric:
             return obj
         if issubclass(obj_type, bytes):

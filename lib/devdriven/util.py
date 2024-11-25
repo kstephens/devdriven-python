@@ -270,7 +270,7 @@ def frequency(seq: Iterable[Any]) -> Dict[Any, int]:
 
 def chunks(items, width):
     width = max(1, width)
-    return (items[i:i + width] for i in range(0, len(items), width))
+    return (items[i : i + width] for i in range(0, len(items), width))
 
 
 def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:

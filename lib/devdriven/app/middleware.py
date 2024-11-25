@@ -258,6 +258,7 @@ def content_length(app: App) -> App:
 
 # ## Request Injection
 
+
 def default_req(app: App, defaults: Req) -> App:
     "Defaults any req values that are not defined."
 
@@ -282,6 +283,7 @@ AppOptional = Callable[[Req], ResOptional]
 
 
 # ## Response Injection
+
 
 def default_res(app: AppOptional, defaults: ResOptional) -> App:
     "Defaults any values that are not defined."
