@@ -21,9 +21,10 @@ def test_stack():
     app = sut.trace(app)
     app = sut.read_input(app)
 
+    output_stream = StringIO("")
     req = {
         "input.stream": StringIO('["ab", 5]'),
-        "output.stream": StringIO(""),
+        "output.stream": output_stream,
         "Content-Type": "application/json",
     }
     actual = app(req)
@@ -41,7 +42,8 @@ def test_stack():
     )
     assert actual == expected
 
-    actual = req["output.stream"].getvalue()
+    assert req.get("output.stream") is None
+    actual = output_stream.getvalue()
     expected = """
 HTTP/1.1 200 OK
 Content-Type: application/json

@@ -1,38 +1,61 @@
 """
 Application middleware combinators inspired Python WSGI and Ruby Rack.
 
-An "App" is anything callable with a single dict argument:
-It receives a "Request": typically a Dict of input:
-headers, body and custom values passed along an "application stack".
-It returns a "Response": Tuple of HTTP status code, headers and a body (sequence of response chunks).
+An "App" is anything callable with a single "request" argument.
+It returns a "response": a status code, headers, body.
+A request ("Req") is a MutableMapping[str, Any]: e.g. `dict`.
 Applications and middleware follow the same protocol.
 Combinators create new Apps by wrapping others.
+This pattern is not limited to web apps, it can be used for command line applications.
+
+# A simple `App`:
+
+def simple_app(Req: req) -> Res:
+    "A simple app."
+    x, y = [int(req["input.data"][k]) for k in ("x", "y")]
+    return 200, {"Content-Type": "text/plain"}, [str(x * y)]
 
 Input combinators follow this pattern:
 
 def compose_input_handler(app: App) -> App:
-  def input_handler(req: Req) -> Res:
-    do_something_with_input(req)
-    return app(req)
+    def input_handler(req: Req) -> Res:
+       do_something_with_input(req)
+       return app(req)
   return input_handler
 
 Output combinators follow this pattern:
 
-def compose_output_handle(app: App):
-  def output_handler(req: Req) -> Res:
-    status, headers, body = app(req)
-    # alter status, header, body in some manner.
-    return status, headers, body
+def compose_output_handle(app: App) -> App
+    def output_handler(req: Req) -> Res:
+       status, headers, body = app(req)
+       # alter status, header, body in some manner.
+       return status, headers, body
   return output_handler
+
+A web stack composition:
+
+app = simple_app
+app = encode_json(app)
+app = decode_json(app)
+app = capture_exception(app)
+req = {'input.content': '{"x": 2, "y": 3}'}
+status, headers, body = app(req)
+assert status == 200
+assert headers == {'Content-Type': 'application/json'}
+assert list(body) == ['6']
+
 """
 
 from typing import Any, MutableMapping, Tuple, Iterable, Callable, Optional
 import json
 import re
 import sys
+from datetime import datetime
 import traceback
+from email.utils import formatdate
 from pprint import pprint
 from http.client import responses as response_names
+# from icecream import ic
 
 Status = int
 Headers = MutableMapping[str, Any]
@@ -133,10 +156,11 @@ def write_output(app: App) -> App:
     "Writes body to output.stream."
 
     def _write_output(req: Req) -> Res:
+        stream = req.pop("output.stream")
+        # ic(req)
         status, headers, body = app(req)
-        stream = req["output.stream"]
         for item in body:
-            stream.write(item)
+            stream.write(str(item))
         return status, headers, body
 
     return _write_output
@@ -208,14 +232,17 @@ def encode_content(app: App, encoder: Encoder, content_type="text/plain") -> App
 
     def _encode_content(req: Req) -> Res:
         status, headers, body = app(req)
-        content = "".join(map(encoder, body))
+        if not body:
+            content = encoder(headers.pop("output.data"))
+        else:
+            content = "".join(map(encoder, body))
         headers.update(
             {
                 "Content-Type": content_type,
                 "Content-Length": len(content),
             }
         )
-        return status, headers, [content]
+        return status, headers, (content,)
 
     return _encode_content
 
@@ -336,3 +363,20 @@ def default_dict(d, defaults):
 
 def read_wsgi(app: App) -> App:
     return read_input(app, lambda req: req["wsgi.input"].read())
+
+
+# ## HTTP Support
+
+
+def http_date_header(app: App, now: Callable[[], datetime] = datetime.now) -> App:
+    "Adds a HTTP compliant 'Date:' header."
+
+    def _http_date_header(req: Req) -> Res:
+        status, headers, body = app(req)
+        date = now()
+        headers["Date"] = formatdate(
+            timeval=date.timestamp(), localtime=False, usegmt=True
+        )
+        return status, headers, body
+
+    return _http_date_header
