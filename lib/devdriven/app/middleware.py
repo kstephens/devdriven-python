@@ -55,6 +55,8 @@ import traceback
 from email.utils import formatdate
 from pprint import pprint
 from http.client import responses as response_names
+import yaml
+
 # from icecream import ic
 
 Status = int
@@ -157,7 +159,6 @@ def write_output(app: App) -> App:
 
     def _write_output(req: Req) -> Res:
         stream = req.pop("output.stream")
-        # ic(req)
         status, headers, body = app(req)
         for item in body:
             stream.write(str(item))
@@ -212,7 +213,7 @@ Decoder = Callable[[Content], Data]
 
 def decode_content(app: App, decoder: Decoder, content_types=None, strict=False) -> App:
     """
-    Decodes body with decoder(input.content) for content_types.
+    Combinator decodes body with decoder(input.content) for content_types.
     If strict and Content-Type is not expected, return 400.
     """
 
@@ -227,8 +228,8 @@ def decode_content(app: App, decoder: Decoder, content_types=None, strict=False)
     return _decode_content
 
 
-def encode_content(app: App, encoder: Encoder, content_type="text/plain") -> App:
-    "Encodes body with encoder.  Sets Content-Type."
+def encode_content(app: App, encoder: Encoder, content_type: str) -> App:
+    "Combinator encodes body with encoder.  Sets Content-Type."
 
     def _encode_content(req: Req) -> Res:
         status, headers, body = app(req)
@@ -268,6 +269,47 @@ def encode_json(app: App, **kwargs) -> App:
         return json.dumps(data, **kwargs) + "\n"
 
     return encode_content(app, _encode_json, content_type="application/json")
+
+
+# ## Decode YAML, Encode YAML
+
+
+def decode_yaml(app: App, **kwargs) -> App:
+    """
+    Decodes YAML content.
+    "Loader" option default is yaml.FullLoader.
+    If "multiple_documents" option is True, parse one or more documents,
+    otherwise expect only one document.
+    """
+
+    kwargs = {"Loader": yaml.FullLoader} | kwargs
+    multiple_documents = kwargs.get("multiple_documents", False) is not False
+
+    def _decode_yaml(content: Content) -> Any:
+        documents = list(yaml.load_all(content, **kwargs))
+        if multiple_documents:
+            return documents
+        assert len(documents) == 1
+        return documents[0]
+
+    return decode_content(
+        app,
+        _decode_yaml,
+        content_types={"application/yaml", "text/yaml", "text/plain"},
+        strict=True,
+    )
+
+
+def encode_yaml(app: App, **kwargs) -> App:
+    """
+    Encodes data as YAML.
+    Note: this includes the "..." end of document footer.
+    """
+
+    def _encode_yaml(data: Data) -> Content:
+        return yaml.dump(data, **kwargs)
+
+    return encode_content(app, _encode_yaml, content_type="application/yaml")
 
 
 # ## Header Management

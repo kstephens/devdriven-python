@@ -5,11 +5,12 @@ from . import middleware as sut
 # from icecream import ic
 
 
-def test_stack():
-    def something_useful_app(req: sut.Req) -> sut.Res:
-        x, y = req["input.data"]
-        return 200, {}, (x * y,)
+def something_useful_app(req: sut.Req) -> sut.Res:
+    x, y = req["input.data"]
+    return 200, {}, (x * y,)
 
+
+def test_full_stack():
     app = something_useful_app
     app = sut.trace(app)
     app = sut.decode_json(app)
@@ -21,9 +22,10 @@ def test_stack():
     app = sut.trace(app)
     app = sut.read_input(app)
 
+    input_stream = StringIO('["ab", 5]')
     output_stream = StringIO("")
     req = {
-        "input.stream": StringIO('["ab", 5]'),
+        "input.stream": input_stream,
         "output.stream": output_stream,
         "Content-Type": "application/json",
     }
@@ -44,15 +46,46 @@ def test_stack():
 
     assert req.get("output.stream") is None
     actual = output_stream.getvalue()
-    expected = """
-HTTP/1.1 200 OK
+    expected = """HTTP/1.1 200 OK
 Content-Type: application/json
 Content-Length: 13
 
 "ababababab"
-"""[
-        1:
-    ]
+"""
     print(actual)
-    pprint(actual)
+    # pprint(actual)
+    assert actual == expected
+
+
+def test_yaml_coder():
+    app = something_useful_app
+    app = sut.decode_yaml(app)
+    app = sut.encode_yaml(app)
+    app = sut.http_response(app)
+    app = sut.write_output(app)
+    app = sut.read_input(app)
+
+    output_stream = StringIO("")
+    input_stream = StringIO(
+        """
+- ab
+- 5
+"""
+    )
+    req = {
+        "input.stream": input_stream,
+        "output.stream": output_stream,
+        "Content-Type": "application/yaml",
+    }
+    app(req)
+    actual = output_stream.getvalue()
+    expected = """HTTP/1.1 200 OK
+Content-Type: application/yaml
+Content-Length: 15
+
+ababababab
+...
+"""
+    print(actual)
+    # pprint(actual)
     assert actual == expected
