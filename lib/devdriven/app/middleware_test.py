@@ -1,5 +1,6 @@
 from io import StringIO
 from pprint import pprint
+import re
 from . import middleware as sut
 
 # from icecream import ic
@@ -89,3 +90,20 @@ ababababab
     print(actual)
     # pprint(actual)
     assert actual == expected
+
+
+def test_capture_exception():
+    def failing_app(_req):
+        raise ValueError("test_capture_exception")
+
+    app = failing_app
+    app = sut.capture_exception(app, status=599, with_backtrace=True)
+    request = {}
+    status, headers, body = app(request)
+    exc = request["exception"]
+    assert repr(exc) == "ValueError('test_capture_exception')"
+    assert status == 599
+    assert headers["Content-Type"] == "text/plain"
+    assert body[0] == f"ERROR: {exc!r}\n"
+    assert re.search(r"middleware.py: \d+\n$", body[1])
+    assert re.search(f"{__file__}: \\d+\n$", body[2])

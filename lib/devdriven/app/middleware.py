@@ -28,11 +28,11 @@ Output combinators follow this pattern:
 def compose_output_handle(app: App) -> App
     def output_handler(req: Req) -> Res:
        status, headers, body = app(req)
-       # alter status, header, body in some manner.
+       # alter status, headers, body in some manner.
        return status, headers, body
   return output_handler
 
-A web stack composition:
+An application composition:
 
 app = simple_app
 app = encode_json(app)
@@ -77,21 +77,22 @@ def is_success(status: Status) -> bool:
 # #### Exception Handling
 
 
-def capture_exception(app: App, status=500, cls=Exception, with_traceback=False) -> App:
-    "Captures any exception and creates a text/plain error document."
+def capture_exception(app: App, status=500, cls=Exception, with_backtrace=False) -> App:
+    "Captures an exception w/ backtrace and creates a text/plain error document."
 
     def _capture_exception(req: Req) -> Res:
         try:
             return app(req)
         # pylint: disable-next=broad-exception-caught,broad-except
         except cls as exc:
-            req["captured.exception"] = exc
-            body = [f"ERROR: {exc}"]
-            if with_traceback:
-                trb = exc.__traceback__
-                trb_extracted = traceback.extract_tb(trb)
-                lines = traceback.format_list(trb_extracted)
-                body.extend(lines)
+            trb = exc.__traceback__
+            trb_extracted = traceback.extract_tb(trb)
+            backtrace = [f"{frame.filename}: {frame.lineno}" for frame in trb_extracted]
+            req["exception"] = exc
+            req["exception.backtrace"] = backtrace
+            body = [f"ERROR: {exc!r}\n"]
+            if with_backtrace:
+                body.extend([frame + "\n" for frame in backtrace])
             return status, {"Content-Type": "text/plain"}, body
 
     return _capture_exception
