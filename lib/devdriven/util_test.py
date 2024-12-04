@@ -4,10 +4,54 @@ import re
 from devdriven import util  # type: ignore
 
 
+def test_get_safe():
+    items = [0, 1]
+    assert util.get_safe(items, 0, 5) == 0
+    assert util.get_safe(items, -1, 5) == 1
+    assert util.get_safe(items, -5, 5) == 5
+    assert util.get_safe(items, 5, 5) == 5
+    items = {"a": 1}
+    assert util.get_safe(items, "a", 5) == 1
+    assert util.get_safe(items, "B", 5) == 5
+
+
+def test_none_as_blank():
+    assert util.none_as_blank(None) == ""
+    assert util.none_as_blank(None, "BLANK") == "BLANK"
+    assert util.none_as_blank(5, "BLANK") == 5
+
+
+def test_shorten_string():
+    assert util.shorten_string("abcdefghijk", 5) == "ab..."
+    assert util.shorten_string("abc", 4) == "abc"
+    assert util.shorten_string("abc", 3) == "abc"
+    assert util.shorten_string("abc", 2) == "..."
+    assert util.shorten_string("abc", 1) == "..."
+    assert util.shorten_string("abc", 0) == "..."
+
+
 def test_maybe_decode_bytes():
     assert util.maybe_decode_bytes(b"A") == "A"
     assert util.maybe_decode_bytes(b"\xff") is None
     assert util.maybe_decode_bytes(None) is None
+
+
+def test_unpad_lines():
+    lines = """a:
+  b:
+  c:
+   d:
+  e:
+f:
+""".splitlines()
+    assert util.unpad_lines([]) == []
+    assert util.unpad_lines([""]) == []
+    assert util.unpad_lines([" "]) == [""]
+    assert util.unpad_lines([" a:"]) == ["a:"]
+    assert util.unpad_lines(["", " a:"]) == ["a:"]
+    assert util.unpad_lines(lines) == ["a:", "  b:", "  c:", "   d:", "  e:", "f:"]
+    lines = [f"   {line}" for line in lines]
+    assert util.unpad_lines(lines) == ["a:", "  b:", "  c:", "   d:", "  e:", "f:"]
 
 
 def test_exec_command():
@@ -200,7 +244,46 @@ def test_wrap_word():
 
 
 def test_humanize():
+    assert util.humanize(0.0125) == ("0.01", "")
+    assert util.humanize(0) == ("0", "")
     assert util.humanize(25) == ("25.00", "")
     assert util.humanize(1024) == ("1.00", "K")
     assert util.humanize(12345678) == ("11.77", "M")
     assert util.humanize(12345678, radix=1000) == ("12.35", "M")
+    assert util.humanize(1.2345e30, radix=1000) == ("1234500.0", "Y")
+
+
+def test_merge_dicts():
+    dicts = [
+        {"a": 2, "b": 3},
+        {"b": 5, "c": 7},
+        {"b": 11, "d": 13},
+    ]
+    assert util.merge_dicts(*dicts) == {"a": 2, "b": 11, "c": 7, "d": 13}
+
+
+def test_first():
+    assert util.first(lambda x: x % 2 == 1, [2, 3, 5], "not-found") == 3
+    assert util.first(lambda x: x % 2 == 1, [2, 4, 6], "not-found") == "not-found"
+
+
+def test_flat_map():
+    assert util.flat_map(lambda x: [x] * x, [2, 3, 5]) == [2, 2, 3, 3, 3, 5, 5, 5, 5, 5]
+
+
+def test_split_flat():
+    assert util.split_flat(["a", "b,c,", "d"], ",") == ["a", "b", "c", "", "d"]
+    assert util.split_flat(["a", "b,c", "d"], " ") == ["a", "b,c", "d"]
+
+
+def test_chunks():
+    assert util.chunks(list(range(0, 10)), 3) == [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]
+    assert util.chunks(list(range(0, 3)), 3) == [[0, 1, 2]]
+    assert util.chunks(list(range(0, 2)), 3) == [[0, 1]]
+
+
+def test_not_implemented():
+    try:
+        util.not_implemented()
+    except NotImplementedError as exc:
+        assert repr(exc) == "NotImplementedError('test_not_implemented')"

@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from contextlib import contextmanager
 from collections import defaultdict
 
+Indexable = Union[list, tuple, dict, Mapping]  # ???: is there a type for this?
 Predicate = Callable[[Any], Any]
 Func1 = Callable[[Any], Any]
 FuncAny = Callable[..., Any]
@@ -22,7 +23,7 @@ Number = Union[int, float]
 # Access
 
 
-def get_safe(items: Any, key: Any, default=None) -> Any:
+def get_safe(items: Indexable, key: Any, default=None) -> Any:
     try:
         return items[key]
     except (KeyError, IndexError):
@@ -33,8 +34,8 @@ def len_or_none(obj: Any) -> Optional[int]:
     return len(obj) if obj else None
 
 
-def none_as_blank(value: Any) -> Any:
-    return "" if value is None else value
+def none_as_blank(value: Any, blank: str = "") -> Any:
+    return blank if value is None else value
 
 
 #####################################################################
@@ -42,8 +43,9 @@ def none_as_blank(value: Any) -> Any:
 
 
 def shorten_string(a_str: str, max_len: int, placeholder: str = "...") -> str:
+    assert max_len >= 0
     if len(a_str) > max_len:
-        end = max(0, max_len - len(placeholder) + 1)
+        end = max(0, max_len - len(placeholder))
         return a_str[:end] + placeholder
     return a_str
 
@@ -61,8 +63,12 @@ def unpad_lines(lines: List[str]) -> List[str]:
     lines = lines.copy()
     while lines and not lines[0]:
         lines.pop(0)
+    if not lines:
+        return lines
+    if re.search(r"^\S", lines[0]):
+        return lines
     for line in lines:
-        if m := re.match(r"^( +)", line):
+        if m := re.search(r"^( +)", line):
             pad = re.compile(f"^{m[1]}")
             break
     return [re.sub(pad, "", line) for line in lines]
@@ -122,11 +128,8 @@ def datetime_iso8601(dt: datetime, tz: Optional[timezone] = None) -> str:
 
 
 def convert_windows_timestamp_to_iso8601(ts_str: Union[int, str]) -> str:
-    # pylint: disable-next=invalid-name
-    ts = int(ts_str) / 1000
-    # pylint: disable-next=invalid-name
-    dt = datetime.fromtimestamp(ts)
-    return datetime_iso8601(dt)
+    ts_milli = int(ts_str) / 1000
+    return datetime_iso8601(datetime.fromtimestamp(ts_milli))
 
 
 def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
@@ -227,9 +230,7 @@ def reorder_list(
     return front + middle + back
 
 
-def first(
-    iterable: Iterable[Any], condition: Predicate = lambda x: True, default: Any = None
-) -> Any:
+def first(condition: Predicate, iterable: Iterable[Any], default: Any = None) -> Any:
     for elem in iterable:
         if condition(elem):
             return elem
@@ -237,13 +238,13 @@ def first(
 
 
 def flat_map(
-    iterable: Iterable[Any], func: FuncAny, *args: Any, **kwargs: Any
+    func: FuncAny, iterable: Iterable[Any], *args: Any, **kwargs: Any
 ) -> Iterable[Any]:
     return [elem for sublist in iterable for elem in func(sublist, *args, **kwargs)]
 
 
 def split_flat(items, sep):
-    return flat_map(items, lambda x: x.split(sep))
+    return flat_map(lambda x: x.split(sep), items)
 
 
 def partition(seq: Iterable[Any], pred: Predicate) -> Tuple[List[Any], List[Any]]:
@@ -268,9 +269,10 @@ def frequency(seq: Iterable[Any]) -> Dict[Any, int]:
     return dict(counts.items())
 
 
-def chunks(items, width):
+def chunks(items, width: int) -> Iterable[Iterable]:
+    "Note: items is almost a Sized"
     width = max(1, width)
-    return (items[i : i + width] for i in range(0, len(items), width))
+    return [items[i : i + width] for i in range(0, len(items), width)]
 
 
 def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
