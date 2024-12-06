@@ -272,6 +272,7 @@ def test_merge_dicts():
 def test_first():
     assert util.first(lambda x: x % 2 == 1, [2, 3, 5], "not-found") == 3
     assert util.first(lambda x: x % 2 == 1, [2, 4, 6], "not-found") == "not-found"
+    assert util.first(lambda x: x % 2 == 1, [2, 4, 6]) is None
 
 
 def test_flat_map():
