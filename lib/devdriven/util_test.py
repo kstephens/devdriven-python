@@ -246,11 +246,18 @@ def test_wrap_word():
 def test_humanize():
     assert util.humanize(0.0125) == ("0.01", "")
     assert util.humanize(0) == ("0", "")
+    assert util.humanize(0, unit="B") == ("0", "B")
     assert util.humanize(25) == ("25.00", "")
-    assert util.humanize(1024) == ("1.00", "K")
-    assert util.humanize(12345678) == ("11.77", "M")
-    assert util.humanize(12345678, radix=1000) == ("12.35", "M")
-    assert util.humanize(1.2345e30, radix=1000) == ("1234500.0", "Y")
+    assert util.humanize(-2500.9, precision=3, radix=1024) == ("-2.442", "K")
+    assert util.humanize(1024) == ("1.02", "K")
+    assert util.humanize(1024, radix=1024) == ("1.00", "K")
+    assert util.humanize(1024, precision=4, radix=1024) == ("1.0000", "K")
+    assert util.humanize(1024, precision=4, radix=1000) == ("1.0240", "K")
+    assert util.humanize(12345678) == ("12.35", "M")
+    assert util.humanize(12345678, unit="B") == ("12.35", "MB")
+    assert util.humanize(12345678, radix=1024) == ("11.77", "M")
+    assert util.humanize(12345678, radix=1024, unit="B") == ("11.77", "MiB")
+    assert util.humanize(1.2345e30, radix=1000) == ("1234500.00", "Y")
 
 
 def test_merge_dicts():

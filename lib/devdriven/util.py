@@ -7,12 +7,14 @@ import time
 import re
 import sys
 import dataclasses
+import math
 from datetime import datetime, timezone
 from contextlib import contextmanager
 from collections import defaultdict
 
 Indexable = Union[list, tuple, dict, Mapping]  # ???: is there a type for this?
 Predicate = Callable[[Any], Any]
+Func0 = Callable[[], Any]
 Func1 = Callable[[Any], Any]
 FuncAny = Callable[..., Any]
 SubprocessResult = Any  # subprocess.CompletedProcess
@@ -101,14 +103,20 @@ def splitkeep(s, delimiter):
     return datums
 
 
-def humanize(num: float, radix: int = 1024) -> Tuple[str, str]:
+def humanize(
+    num: float, precision: int = 2, radix: int = 1000, unit: str = ""
+) -> Tuple[str, str]:
     if num == 0:
-        return ("0", "")
-    for unit in ("", "K", "M", "G", "T", "P", "E", "Z"):
+        return (str(num), unit)
+    whole = int(math.log10(radix))
+    fmt = f"%{whole}.{precision}f"
+    if radix == 1024 and unit:
+        unit = "i" + unit
+    for denom in ("", "K", "M", "G", "T", "P", "E", "Z"):
         if abs(num) < float(radix):
-            return (f"{num:3.2f}", unit)
+            return (fmt % num, denom + unit)
         num /= float(radix)
-    return (f"{num:.1f}", "Y")
+    return (fmt % num, "Y" + unit)
 
 
 #####################################################################
