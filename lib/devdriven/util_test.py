@@ -1,7 +1,7 @@
 import subprocess
 import time
 import re
-from devdriven import util  # type: ignore
+from . import util  # type: ignore
 
 
 def test_get_safe():
