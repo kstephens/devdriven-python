@@ -128,11 +128,10 @@ DATETIME_ISO8601_FMT = "%Y-%m-%d %H:%M:%S.%f%z"
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
 
 
-# pylint: disable-next=invalid-name
-def datetime_iso8601(dt: datetime, tz: Optional[timezone] = None) -> str:
-    if not tz:
-        tz = timezone.utc
-    return dt.replace(tzinfo=tz).strftime(DATETIME_ISO8601_FMT)
+def datetime_iso8601(val: datetime, zone: Optional[timezone] = None) -> str:
+    if not zone:
+        zone = timezone.utc
+    return val.replace(tzinfo=zone).strftime(DATETIME_ISO8601_FMT)
 
 
 def convert_windows_timestamp_to_iso8601(ts_str: Union[int, str]) -> str:
@@ -148,7 +147,7 @@ def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
 
 
 def elapsed_ms_exception(
-    exc_klass: Any, func: FuncAny, *args: Any, **kwargs: Any  # BaseException,
+    exc_klass: Any, func: FuncAny, *args: Any, **kwargs: Any
 ) -> Tuple[Any, float, Optional[Exception]]:
     time_0 = time.time()
     try:
