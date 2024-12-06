@@ -20,11 +20,11 @@ var() {
 # Top-level targets:
 
 -default() {
-  -- all
+  -- all check $all_other
 }
 
 -all() {
-  -- test check $all_other
+  -- reformat test check $all_other
 }
 
 ################################
