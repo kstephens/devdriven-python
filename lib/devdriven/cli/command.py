@@ -12,8 +12,8 @@ from .application import app
 class Command:
     def __init__(self):
         self.main = None
-        self.argv = []
         self.name = None
+        self.argv = []
         self.args = []
         self.opts = {}
         self.opts_defaults = {}

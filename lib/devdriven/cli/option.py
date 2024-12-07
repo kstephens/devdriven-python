@@ -5,16 +5,16 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Option:
-    style: str = ""
-    kind: str = ""
-    arg: str = ""
-    full: str = ""
-    name: str = ""
-    value: Optional[Any] = None
-    description: str = ""
-    default: Optional[str] = None
+    style: str = field(default="")
+    kind: str = field(default="")
+    arg: str = field(default="")
+    full: str = field(default="")
+    name: str = field(default="")
+    value: Optional[Any] = field(default=None)
+    description: str = field(default="")
+    default: Optional[str] = field(default=None)
     aliases: List[Any] = field(default_factory=list)
-    alias_of: Optional[str] = None
+    alias_of: Optional[str] = field(default=None)
 
     def parse_arg(self, arg: str) -> Optional[Self]:
         self.style = "arg"
