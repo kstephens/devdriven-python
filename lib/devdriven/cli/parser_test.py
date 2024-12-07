@@ -7,6 +7,33 @@ from .option import Option
 from .options import Options
 
 
+def parse_command_argv(argv: List[str]) -> Optional[Options]:
+    return sut.Parser().parse_command_argv(Command(**{}), argv.copy())
+
+
+def test_parse_command_argv():
+    argv = ["-abc", "--flag1", "++flag2", "--no-flag3", "--opt=g", "h", "i", "-j"]
+    obj = parse_command_argv(argv)
+    ic(vars(obj))
+    assert obj.argv == argv
+    assert obj.args == ["h", "i", "-j"]
+    assert obj.opts == {
+        "a": True,
+        "b": True,
+        "c": True,
+        "flag1": True,
+        "flag2": False,
+        "flag3": False,
+        "opt": "g",
+    }
+    assert obj.opts_defaults == {}
+    assert obj.opt_char_map == {}
+    assert obj.rtn is None
+
+
+##########################################
+
+
 def parse_options_argv(argv: List[str]) -> Optional[Options]:
     return sut.Parser().parse_options_argv(Options(**{}), argv.copy())
 
@@ -51,7 +78,7 @@ def test_parse_options_argv_dash_in_args():
     assert obj.opt("j", 11) == 11
 
 
-##################
+##########################################
 
 
 def parse_option_doc(line: str) -> Optional[Option]:
