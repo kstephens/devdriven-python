@@ -1,5 +1,5 @@
 import re
-import devdriven.combinator as sut
+from . import combinator as sut
 
 
 def test_constantly():

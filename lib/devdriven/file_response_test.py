@@ -2,8 +2,8 @@ from io import StringIO
 import os
 import contextlib
 import sys
-from devdriven.user_agent import UserAgent
-from devdriven.file_response import FileResponse
+from .user_agent import UserAgent
+from .file_response import FileResponse
 
 TEST_FILE = "tmp/user-agent-test.csv"
 

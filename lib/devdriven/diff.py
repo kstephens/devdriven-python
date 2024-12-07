@@ -1,8 +1,8 @@
 from typing import Optional, Union, List, Dict
 import platform
 import os
-from devdriven.util import exec_command
-from devdriven.file import file_nlines
+from .util import exec_command
+from .file import file_nlines
 
 DiffOption = str
 DiffResult = Dict[str, Union[str, int, float, bool, None]]

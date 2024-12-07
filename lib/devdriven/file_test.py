@@ -1,5 +1,5 @@
 import tempfile
-import devdriven.file as sut  # type: ignore
+from . import file as sut  # type: ignore
 
 
 def test_read_file():

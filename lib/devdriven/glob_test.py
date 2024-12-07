@@ -1,5 +1,5 @@
 import re
-import devdriven.glob as sut
+from . import glob as sut
 
 
 def test_glob_to_regex():

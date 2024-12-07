@@ -1,6 +1,6 @@
 import random
-import devdriven.version as sut
-from devdriven.asserts import assert_output, open_output, lines_output
+from . import version as sut
+from .asserts import assert_output, open_output, lines_output
 
 VERSION_STRINGS = """
 1

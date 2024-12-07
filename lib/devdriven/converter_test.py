@@ -1,5 +1,5 @@
-import devdriven.converter as sut
 import pandas as pd
+from . import converter as sut
 
 
 def make_dataframe():

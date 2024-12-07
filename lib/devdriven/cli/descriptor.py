@@ -30,8 +30,8 @@ class Descriptor:
         self.options = Options()
 
     def parse_docstring(self, docstr: str) -> Self:
-        found_aliases = False
         self.options = Options(**{})
+        found_aliases = False
         # debug = False
         lines = unpad_lines(re.sub(r"\\\n", "", docstr).splitlines())
         comments = []

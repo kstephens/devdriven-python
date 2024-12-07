@@ -4,10 +4,9 @@ from pathlib import Path
 import json
 import logging
 import sys
-
-# import os
 from icecream import ic
-from devdriven.rbac import (
+from .loader import DomainFileLoader  # TextLoader
+from ..rbac import (
     Solver,
     Request,
     Permission,
@@ -15,7 +14,6 @@ from devdriven.rbac import (
     Resource,
     Rule,
     Role,
-    DomainFileLoader,
 )
 
 # https://www.toptal.com/python/pythons-wsgi-server-application-interface

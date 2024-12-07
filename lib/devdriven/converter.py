@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import json
 import yaml  # type: ignore
 import pandas as pd  # type: ignore
-from devdriven.util import splitkeep  # type: ignore
+from .util import splitkeep  # type: ignore
 
 JSON = "json"
 YAML = "yaml"

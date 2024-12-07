@@ -1,5 +1,5 @@
 from urllib.parse import ParseResult
-import devdriven.url as sut
+from . import url as sut
 
 URLS = [
     "http://a/b",

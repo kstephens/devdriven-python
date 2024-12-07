@@ -1,6 +1,6 @@
 from typing import Union, Type, List, Dict
 import logging
-from devdriven.util import dataclass_from_dict
+from ..util import dataclass_from_dict
 from .descriptor import Descriptor, Section, SectionDescriptorExample
 
 
