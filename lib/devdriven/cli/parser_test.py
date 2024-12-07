@@ -1,10 +1,87 @@
-from typing import Any, Self, Optional, List, Dict
+from typing import Optional, List
 from dataclasses import asdict
-from icecream import ic
 from . import parser as sut
+from ..util import slice_keys
+from .descriptor import Descriptor
 from .command import Command
 from .option import Option
 from .options import Options
+
+
+##########################################
+
+
+def parse_descriptor_docstring(docstr: str) -> Descriptor:
+    desc = Descriptor(**{})
+    return sut.Parser().parse_descriptor_docstring(desc, docstr)
+
+
+def test_parse_descriptor_docstring():
+    docstr = """
+  NAME-lower_0 -  BRIEF DESCRIPTION.
+
+  Aliases: ALIAS-1, ALIAS-2
+
+  ARG-1,... [ARG-2,...] [ARG-3,...]    |  COLs to summarize STATs grouped by GROUP-BY
+
+  ARG-1,...       |  Any numeric columns separated by ",".
+  ARG-2,...       |  One or more of: 'a', 'b'.\
+  See Blah.  Default: ALL.
+  ARG-3,...       |  Any column not in the COL list.  Default: is all of them.
+
+  --simple, -S         |  Simple format.
+  --title=NAME         |  Set `<title>` and add a `<div>` at the top.
+
+Some detail:
+  This line.
+  That line...  \
+  Continued
+
+  :suffixes: .S1,.S2
+
+  Examples:
+
+# Does x
+# and y:
+$ command-1 x y z
+$ command-2 a b c
+
+"""
+    result = parse_descriptor_docstring(docstr)
+    actual = vars(result) | asdict(result)
+    # print("actual = "); pprint(actual)
+    expected = {
+        "name": "NAME-lower_0",
+        "brief": "BRIEF DESCRIPTION.",
+        "aliases": ["ALIAS-1", "ALIAS-2"],
+        "detail": [
+            "Some detail:",
+            "This line.",
+            "That line...    Continued",
+        ],
+        "section": "",
+        "metadata": {"suffixes": ".S1,.S2"},
+        "synopsis": "NAME-lower_0 [--simple] [--title=NAME] [ARG-1,... [ARG-2,...] "
+        "[ARG-3,...]] [ARG-1,...] [ARG-2,...] [ARG-3,...]",
+        "synopsis_prefix": [],
+        "examples": [
+            {
+                "command": "command-1 x y z",
+                "comments": ["Does x", "and y:"],
+                "output": None,
+            },
+            {
+                "command": "command-2 a b c",
+                "comments": [],
+                "output": None,
+            },
+        ],
+    }
+    # pprint(slice_keys(actual, expected.keys()))
+    assert slice_keys(actual, expected.keys()) == expected
+
+
+##########################################
 
 
 def parse_command_argv(argv: List[str]) -> Optional[Options]:
@@ -14,7 +91,6 @@ def parse_command_argv(argv: List[str]) -> Optional[Options]:
 def test_parse_command_argv():
     argv = ["-abc", "--flag1", "++flag2", "--no-flag3", "--opt=g", "h", "i", "-j"]
     obj = parse_command_argv(argv)
-    ic(vars(obj))
     assert obj.argv == argv
     assert obj.args == ["h", "i", "-j"]
     assert obj.opts == {
@@ -26,8 +102,8 @@ def test_parse_command_argv():
         "flag3": False,
         "opt": "g",
     }
-    assert obj.opts_defaults == {}
-    assert obj.opt_char_map == {}
+    assert not obj.opts_defaults
+    assert not obj.opt_char_map
     assert obj.rtn is None
 
 

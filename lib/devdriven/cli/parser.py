@@ -1,18 +1,18 @@
-from typing import Any, Self, Optional, List, Dict
-from optparse import OptionParser
+from typing import Optional
+from argparse import ArgumentParser
 import re
-from dataclasses import dataclass, field
-from devdriven.util import get_safe
-from devdriven.cli.command import Command
-from devdriven.cli.option import Option
-from devdriven.cli.options import Options
-from devdriven.cli.types import Argv
+from .descriptor import Descriptor, Example
+from .command import Command
+from .option import Option
+from .options import Options
+from .types import Argv
+from ..util import set_from_match, unpad_lines, trim_list
 
 
 class Parser:
 
     def __init__(self):
-        self.option_parser = OptionParser()
+        self.option_parser = ArgumentParser()
 
     # From Command.parse_argv():
     # This is almost exactly parse_options_argv()
@@ -62,7 +62,7 @@ class Parser:
         return options
 
     # From Options.parse_doc():
-    def parse_options_doc(self, options: Options, line: str) -> Optional[Options]:
+    def parse_options_docstring(self, options: Options, line: str) -> Optional[Options]:
         m = None
 
         def add_arg(m):
@@ -159,3 +159,58 @@ class Parser:
         if m := re.match(r"^\+([a-zA-Z][-_a-zA-Z0-9]*)$", arg):
             return matched_flags("flag", m[1], False)
         return None
+
+    ##########################################
+    # From Decriptor.parse_docstring()
+
+    def parse_descriptor_docstring(self, desc: Descriptor, docstr: str) -> Descriptor:
+        desc.options = Options(**{})
+        found_aliases = False
+        # debug = False
+        lines = trim_list(unpad_lines(re.sub(r"\\\n", "", docstr).splitlines()))
+        comments = []
+        while lines:
+            line = lines.pop(0)
+            # if debug:
+            #   ic(line)
+            m = None
+            if m := re.match(
+                r"(?i)^:(?P<name>[-_a-z][-_a-z0-9]+)[:=] *(?P<value>.*)", line
+            ):
+                desc.metadata[m["name"]] = m["value"].strip()
+            elif not desc.name and (
+                m := re.match(
+                    r"(?i)^(?P<name>[-_a-z][-_a-z0-9]+) +- +(?P<brief>.+)", line
+                )
+            ):
+                set_from_match(desc, m)
+            elif not found_aliases and (
+                m := re.match(r"(?i)^Alias(?:es)?: +(.+)", line)
+            ):
+                desc.aliases.extend(re.split(r"\s*,\s*|\s+", m[1].strip()))
+                found_aliases = True
+            elif m := re.match(r"(?i)^(Arguments|Options|Examples):\s*$", line):
+                pass
+            elif m := re.match(r"^[#] (.+)", line):
+                comments.append(m[1])
+            elif m := re.match(r"^\$ (.+)", line):
+                desc.examples.append(
+                    Example(
+                        command=m[1],
+                        comments=comments,
+                        output=None,
+                    )
+                )
+                comments = []
+            elif desc.options.parse_docstring(line):
+                # if debug:
+                #   ic((self.name, self.options))
+                # pylint: disable-next=pointless-statement
+                pass
+            else:
+                desc.detail.append(line)
+            # if debug:
+            #   ic(m and m.groupdict())
+        desc.build_synopsis()
+        desc.detail = trim_list(desc.detail)
+        return desc
