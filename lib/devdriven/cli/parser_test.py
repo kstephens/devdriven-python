@@ -107,19 +107,17 @@ options:
   -S, --simple          Simple format.
   --title TITLE         Set `<title>` and add a `<div>` at the top.
 
-  Details:
+details:
+  Some detail:
+  This line.
+  That line...    Continued
 
-Some detail:
-This line.
-That line...    Continued
+examples:
+  # Does x
+  # and y:
+  $ command-1 x y z
 
-  Examples:
-
-# Does x
-# and y:
-$ command-1 x y z
-
-$ command-2 a b c
+  $ command-2 a b c
 """
     assert actual == expected[1:]
 

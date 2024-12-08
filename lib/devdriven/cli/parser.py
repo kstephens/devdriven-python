@@ -213,13 +213,13 @@ class Parser:
         assert isinstance(options, Options)
         epilog: List[str] = []
         if desc.detail:
-            epilog.extend(("  Details:", ""))
-            epilog.extend(desc.detail)
+            epilog.append("details:")
+            epilog.extend([f"  {x}" for x in desc.detail])
         if desc.examples:
-            epilog.extend(("", "  Examples:", ""))
+            epilog.extend(("", "examples:"))
             for example in desc.examples:
-                epilog.extend([f"# {c}" for c in example.comments])
-                epilog.append(f"$ {example.command}")
+                epilog.extend([f"  # {c}" for c in example.comments])
+                epilog.append(f"  $ {example.command}")
                 if example.output:
                     epilog.extend(example.output)  # ???: is it a list or str
                 epilog.append("")
