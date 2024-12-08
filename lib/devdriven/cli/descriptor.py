@@ -1,7 +1,7 @@
 from typing import Any, Optional, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
-from .options import Options
+from .options import Options, make_options
 from ..util import set_from_match, unpad_lines, trim_list
 
 
@@ -20,17 +20,13 @@ class Descriptor:
     synopsis: str = field(default="")
     aliases: list = field(default_factory=list)
     detail: List[str] = field(default_factory=list)
-    options: Optional[Options] = field(default=None)
+    options: Options = field(default_factory=make_options)
     examples: List[Example] = field(default_factory=list)
     section: str = field(default="")
     metadata: Dict[str, Any] = field(default_factory=dict)
     synopsis_prefix: List[str] = field(default_factory=list)
 
-    def __post_init__(self):
-        self.options = Options()
-
     def parse_docstring(self, docstr: str) -> Self:
-        self.options = Options(**{})
         found_aliases = False
         # debug = False
         lines = unpad_lines(re.sub(r"\\\n", "", docstr).splitlines())
@@ -87,11 +83,9 @@ class Descriptor:
     def command_path(self) -> List[str]:
         return self.synopsis_prefix + [self.name]
 
-    def trim_detail(self) -> None:
-        while self.detail and not self.detail[0]:
-            self.detail.pop(0)
-        while self.detail and not self.detail[-1]:
-            self.detail.pop(-1)
+
+def make_descriptor(**kwargs) -> Descriptor:
+    return Descriptor(**kwargs)
 
 
 @dataclass

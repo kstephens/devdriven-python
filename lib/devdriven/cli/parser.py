@@ -1,10 +1,10 @@
-from typing import Optional
-from argparse import ArgumentParser
+from typing import Optional, List
 import re
+import argparse
 from .descriptor import Descriptor, Example
 from .command import Command
-from .option import Option
-from .options import Options
+from .option import Option, make_option
+from .options import Options  # , make_options
 from .types import Argv
 from ..util import set_from_match, unpad_lines, trim_list
 
@@ -23,7 +23,7 @@ class Parser:
                 break
             if command.args:
                 command.args.append(arg)
-            elif option := self.parse_option_arg(Option(**{}), arg):
+            elif option := self.parse_option_arg(make_option(), arg):
                 command.set_opt(option.name, option.value)
                 for alias in option.aliases:
                     command.set_opt(alias.name, option.value)
@@ -47,7 +47,7 @@ class Parser:
             if options.args:
                 options.args.append(arg)
             # Attempt to parse option:
-            elif option := self.parse_option_arg(Option(**{}), arg):
+            elif option := self.parse_option_arg(make_option(), arg):
                 options.opts.append(option)
                 options.opt_by_name[option.name] = option
                 options.set_opt(option.name, option.value)
@@ -76,7 +76,7 @@ class Parser:
             if m := re.match(r"^(-) +[\|] *(.*)", line):
                 add_arg(m)
                 return options
-            if option := self.parse_option_doc(Option(**{}), line):
+            if option := self.parse_option_doc(make_option(), line):
                 options.opt_by_name[option.name] = option
                 options.opts.append(option)
                 for alias in option.aliases:
@@ -270,5 +270,5 @@ class Parser:
                 kwargs["action"] = (
                     "store_true" if option.value is True else "store_false"
                 )
-            parser.add_argument(*args, **kwargs)
+            parser.add_argument(*args, **kwargs)  # type: ignore  # arg-type
         return parser

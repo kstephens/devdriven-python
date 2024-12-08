@@ -50,9 +50,6 @@ $ command-2 a b c
 """
     parser, desc = parse_descriptor_docstring(docstr)
     actual = vars(desc) | asdict(desc)
-    from pprint import pprint
-
-    # print("actual = "); pprint(actual)
     expected = {
         "name": "NAME-lower_0",
         "brief": "BRIEF DESCRIPTION.",
