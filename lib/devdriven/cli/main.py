@@ -6,10 +6,10 @@ import re
 import sys
 from pathlib import Path
 from datetime import datetime
-from devdriven.cli.types import Argv
-from devdriven.util import not_implemented
-from devdriven.to_dict import to_dict
 import urllib3
+from .types import Argv
+from ..util import not_implemented
+from ..to_dict import to_dict
 from .command import Command
 
 

@@ -1,5 +1,5 @@
-from typing import Optional, List
-import argparse
+from typing import Optional
+from argparse import ArgumentParser
 import re
 from .descriptor import Descriptor, Example
 from .command import Command

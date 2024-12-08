@@ -1,7 +1,7 @@
 from pathlib import Path
 from os import system, environ
-from devdriven.util import cwd
-from devdriven.git import GitLog, GitDiff, rev_parse, git_repo_url
+from .util import cwd
+from .git import GitLog, GitDiff, rev_parse, git_repo_url
 
 TMP_DIR = "/tmp/devdriven-python/test/test_git"
 

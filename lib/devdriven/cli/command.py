@@ -1,19 +1,17 @@
 from typing import Any, Self, Type
 import logging
-from devdriven.util import get_safe
-from devdriven.cli.types import Argv
+from ..util import get_safe
+from .types import Argv
 from .descriptor import Descriptor
 from .option import Option
-
-# import devdriven.cli.descriptor as desc
 from .application import app
 
 
 class Command:
     def __init__(self):
         self.main = None
-        self.argv = []
         self.name = None
+        self.argv = []
         self.args = []
         self.opts = {}
         self.opts_defaults = {}

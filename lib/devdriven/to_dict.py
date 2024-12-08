@@ -6,7 +6,7 @@ import dataclasses
 import inspect
 from datetime import datetime, timezone
 from pathlib import Path
-from devdriven.util import maybe_decode_bytes, datetime_iso8601
+from .util import maybe_decode_bytes, datetime_iso8601
 
 
 class ToDict:

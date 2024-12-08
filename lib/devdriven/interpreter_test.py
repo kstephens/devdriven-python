@@ -1,4 +1,4 @@
-import devdriven.interpreter as sut
+from . import interpreter as sut
 
 
 def test_binary_op():

@@ -1,7 +1,7 @@
 import tempfile
 from random import randint
 from pathlib import Path
-import devdriven.cache as sut  # type: ignore
+from . import cache as sut  # type: ignore
 
 
 def test_pickle_cache():

@@ -1,8 +1,8 @@
 from typing import Any, Optional, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
-from devdriven.cli.options import Options
-from devdriven.util import set_from_match, unpad_lines
+from .options import Options
+from ..util import set_from_match, unpad_lines, trim_list
 
 
 @dataclass
@@ -27,15 +27,10 @@ class Descriptor:
     synopsis_prefix: List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        self.brief = ""
-        self.synposis = ""
-        self.detail = []
-        self.aliases = []
         self.options = Options()
-        self.examples = []
-        self.metadata = {}
 
     def parse_docstring(self, docstr: str) -> Self:
+        self.options = Options(**{})
         found_aliases = False
         # debug = False
         lines = unpad_lines(re.sub(r"\\\n", "", docstr).splitlines())
@@ -78,7 +73,7 @@ class Descriptor:
             # if debug:
             #   ic(m and m.groupdict())
         self.build_synopsis()
-        self.trim_detail()
+        self.detail = trim_list(self.detail)
         return self
 
     def get_opt_aliases(self, opt):

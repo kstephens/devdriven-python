@@ -3,11 +3,11 @@ import subprocess
 from datetime import datetime, timezone
 from dataclasses import dataclass
 import pytest
-import devdriven.to_dict
+from . import to_dict
 
 
 def test_walk():
-    fut = devdriven.to_dict.to_dict
+    fut = to_dict.to_dict
     assert fut(None) is None
     assert fut(123) == 123
     assert fut(123.45) == 123.45
@@ -25,21 +25,21 @@ def test_walk():
     actual = fut(datetime.fromtimestamp(1699571701.203033, tz=timezone.utc))
     assert actual == "2023-11-09 23:15:01.203033+0000"
     assert fut(Exception("E")) == {"class": "Exception", "message": "E"}
-    other = devdriven.to_dict.ToDict()
+    other = to_dict.ToDict()
     assert fut(other)["class"] == "ToDict"
-    fut = devdriven.to_dict.ToDict()
+    fut = to_dict.ToDict()
     assert fut(None) is None
 
 
 def test_dump_json():
-    fut = devdriven.to_dict.dump_json
+    fut = to_dict.dump_json
     actual = fut({"a": b"xyz", "b": 123, "c": b"wsad"}, 2)
     expected = '{\n  "a": "<BYTES[3]:xyz>",\n  "b": 123,\n  "c": "<BYTES[4]:wsad>"\n}'
     assert actual == expected
 
 
 def test_walk_oserror():
-    fut = devdriven.to_dict.to_dict
+    fut = to_dict.to_dict
     with pytest.raises(OSError) as exc_info:
         read_file("Does-Not-Exist")
     assert fut(exc_info.value) == {
@@ -58,7 +58,7 @@ def read_file(name):
 
 
 def test_walk_subprocess():
-    fut = devdriven.to_dict.to_dict
+    fut = to_dict.to_dict
     result = subprocess.run(["/bin/echo", "OK"], check=True, capture_output=True)
     assert fut(result) == {
         "args": ["/bin/echo", "OK"],
@@ -69,7 +69,7 @@ def test_walk_subprocess():
 
 
 def test_walk_subprocess_error():
-    fut = devdriven.to_dict.to_dict
+    fut = to_dict.to_dict
     with pytest.raises(subprocess.CalledProcessError) as exc_info:
         subprocess.run(["false"], check=True)
     assert fut(exc_info.value) == {
@@ -82,7 +82,7 @@ def test_walk_subprocess_error():
 
 
 def test_walk_dataclass():
-    fut = devdriven.to_dict.to_dict
+    fut = to_dict.to_dict
     assert fut(ExampleDataclass("foo", 123)) == {
         "class": "<class 'devdriven.to_dict_test.ExampleDataclass'>",
         "fields": {

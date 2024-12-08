@@ -2,15 +2,16 @@ from typing import Any, Self, Optional, List, Dict
 import re
 import inspect
 from dataclasses import dataclass, field
-from devdriven.util import get_safe
-from devdriven.cli.option import Option
-from devdriven.cli.types import Argv
+from ..util import get_safe
+from .option import Option
+from .types import Argv
 
 
 @dataclass
 class Options:
     argv: Argv = field(default_factory=list)
     args: Argv = field(default_factory=list)
+    args_synopsis: str = field(default="")
     arg_by_name: Dict[str, str] = field(default_factory=dict)
     opts: List[Option] = field(default_factory=list)
     opt_by_name: Dict[str, Option] = field(default_factory=dict)
@@ -26,6 +27,7 @@ class Options:
             if arg == "--":
                 self.args.extend(argv)
                 break
+
             if self.args:
                 self.args.append(arg)
             elif opt := Option().parse_arg(arg):

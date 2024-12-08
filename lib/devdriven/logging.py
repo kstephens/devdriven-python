@@ -1,7 +1,7 @@
 import json
 import logging
 import sys
-from devdriven.to_dict import to_dict
+from .to_dict import to_dict
 
 # https://docs.python.org/3.9/library/logging.html#formatter-objects
 # https://docs.python.org/3.9/library/logging.html#logging.LogRecord

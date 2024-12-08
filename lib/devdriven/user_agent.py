@@ -1,7 +1,7 @@
 import json
 import urllib3
-from devdriven.url import url_normalize, url_scheme, url_to_str, url_join
-from devdriven.file_response import FileResponse
+from .url import url_normalize, url_scheme, url_to_str, url_join
+from .file_response import FileResponse
 
 
 class UserAgent:

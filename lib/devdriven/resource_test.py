@@ -1,4 +1,4 @@
-from devdriven.resource import Resources
+from .resource import Resources
 
 
 def test_resources():
