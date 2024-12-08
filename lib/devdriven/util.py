@@ -212,8 +212,30 @@ def merge_dicts(*dicts) -> dict:
     return {k: v for d in dicts for k, v in d.items()}
 
 
+def slice_keys(d: dict, ks: Iterable[Any]) -> Any:
+    return {k: d[k] for k in ks if k in d}
+
+
+def slice_indexs(lst: List[Any], keys: Iterable[int], default=None) -> List[Any]:
+    r = range(-len(lst), len(lst))
+    return [lst[i] if i in r else default for i in keys]
+
+
+def slice_keys_compare(d1: dict, d2: dict) -> bool:
+    return slice_keys(d1, d2.keys()) == d2
+
+
 #####################################################################
 # Sequence
+
+
+def trim_list(lst: List[Any]) -> List[Any]:
+    lst = lst.copy()
+    while lst and not lst[0]:
+        lst.pop(0)
+    while lst and not lst[-1]:
+        lst.pop(-1)
+    return lst
 
 
 def reorder_list(

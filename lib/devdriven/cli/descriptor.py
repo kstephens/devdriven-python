@@ -14,16 +14,17 @@ class Example:
 
 @dataclass
 class Descriptor:
-    klass: Type
-    name: str
-    brief: str
-    synopsis: str
-    aliases: list
-    detail: List[str]
-    options: Options
-    examples: List[Example]
-    section: str
-    metadata: Dict[str, Any]
+    klass: Type = field(default=object)
+    name: str = field(default="")
+    brief: str = field(default="")
+    synopsis: str = field(default="")
+    aliases: list = field(default_factory=list)
+    detail: List[str] = field(default_factory=list)
+    options: Optional[Options] = field(default=None)
+    examples: List[Example] = field(default_factory=list)
+    section: str = field(default="")
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    synopsis_prefix: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         self.brief = ""
@@ -84,8 +85,12 @@ class Descriptor:
         return self.options.get_opt_aliases(opt)
 
     def build_synopsis(self) -> None:
-        cmd = ["psv", self.name] + self.options.command_synopsis()
-        self.synopsis = " ".join(cmd)
+        assert isinstance(self.options, Options)
+        cmd = self.command_path() + self.options.command_synopsis()
+        self.synopsis = " ".join([x.strip() for x in cmd]).strip()
+
+    def command_path(self) -> List[str]:
+        return self.synopsis_prefix + [self.name]
 
     def trim_detail(self) -> None:
         while self.detail and not self.detail[0]:

@@ -4,15 +4,27 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class Option:
-    style: str = ""
-    kind: str = ""
-    arg: str = ""
-    full: str = ""
-    name: str = ""
-    value: Optional[Any] = None
-    description: str = ""
-    default: Optional[str] = None
+class Argument:
+    style: str = field(default="")
+    kind: str = field(default="")
+    name: str = field(default="")
+    description: str = field(default="")
+    # optional: bool = field(default=False)
+    default: Optional[str] = field(default=None)
+    value: Optional[Any] = field(default=None)
+
+
+@dataclass
+class Option(Argument):
+    # style: str = field(default="")
+    # kind: str = field(default="")
+    arg: str = field(default="")
+    full: str = field(default="")
+    # name: str = field(default="")
+    # value: Optional[Any] = field(default=None)
+    # description: str = field(default="")
+    # # optional: bool = field(default=False)
+    # default: Optional[str] = field(default=None)
     aliases: List[Any] = field(default_factory=list)
     alias_of: Optional[str] = None
 
