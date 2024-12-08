@@ -90,7 +90,39 @@ $ command-2 a b c
     }
     assert slice_keys(actual["options"], expected.keys()) == expected
     print("")
-    parser.argument_parser(desc).print_help()
+
+    actual = parser.argument_parser(desc).format_help()
+    expected = """
+usage: NAME-lower_0 [options] [arguments]
+
+BRIEF DESCRIPTION.
+
+positional arguments:
+  ARG-1,... [ARG-2,...] [ARG-3,...]
+  ARG-1,...
+  ARG-2,...
+  ARG-3,...
+
+options:
+  -h, --help            show this help message and exit
+  -S, --simple          Simple format.
+  --title TITLE         Set `<title>` and add a `<div>` at the top.
+
+  Details:
+
+Some detail:
+This line.
+That line...    Continued
+
+  Examples:
+
+# Does x
+# and y:
+$ command-1 x y z
+
+$ command-2 a b c
+"""
+    assert actual == expected[1:]
 
 
 ##########################################
