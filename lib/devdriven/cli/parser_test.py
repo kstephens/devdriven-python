@@ -77,7 +77,6 @@ $ command-2 a b c
             },
         ],
     }
-    # pprint(slice_keys(actual, expected.keys()))
     assert slice_keys(actual, expected.keys()) == expected
 
     expected = {

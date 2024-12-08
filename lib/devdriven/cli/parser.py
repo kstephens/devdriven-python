@@ -36,7 +36,6 @@ class Parser:
 
     def parse_options_argv(self, options: Options, argv: Argv) -> Options:
         options.argv = argv.copy()
-        # options.args = []
         while argv:
             arg = argv.pop(0)
             # Consume all args after "--":
@@ -86,8 +85,6 @@ class Parser:
                 add_arg(m)
                 return options
             return None
-        # finally:
-        #  pass
         except Exception as e:
             raise Exception(
                 f"parse_docstring: could not parse : {line!r} : {e!r}"
