@@ -167,15 +167,11 @@ class Parser:
     # From Decriptor.parse_docstring()
 
     def parse_descriptor_docstring(self, desc: Descriptor, docstr: str) -> Descriptor:
-        desc.options = Options(**{})
         found_aliases = False
-        # debug = False
         lines = trim_list(unpad_lines(re.sub(r"\\\n", "", docstr).splitlines()))
         comments = []
         while lines:
             line = lines.pop(0)
-            # if debug:
-            #   ic(line)
             m = None
             if m := re.match(
                 r"(?i)^:(?P<name>[-_a-z][-_a-z0-9]+)[:=] *(?P<value>.*)", line
@@ -206,14 +202,9 @@ class Parser:
                 )
                 comments = []
             elif desc.options.parse_docstring(line):
-                # if debug:
-                #   ic((self.name, self.options))
-                # pylint: disable-next=pointless-statement
                 pass
             else:
                 desc.detail.append(line)
-            # if debug:
-            #   ic(m and m.groupdict())
         desc.build_synopsis()
         desc.detail = trim_list(desc.detail)
         return desc
