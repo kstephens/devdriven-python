@@ -2,6 +2,8 @@
 from typing import Optional  # List, Iterable
 import logging
 import re
+import sys
+from pprint import pprint
 from operator import is_not
 from functools import partial
 import urllib.parse
@@ -21,25 +23,26 @@ class LDAPService:
 
     def connect(self):
         # ???: cleanup option names:
-        host = urllib.parse.urlparse(self.config["url"]).hostname
+        url = urllib.parse.urlparse(self.config["url"])
+        host = url.hostname
         tls = ldap3.Tls(
             validate=(
                 ssl.CERT_REQUIRED
-                if self.config["ssl_cert_required"] == "true"
+                if self.config["ssl_cert_required"]
                 else ssl.CERT_OPTIONAL
             ),
         )
         server = ldap3.Server(
             host=host,
-            use_ssl=self.config["ssl"] == "true",
+            use_ssl=self.config["ssl"],
             tls=tls,
         )
         conn = ldap3.Connection(
             server,
-            self.config["bind_user"],
-            self.config["bind_password"],
+            user=self.config["bind_user"],
+            password=self.config["bind_password"],
             version=3,
-            auto_referrals=self.config["referrals"] == "true",
+            auto_referrals=self.config["referrals"],
             read_only=True,
         )
         self.conn = conn
@@ -82,7 +85,7 @@ class LDAPService:
             # attributes = ['(objectClass=*)']
             # attributes = ['()']
             results = self.conn.search(
-                search_base=self.config["basedn"],
+                search_base=self.config["base_dn"],
                 search_filter=search_filter,
                 search_scope=ldap3.SUBTREE,
                 dereference_aliases=ldap3.DEREF_SEARCH,
@@ -147,3 +150,23 @@ def parse_group_cn(item: bytes) -> Optional[str]:
 
 # def slice(indexable, keys):
 #   return {k: indexable[k] for k in keys if k in indexable}
+
+
+def main(argv):
+    url, _method, *args = argv[1:]
+    config = {
+        "url": url,
+        "bind_user": None,
+        "bind_password": None,
+        "ssl": True,
+        "ssl_cert_required": False,
+        "referrals": True,
+        "base_dn": "ou=Accounts,dc=US,dc=DRWHoldings,dc=com",
+    }
+    svc = LDAPService(config)
+    svc.connect()
+    pprint(svc.get_user_info({"user": args[0]}))
+
+
+if __name__ == "__main__":
+    main(sys.argv)
