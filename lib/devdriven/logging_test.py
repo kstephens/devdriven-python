@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from logging import LogRecord
 import re
 import pytest
-from devdriven.logging import JsonFormatter, numeric_level
+from .logging import JsonFormatter, numeric_level
 
 
 def test_numeric_level():

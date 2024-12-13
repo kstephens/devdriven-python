@@ -1,8 +1,8 @@
 from typing import Any, Optional, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
-from devdriven.cli.options import Options
-from devdriven.util import set_from_match, unpad_lines
+from .options import Options, make_options
+from ..util import set_from_match, unpad_lines, trim_list
 
 
 @dataclass
@@ -14,25 +14,17 @@ class Example:
 
 @dataclass
 class Descriptor:
-    klass: Type
-    name: str
-    brief: str
-    synopsis: str
-    aliases: list
-    detail: List[str]
-    options: Options
-    examples: List[Example]
-    section: str
-    metadata: Dict[str, Any]
-
-    def __post_init__(self):
-        self.brief = ""
-        self.synposis = ""
-        self.detail = []
-        self.aliases = []
-        self.options = Options()
-        self.examples = []
-        self.metadata = {}
+    klass: Type = field(default=object)
+    name: str = field(default="")
+    brief: str = field(default="")
+    synopsis: str = field(default="")
+    aliases: list = field(default_factory=list)
+    detail: List[str] = field(default_factory=list)
+    options: Options = field(default_factory=make_options)
+    examples: List[Example] = field(default_factory=list)
+    section: str = field(default="")
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    synopsis_prefix: List[str] = field(default_factory=list)
 
     def parse_docstring(self, docstr: str) -> Self:
         found_aliases = False
@@ -77,21 +69,23 @@ class Descriptor:
             # if debug:
             #   ic(m and m.groupdict())
         self.build_synopsis()
-        self.trim_detail()
+        self.detail = trim_list(self.detail)
         return self
 
     def get_opt_aliases(self, opt):
         return self.options.get_opt_aliases(opt)
 
     def build_synopsis(self) -> None:
-        cmd = ["psv", self.name] + self.options.command_synopsis()
-        self.synopsis = " ".join(cmd)
+        assert isinstance(self.options, Options)
+        cmd = self.command_path() + self.options.command_synopsis()
+        self.synopsis = " ".join([x.strip() for x in cmd]).strip()
 
-    def trim_detail(self) -> None:
-        while self.detail and not self.detail[0]:
-            self.detail.pop(0)
-        while self.detail and not self.detail[-1]:
-            self.detail.pop(-1)
+    def command_path(self) -> List[str]:
+        return self.synopsis_prefix + [self.name]
+
+
+def make_descriptor(**kwargs) -> Descriptor:
+    return Descriptor(**kwargs)
 
 
 @dataclass

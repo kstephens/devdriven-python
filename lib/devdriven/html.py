@@ -5,9 +5,9 @@ import re
 from dataclasses import dataclass, field
 import html
 import cmath
-from devdriven.resource import Resources
 from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
+from .resource import Resources
 
 res_html = Resources([]).add_file_dir(__file__, "resources/html")
 res_table = Resources([]).add_file_dir(__file__, "resources/html/table")

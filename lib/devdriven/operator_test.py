@@ -1,6 +1,6 @@
 from typing import Callable
 import pytest
-import devdriven.operator as sut
+from . import operator as sut
 
 
 def test_bop():

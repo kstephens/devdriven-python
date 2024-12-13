@@ -1,4 +1,4 @@
-import devdriven.mime as sut
+from . import mime as sut
 
 
 def test_guess_type():

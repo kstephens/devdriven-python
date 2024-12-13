@@ -1,4 +1,4 @@
-from devdriven.html import Table
+from .html import Table
 
 
 def test_table():

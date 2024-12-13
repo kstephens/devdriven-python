@@ -7,9 +7,9 @@ from datetime import datetime
 from email.utils import formatdate
 from http.client import responses
 from urllib3 import HTTPHeaderDict
-from devdriven.url import url_normalize
-from devdriven.util import not_implemented
-from devdriven import mime
+from .url import url_normalize
+from .util import not_implemented
+from . import mime
 
 TEXT_IO_CLASSES = (TextIOBase, TextIOWrapper, StringIO)
 DEFAULT_ENCODING = "utf-8"

@@ -4,17 +4,22 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class Option:
-    style: str = ""
-    kind: str = ""
-    arg: str = ""
-    full: str = ""
-    name: str = ""
-    value: Optional[Any] = None
-    description: str = ""
-    default: Optional[str] = None
+class Argument:
+    style: str = field(default="")
+    kind: str = field(default="")
+    name: str = field(default="")
+    description: str = field(default="")
+    # optional: bool = field(default=False)
+    default: Optional[str] = field(default=None)
+    value: Optional[Any] = field(default=None)
+
+
+@dataclass
+class Option(Argument):
+    arg: str = field(default="")
+    full: str = field(default="")
     aliases: List[Any] = field(default_factory=list)
-    alias_of: Optional[str] = None
+    alias_of: Optional[str] = field(default=None)
 
     def parse_arg(self, arg: str) -> Optional[Self]:
         self.style = "arg"
@@ -82,3 +87,7 @@ class Option:
     def synopsis(self) -> str:
         assert self.aliases is not None
         return ", ".join([self.arg] + [opt.full for opt in self.aliases])
+
+
+def make_option(**kwargs) -> Option:
+    return Option(**kwargs)
