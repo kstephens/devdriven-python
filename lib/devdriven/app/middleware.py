@@ -1,5 +1,5 @@
 """
-Application middleware combinators inspired Python WSGI and Ruby Rack.
+# # Application Middleware
 
 An "App" is anything callable with a single "request" argument.
 It returns a "response": a status code, headers, body.
@@ -8,44 +8,13 @@ Applications and middleware follow the same protocol.
 Combinators create new Apps by wrapping others.
 This pattern is not limited to web apps, it can be used for command line applications.
 
-# A simple `App`:
-
-def simple_app(Req: req) -> Res:
-    "A simple app."
-    x, y = [int(req["input.data"][k]) for k in ("x", "y")]
-    return 200, {"Content-Type": "text/plain"}, [str(x * y)]
-
-Input combinators follow this pattern:
-
-def compose_input_handler(app: App) -> App:
-    def input_handler(req: Req) -> Res:
-       do_something_with_input(req)
-       return app(req)
-  return input_handler
-
-Output combinators follow this pattern:
-
-def compose_output_handle(app: App) -> App
-    def output_handler(req: Req) -> Res:
-       status, headers, body = app(req)
-       # alter status, headers, body in some manner.
-       return status, headers, body
-  return output_handler
-
-An application composition:
-
-app = simple_app
-app = encode_json(app)
-app = decode_json(app)
-app = capture_exception(app)
-req = {'input.content': '{"x": 2, "y": 3}'}
-status, headers, body = app(req)
-assert status == 200
-assert headers == {'Content-Type': 'application/json'}
-assert list(body) == ['6']
+This is inspired Python WSGI and Ruby Rack.
 
 """
 
+# ## Imports
+
+# +
 from typing import Any, MutableMapping, Tuple, Iterable, Callable, Optional
 import json
 import re
@@ -57,7 +26,10 @@ from pprint import pprint
 from http.client import responses as response_names
 import yaml
 
-# from icecream import ic
+# -
+
+# ### Protocol Types
+
 
 Status = int
 Headers = MutableMapping[str, Any]
@@ -67,16 +39,72 @@ Req = MutableMapping[str, Any]
 App = Callable[[Req], Res]
 
 
+# ## A simple app:
+
+
+def simple_app(req: Req) -> Res:
+    "A simple app."
+    x, y = [int(req["input.data"][k]) for k in ("x", "y")]
+    return 200, {"Content-Type": "text/plain"}, [str(x * y)]
+
+
+# ## Input Combinators
+
+# | +
+# | def compose_input_handler(app: App) -> App:
+# |     def input_handler(req: Req) -> Res:
+# |         do_something_with_input(req)
+# |         return app(req)
+# |     return input_handler
+# | -
+
+# ## Output combinators
+
+# | +
+# | def compose_output_handler(app: App) -> App:
+# |     def output_handler(req: Req) -> Res:
+# |         status, headers, body = app(req)
+# |         # alter status, headers, body in some manner.
+# |         return status, headers, body
+# |     return output_handler
+# | -
+
+# ## Application Composition
+
+# app = simple_app
+# app = encode_json(app)
+# app = decode_json(app)
+# app = capture_exception(app)
+# req = {'input.content': '{"x": 2, "y": 3}'}
+# status, headers, body = app(req)
+# assert status == 200
+# assert headers == {'Content-Type': 'application/json'}
+# assert list(body) == ['6']
+
+# ### Hello, World!
+
+# | +
+# | def hello_world_app(req: Req) -> Res:
+# |     return 200, {}, ("Hello, World!",)
+# | app = hello_world_app
+# | app({})
+# | -
+
+
 # ### Developer Affordance
 
 
+# +
 def is_success(status: Status) -> bool:
     return status in range(200, 300)
 
 
+# -
+
 # #### Exception Handling
 
 
+# +
 def capture_exception(app: App, status=500, cls=Exception, with_backtrace=False) -> App:
     "Captures an exception w/ backtrace and creates a text/plain error document."
 
@@ -98,9 +126,12 @@ def capture_exception(app: App, status=500, cls=Exception, with_backtrace=False)
     return _capture_exception
 
 
+# -
+
 # #### Tracing
 
 
+# +
 def trace(app: App, ident="", stream=sys.stderr) -> App:
     "Traces requests and responses."
 
@@ -129,15 +160,19 @@ def trace(app: App, ident="", stream=sys.stderr) -> App:
 
 
 TRACE_INDENT = [0]
+# -
 
 # ## Reading Input, Writing Output
 
+# +
 Content = str
 Data = Any
+# -
 
 # ### Reading input
 
 
+# +
 def read_input(app: App, read: Optional[Callable[[Data], Content]] = None) -> App:
     "Reads body.stream"
     if not read:
@@ -152,9 +187,12 @@ def read_input(app: App, read: Optional[Callable[[Data], Content]] = None) -> Ap
     return _read_input
 
 
+# -
+
 # ### Writing Output
 
 
+# +
 def write_output(app: App) -> App:
     "Writes body to output.stream."
 
@@ -168,6 +206,10 @@ def write_output(app: App) -> App:
     return _write_output
 
 
+# -
+
+
+# +
 def http_response(app: App) -> App:
     "Generates an HTTP response, emulating a web server."
 
@@ -183,6 +225,10 @@ def http_response(app: App) -> App:
     return _http_response
 
 
+# -
+
+
+# +
 def capitalize_headers(app: App) -> App:
     "Capitalizes-All-Headers."
 
@@ -204,14 +250,18 @@ def capitalize(k: str):
 
 
 WORD_RX = re.compile(r"\b([a-z]+)\b")
+# -
 
 
 # ## Decoding Inputs, Encoding Outputs
 
+# +
 Encoder = Callable[[Data], Content]
 Decoder = Callable[[Content], Data]
+# -
 
 
+# +
 def decode_content(app: App, decoder: Decoder, content_types=None, strict=False) -> App:
     """
     Combinator decodes body with decoder(input.content) for content_types.
@@ -229,6 +279,10 @@ def decode_content(app: App, decoder: Decoder, content_types=None, strict=False)
     return _decode_content
 
 
+# -
+
+
+# +
 def encode_content(app: App, encoder: Encoder, content_type: str) -> App:
     "Combinator encodes body with encoder.  Sets Content-Type."
 
@@ -249,9 +303,13 @@ def encode_content(app: App, encoder: Encoder, content_type: str) -> App:
     return _encode_content
 
 
+# -
+
+
 # ## Decode JSON, Encode JSON
 
 
+# +
 def decode_json(app: App, **kwargs) -> App:
     "Decodes JSON content."
 
@@ -272,9 +330,12 @@ def encode_json(app: App, **kwargs) -> App:
     return encode_content(app, _encode_json, content_type="application/json")
 
 
+# -
+
 # ## Decode YAML, Encode YAML
 
 
+# +
 def decode_yaml(app: App, **kwargs) -> App:
     """
     Decodes YAML content.
@@ -313,6 +374,9 @@ def encode_yaml(app: App, **kwargs) -> App:
     return encode_content(app, _encode_yaml, content_type="application/yaml")
 
 
+# -
+
+
 # ## Header Management
 
 
@@ -331,6 +395,7 @@ def content_length(app: App) -> App:
 # ## Request Injection
 
 
+# +
 def default_req(app: App, defaults: Req) -> App:
     "Defaults any req values that are not defined."
 
@@ -350,11 +415,13 @@ def override_req(app: App, overrides: Req) -> App:
     return _override_req
 
 
-ResOptional = Tuple[Optional[Status], Optional[Headers], Optional[Body]]
-AppOptional = Callable[[Req], ResOptional]
-
+# -
 
 # ## Response Injection
+
+
+ResOptional = Tuple[Optional[Status], Optional[Headers], Optional[Body]]
+AppOptional = Callable[[Req], ResOptional]
 
 
 def default_res(app: AppOptional, defaults: ResOptional) -> App:
