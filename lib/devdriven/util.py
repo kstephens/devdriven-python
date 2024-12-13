@@ -6,8 +6,10 @@ import inspect
 import time
 import re
 import sys
+import socket
 import dataclasses
 import math
+import operator
 from datetime import datetime, timezone
 from contextlib import contextmanager
 from collections import defaultdict
@@ -222,6 +224,21 @@ def merge_dicts(*dicts) -> dict:
     return {k: v for d in dicts for k, v in d.items()}
 
 
+def setattr_from_dict(obj, attrs: dict) -> None:
+    for name, val in attrs.items():
+        setattr(obj, name, val)
+
+
+def dataclass_from_dict(klass, opts, defaults=None) -> Any:
+    defaults = defaults or {}
+    args = {
+        f.name: opts.get(f.name, defaults.get(f.name, None))
+        for f in dataclasses.fields(klass)
+        if f.init
+    }
+    return klass(**args)
+
+
 #####################################################################
 # Sequence
 
@@ -293,6 +310,18 @@ def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
     return result
 
 
+def min_max(
+    itr: Iterable, less_than: Callable[[Any, Any], bool] = operator.lt
+) -> Tuple[Any, Any]:
+    min_val = max_val = None
+    for item in itr:
+        if min_val is None or less_than(item, min_val):
+            min_val = item
+        if max_val is None or less_than(max_val, item):
+            max_val = item
+    return min_val, max_val
+
+
 #####################################################################
 # Range
 
@@ -326,11 +355,7 @@ def make_range(
 
 
 #####################################################################
-# Misc
-
-
-def not_implemented() -> None:
-    raise NotImplementedError(inspect.stack()[1][3])
+# Current Directory
 
 
 @contextmanager
@@ -341,10 +366,6 @@ def cwd(path: str) -> Any:
         yield
     finally:
         os.chdir(oldpwd)
-
-
-def printe(x):
-    print(x, file=sys.stderr)
 
 
 #####################################################################
@@ -365,22 +386,43 @@ def set_from_match(obj, match: re.Match):
 
 
 #####################################################################
+# Networking
+
+
+def ip_to_host(ip: str) -> Optional[str]:
+    try:
+        return socket.gethostbyaddr(ip)[0].lower()
+    # pylint: disable-next=bare-except
+    except Exception:
+        return None
+
+
+def host_short(host):
+    return host and re.sub(r"\..+$", "", host).lower()
+
+
+#####################################################################
 # Misc
 
 
-def setattr_from_dict(obj, attrs: dict) -> None:
-    for name, val in attrs.items():
-        setattr(obj, name, val)
+def memoize(f: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    memo: Dict[Any, Any] = {}
+
+    def g(x):
+        if x in memo:
+            return memo[x]
+        result = memo[x] = f(x)
+        return result
+
+    return g
 
 
-def dataclass_from_dict(klass, opts, defaults=None) -> Any:
-    defaults = defaults or {}
-    args = {
-        f.name: opts.get(f.name, defaults.get(f.name, None))
-        for f in dataclasses.fields(klass)
-        if f.init
-    }
-    return klass(**args)
+def not_implemented() -> None:
+    raise NotImplementedError(inspect.stack()[1][3])
+
+
+def printe(x):
+    print(x, file=sys.stderr)
 
 
 def module_fullname(obj) -> str:
@@ -409,3 +451,30 @@ class RawRepr:
 def rr(x: Any) -> RawRepr:
     """Returns an object where `__repr__` it `str(x)`."""
     return RawRepr(x)
+
+
+#####################################################################
+# Logging
+
+
+def progress_logger(output=None) -> Callable[[int], None]:
+    if not output:
+        output = sys.stderr
+    denom = 1
+    i_prev = None
+
+    def log(i: int) -> None:
+        nonlocal denom, i_prev, output
+        if i is None:
+            output.write(f"{i_prev}.\n")
+            output.flush()
+            i = i_prev
+        else:
+            i_prev = i
+        if i // denom == 10:
+            denom *= 10
+        if not i % denom:
+            output.write(f"{i},")
+            output.flush()
+
+    return log
