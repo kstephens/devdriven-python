@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, List, Tuple, Callable
+from typing import Any, Optional, Union, Self, List, Tuple, Callable
 from collections.abc import Sequence
 import re
 
@@ -26,16 +26,18 @@ class Version:
     _str: str
     _repr: str
 
-    def __init__(self, other: Any):
+    def __init__(self, other: Union[Self, str]):
         if isinstance(other, Version):
             ver: Version = other
             self._str = ver._str
             self._repr = ver._repr
             self.elems = ver.elems
-            return
-        self._str = str(other).strip()
-        self._repr = f"{type(self).__name__}({self._str!r})"
-        self.elems = tuple(version_parse_elements(self._str))
+        elif isinstance(other, str):
+            self._str = str(other).strip()
+            self._repr = f"{type(self).__name__}({self._str!r})"
+            self.elems = tuple(version_parse_elements(self._str))
+        else:
+            raise ValueError("Version(): must be a str or Version")
 
     def __str__(self) -> str:
         return self._str
