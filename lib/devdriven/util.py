@@ -23,6 +23,11 @@ SubprocessResult = Any  # subprocess.CompletedProcess
 Data = Union[str, bytes]
 Number = Union[int, float]
 
+
+def identity(x: Any) -> Any:
+    return x
+
+
 #####################################################################
 # Access
 
@@ -333,15 +338,27 @@ def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
 
 
 def min_max(
-    itr: Iterable, less_than: Callable[[Any, Any], bool] = operator.lt
+    itr: Iterable,
+    compare: Callable[[Any, Any], bool] = operator.lt,
+    key: Callable[[Any], Any] = identity,
 ) -> Tuple[Any, Any]:
+    seen = False
+    min_item = max_item = None
     min_val = max_val = None
     for item in itr:
-        if min_val is None or less_than(item, min_val):
-            min_val = item
-        if max_val is None or less_than(max_val, item):
-            max_val = item
-    return min_val, max_val
+        val = key(item)
+        if seen:
+            if compare(val, min_val):
+                min_val = val
+                min_item = item
+            elif compare(max_val, val):
+                max_val = val
+                max_item = item
+        else:
+            seen = True
+            min_val = max_val = val
+            min_item = max_item = item
+    return min_item, max_item
 
 
 #####################################################################

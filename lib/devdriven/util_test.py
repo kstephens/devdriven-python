@@ -1,6 +1,7 @@
 import subprocess
 import time
 import re
+import operator
 from . import util  # type: ignore
 
 
@@ -121,6 +122,12 @@ def test_parse_commands():
         ["cmd2", "c"],
     ]
 
+
+def test_min_max():
+    assert util.min_max((2, 11, 7, 11)) == (2, 11)
+    assert util.min_max(("123", "12", "1234", "1234"), key=len) == ("12", "1234")
+    assert util.min_max(("123", "12", "1234", "1234"), compare=operator.lt, key=len) == ("12", "1234")
+    assert util.min_max(("123", "12", "1234", "1234"), compare=operator.gt, key=len) == ("1234", "12")
 
 ##########################################################
 
