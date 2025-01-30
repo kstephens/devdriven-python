@@ -81,6 +81,7 @@ def unpad_lines(lines: List[str]) -> List[str]:
         return lines
     if re.search(r"^\S", lines[0]):
         return lines
+    pad = re.compile(r"^")
     for line in lines:
         if m := re.search(r"^( +)", line):
             pad = re.compile(f"^{m[1]}")

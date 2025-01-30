@@ -13,65 +13,77 @@ class Example:
     output: Optional[str] = field(default=None)
 
 
-@dataclass
 class Descriptor:
-    klass: Type = field(default=object)
-    name: str = field(default="")
-    brief: str = field(default="")
-    synopsis: str = field(default="")
-    aliases: list = field(default_factory=list)
-    detail: List[str] = field(default_factory=list)
-    options: Options = field(default_factory=make_options)
-    examples: List[Example] = field(default_factory=list)
-    section: str = field(default="")
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    synopsis_prefix: List[str] = field(default_factory=list)
+    klass: Type
+    name: str
+    brief: str
+    synopsis: str
+    aliases: list
+    detail: List[str]
+    options: Options
+    examples: List[Example]
+    section: str
+    metadata: Dict[str, Any]
+    synopsis_prefix: List[str]
+
+    def __init__(self, **kwargs):
+        self.klass = None
+        self.name = ""
+        self.brief = ""
+        self.synposis = ""
+        self.detail = []
+        self.aliases = []
+        self.options = make_options()
+        self.examples = []
+        self.section = ""
+        self.metadata = {}
+        self.synopsis_prefix = []
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def parse_docstring(self, docstr: str) -> Self:
         found_aliases = False
         # debug = False
         lines = unpad_lines(re.sub(r"\\\n", "", docstr).splitlines())
+        lines = [re.sub(r"\s+$", "", line) for line in lines]
+        # ic(lines)
         comments = []
-        ic(self)
         while lines:
             line = lines.pop(0)
-            # if debug:
-            #   ic(line)
+            # ic(line)
             m = None
-            if m := re.match(r"^:(?P<name>[a-z_]+)[:=] *(?P<value>.*)", line):
-                self.metadata[m.group("name")] = m.group("value").strip()
+            if m := re.search(r"^\s*:(?P<name>[a-z_]+)[:=] *(?P<value>.*)", line):
+                self.metadata[m["name"]] = m["value"].strip()
             elif m := (
-                re.match(r"^(?P<name>[-a-z]+) +- +(?P<brief>.+)", line)
+                re.search(r"^\s*(?P<name>[-a-z]+) +- +(?P<brief>.+)", line)
                 if not self.name
                 else None
             ):
                 set_from_match(self, m)
             elif m := (
-                re.match(r"(?i)^Alias(?:es)?: +(.+)", line)
+                re.match(r"(?i)^\s*Alias(?:es)?: +(.+)", line)
                 if not found_aliases
                 else None
             ):
                 self.aliases.extend(re.split(r"\s*,\s*|\s+", m[1].strip()))
                 found_aliases = True
-            elif m := re.match(r"(?i)^(Arguments|Options|Examples):\s*$", line):
-                # pylint: disable-next=pointless-statement
-                None
-            elif m := re.match(r"^[#] (.+)", line):
+            elif m := re.search(r"(?i)^\s*(Arguments|Options|Examples):\s*$", line):
+                pass
+            elif m := re.search(r"^\s*[#] (.+)", line):
                 comments.append(m[1])
-            elif m := re.match(r"^\$ (.+)", line):
+            elif m := re.search(r"^\s*\$ (.+)", line):
                 self.examples.append(Example(command=m[1], comments=comments))
                 comments = []
             elif self.options.parse_docstring(line):
-                # if debug:
-                #   ic((self.name, self.options))
-                # pylint: disable-next=pointless-statement
-                None
+                pass
+            #            elif not re.search(r"^\s*$", line):
             else:
                 self.detail.append(line)
-            # if debug:
-            #   ic(m and m.groupdict())
         self.build_synopsis()
         self.detail = trim_list(self.detail)
+        # ic(self.detail)
+        # ic(self.examples)
+        # ic(self.synopsis)
         return self
 
     def get_opt_aliases(self, opt):
