@@ -1,7 +1,6 @@
 from typing import Any, Optional, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
-from icecream import ic
 from .options import Options, make_options
 from ..util import set_from_match, unpad_lines, trim_list
 
