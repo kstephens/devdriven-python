@@ -20,11 +20,11 @@ var() {
 # Top-level targets:
 
 -default() {
-  -- all
+  -- all check $all_other
 }
 
 -all() {
-  -- check $all_other
+  -- reformat test check $all_other
 }
 
 ################################
@@ -38,12 +38,12 @@ var() {
   pythonpath $lib_dirs
 }
 -venv-create() {
-  which ${PYTHON}
-  env | grep -E 'LD_|PATH'
+  # env | grep -E 'LD_|PATH'
+  which ${PYTHON:?}
   x ${PYTHON} --version
   x ${PYTHON_BIN} -m venv ${venv_opts} ./venv
   -venv-activate
-  env | grep -E 'LD_|PATH'
+  # env | grep -E 'LD_|PATH'
   x which ${PYTHON}
   x ${PYTHON} --version
 # pip+3.10: SO MANY BUGS...
@@ -52,10 +52,7 @@ var() {
 -venv-upgrade-tools() {
   x ${PYTHON} -m pip install --upgrade pip
   - venv-activate
-  x which ${PYTHON}
-  # x pip install --upgrade pip
-  # x pip install --upgrade setuptools
-  # x pip install --upgrade distlib
+  x which pip
   x pip install --upgrade pip setuptools distlib
 }
 -venv-install-requirements() {
@@ -65,6 +62,20 @@ var() {
   x rm -rf venv/
   -venv
 }
+-add-requirements() {
+  local local_files=*requirements*.txt
+  local packages="$*"
+  packages="${packages##*/}"
+  packages="${packages%.dist-info}"
+  packages="${packages//-/==}"
+  printf "packages=%s" "$packages"
+  # exit 9
+  printf "%s\n" $packages | tee -a $local_files
+  for f in $local_files
+  do
+    sort -u -o "$f" "$f"
+  done
+}
 install-requirements() {
   local list=($requirements_files)
   venv x ${PYTHON} -m pip install ${list[@]/#/-r }
@@ -72,7 +83,6 @@ install-requirements() {
 
 venv() { # cmd
   - venv-activate || return $?
-  pythonpath "$lib_dir"
   "$@"
 }
 
@@ -87,7 +97,7 @@ venv() { # cmd
 # Check:
 
 -check() {
-  -- early test lint typecheck $check_other
+  -- early lint typecheck format $check_other
 }
 
 ################################
@@ -99,13 +109,25 @@ venv() { # cmd
 
 -pylint() {
   override files lint_files
-  venv x pylint --rcfile ./.pylintrc --recursive=y $files
-  set +x
+  venv x pylint ${pylint_opts} ${argv_options[pylint_opts]} --rcfile ./.pylintrc --recursive=y $files
 }
 
 -pycodestyle() {
   override files lint_files
   venv x pycodestyle --config=.pycodestyle --show-source --statistics $files
+}
+
+################################
+# Format:
+
+-format() {
+  override files lint_files
+  venv x black --check $files
+}
+
+-reformat() {
+  override files lint_files
+  venv x black $files
 }
 
 ################################
@@ -120,11 +142,12 @@ venv() { # cmd
   override files test_files
   x rm -rf ${coverage_dir:?}/
   x mkdir -p $coverage_dir
-  venv x coverage run -m pytest ${pytest_opts} -vv -rpP ${files:-all}
-  venv x coverage report | tee $coverage_dir/coverage.txt
-  venv x coverage html
-  venv x coverage json
-# venv x coverage xml
+  venv :
+  x coverage run -m pytest ${pytest_opts} -vv -rpP ${files:-all}
+  x coverage report | tee $coverage_dir/coverage.txt
+  x coverage html
+  x coverage json
+# x coverage xml
 }
 
 -integration-test() {
@@ -134,15 +157,19 @@ venv() { # cmd
 ################################
 # Typecheck:
 
+-typing() {
+  -typecheck "$@"
+}
 -typecheck() {
-  override files mypy_files
   -- stubgen mypy $typecheck_other
 }
 -stubgen() {
+  override files mypy_files
   x ignore mypy --install-types --non-interactive
   venv x stubgen -o lib $files
 }
 -mypy() {
+  override files mypy_files
   x rm -rf .mypy-cache/
   x rm -rf $mypy_report_dir
   x mkdir -p $mypy_report_dir
@@ -216,7 +243,6 @@ other-dir() {
   # declare -p project_dirs other_dirs >&2
 }
 -load-projects() {
-  # set -x
   project_dirs=". $project_dirs"
   while [[ -n "$project_dirs" ]]
   do
@@ -230,13 +256,11 @@ other-dir() {
     for proj_file in "$cwd"/build/*-*.sh
     do
       x : loading $proj_file
-      # set -x
       . "$proj_file" || return $?
       x : loaded $proj_file
     done
     popd >/dev/null
   done
-  # set +x
 }
 var project_dirs other_dirs
 
@@ -307,7 +331,7 @@ var bin_dirs bin_files bin_files_lint
 
 lib-dir() {
   append-path lib_dirs "$@"
-  lib_files="$(locate lib_dirs -name '*.py' | grep -Ev '_test\.py$' | newline-space)"
+  lib_files="$(locate lib_dirs -name '*.py' | grep -vF '/__init__.py' | grep -Ev '_test\.py$' | newline-space)"
   # declare -p lib_files >&2
   pythonpath $lib_dirs
 }
@@ -315,7 +339,7 @@ var lib_dirs lib_files
 
 test-dir() {
   append-path test_dirs "$@"
-  test_files="$(locate test_dirs -name '*_test.py' | newline-space)"
+  test_files="$(locate test_dirs -name '*_test.py' | grep -vF '/__init__.py' | newline-space)"
   # declare -p test_files >&2
   lint-dir "$@"
 }
@@ -335,7 +359,10 @@ requirements-dir() {
 }
 requirements-file() {
   requirements_files="$(absolute $requirements_files "$@")"
-  # declare -p requirements_dirs requirements_files >&2
+  for rf in $requirements_files
+  do
+    sort -u -o "$rf" "$rf"
+  done
 }
 var requirements_dirs requirements_files
 
@@ -365,7 +392,7 @@ pythonpath() {
 # Helpers:
 
 override() {
-  local _override="${argv_args}"
+  local _override="${argv_args[*]}"
   _override="${_override:-${!2}}"
   declare -g "$1=$_override"
 }
@@ -431,9 +458,7 @@ x() {
   else
     log INFO "- $* : ..."
     set-append "$ran_set" "$cmd_key"
-    # set -x
     "-$@"; local _rtn=$?
-    # set +x
     if [[ $_rtn != 0 ]]
     then
       die "- $*"
@@ -474,7 +499,6 @@ main() {
   -- load-projects
   -- setup
   [[ "${#args[@]}" == 0 ]] && args=(default)
-  # set -x
   -argv-parse-commands main-target "${args[@]}"
 }
 

@@ -1,0 +1,3 @@
+# /root/a/.rbac.txt:
+rule allow GET other-role     *
+rule allow PUT a-writer-role  writable.txt

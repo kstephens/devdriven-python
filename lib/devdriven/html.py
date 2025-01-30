@@ -5,296 +5,310 @@ import re
 from dataclasses import dataclass, field
 import html
 import cmath
-from devdriven.resource import Resources
 from mako.template import Template  # type: ignore
 from mako.runtime import Context  # type: ignore
+from .resource import Resources
 
-res_html = Resources([]).add_file_dir(__file__, 'resources/html')
-res_table = Resources([]).add_file_dir(__file__, 'resources/html/table')
-res_vendor = Resources([]).add_file_dir(__file__, 'resources/vendor')
-res_js = Resources([]).add_file_dir(__file__, 'resources/js')
-res_css = Resources([]).add_file_dir(__file__, 'resources/css')
+res_html = Resources([]).add_file_dir(__file__, "resources/html")
+res_table = Resources([]).add_file_dir(__file__, "resources/html/table")
+res_vendor = Resources([]).add_file_dir(__file__, "resources/vendor")
+res_js = Resources([]).add_file_dir(__file__, "resources/js")
+res_css = Resources([]).add_file_dir(__file__, "resources/css")
+
 
 @dataclass
 class Table:
-  columns: list = field(default_factory=list)
-  rows: List[Any] = field(default_factory=list)
-  options: dict = field(default_factory=dict)
-  output: Union[IO, None] = None
-  data: dict = field(default_factory=dict)
-  width: int = 0
-  height: int = 0
-  colspan: int = 0
-  _col_opts: dict = field(default_factory=dict)
-  enable_min: bool = field(default=True)
+    columns: list = field(default_factory=list)
+    rows: List[Any] = field(default_factory=list)
+    options: dict = field(default_factory=dict)
+    output: Union[IO, None] = None
+    data: dict = field(default_factory=dict)
+    width: int = 0
+    height: int = 0
+    colspan: int = 0
+    _col_opts: dict = field(default_factory=dict)
+    enable_min: bool = field(default=True)
 
-  def render(self) -> Self:
-    # self.enable_min = False
-    if not self.output:
-      self.output = StringIO()
-    self.prepare_options()
-    self.width = len(self.columns)
-    self.height = len(self.rows)
-    self.colspan = len(self.columns) + 1 if self.opt('row_index') else len(self.columns)
-    self.data = vars(self) | {
-      'this': self,
-      'dom_id': self.opt('dom_id', 'cx-table'),  # ??? IMPLEMENT
-      'h': self.h,
-      'opt': self.opt,
-      'col_opt': self.col_opt,
-      'th': self.th,
-      'td': self.td,
-      'unicode': UNICODE,
-      'allow_attributes': self.opt('styled') or self.opt('filtering') or self.opt('sorting'),
-      'attr': self.attr,
-      'attrs': self.attrs,
-      'class_': self.class_,
-      'table': res_table,
-      'vendor': res_vendor,
-      'js': res_js,
-      'css': res_css,
-      'title_tr': self.title_tr(),
-    }
+    def render(self) -> Self:
+        # self.enable_min = False
+        if not self.output:
+            self.output = StringIO()
+        self.prepare_options()
+        self.width = len(self.columns)
+        self.height = len(self.rows)
+        self.colspan = (
+            len(self.columns) + 1 if self.opt("row_index") else len(self.columns)
+        )
+        self.data = vars(self) | {
+            "this": self,
+            "dom_id": self.opt("dom_id", "cx-table"),  # ??? IMPLEMENT
+            "h": self.h,
+            "opt": self.opt,
+            "col_opt": self.col_opt,
+            "th": self.th,
+            "td": self.td,
+            "unicode": UNICODE,
+            "allow_attributes": self.opt("styled")
+            or self.opt("filtering")
+            or self.opt("sorting"),
+            "attr": self.attr,
+            "attrs": self.attrs,
+            "class_": self.class_,
+            "table": res_table,
+            "vendor": res_vendor,
+            "js": res_js,
+            "css": res_css,
+            "title_tr": self.title_tr(),
+        }
 
-    self.render_template(self.template_text())
-    return self
+        self.render_template(self.template_text())
+        return self
 
-  def template_text(self) -> str:
-    templates = [TABLE_HEAD]
-    if self.opt('thead', True):
-      templates += [THEAD_HEAD]
-      if self.opt('filtering'):
-        templates += [THEAD_FILTERING]
-      templates += [THEAD_COLUMNS, THEAD_FOOT]
-    templates += [TBODY, TABLE_FOOT]
-    if not self.opt('table_only'):
-      templates = [HTML_HEAD, *templates, HTML_FOOT]
-    templates += [TABLE_INIT]
-    return self.join_templates(templates)
+    def template_text(self) -> str:
+        templates = [TABLE_HEAD]
+        if self.opt("thead", True):
+            templates += [THEAD_HEAD]
+            if self.opt("filtering"):
+                templates += [THEAD_FILTERING]
+            templates += [THEAD_COLUMNS, THEAD_FOOT]
+        templates += [TBODY, TABLE_FOOT]
+        if not self.opt("table_only"):
+            templates = [HTML_HEAD, *templates, HTML_FOOT]
+        templates += [TABLE_INIT]
+        return self.join_templates(templates)
 
-  def render_template(self, text: str) -> Self:
-    template, context = self.template_context(text)
-    template.render_context(context)
-    return self
+    def render_template(self, text: str) -> Self:
+        template, context = self.template_context(text)
+        template.render_context(context)
+        return self
 
-  def template_context(self, text: str) -> Tuple[Template, Context]:
-    return (
-      Template(text=text, strict_undefined=True),
-      Context(self.output, **self.data)
-    )
+    def template_context(self, text: str) -> Tuple[Template, Context]:
+        return (
+            Template(text=text, strict_undefined=True),
+            Context(self.output, **self.data),
+        )
 
-  def join_templates(self, templates: List[str]):
-    def strip_it(text: str) -> str:
-      return re.sub(r'^\s*\n+|\s*\n+$', '', text, count=1)
-    return ''.join(map(strip_it, templates))
+    def join_templates(self, templates: List[str]):
+        def strip_it(text: str) -> str:
+            return re.sub(r"^\s*\n+|\s*\n+$", "", text, count=1)
 
-  ######################################
-  # Options:
+        return "".join(map(strip_it, templates))
 
-  def prepare_options(self) -> None:
-    self.options = {} | self.options
-    if self.opt('simple'):
-      self.options['styled'] = False
-      self.options['sorting'] = False
-      self.options['filtering'] = False
-    if self.opt('sorting') or self.opt('filtering'):
-      self.options['styled'] = True
-    # Merge and amend column options:
-    opt_cols = self.options.get('columns', {})
-    self._col_opts = {col: {} | opt_cols.get(col, {}) for col in self.columns}
-    col_idx = 0
-    for col, opts in self._col_opts.items():
-      col_idx += 1
-      opts['col_idx'] = col_idx
-      opts['none'] = self.opt('none', opts.get('none', None))
-      opts['td_class'] = self.col_class(col)
-      opts['col_attrs'] = self.col_attrs(col, opts)
+    ######################################
+    # Options:
 
-  def col_attrs(self, col: str, opts: dict) -> dict:
-    col_idx = opts['col_idx']
-    col_attrs = {
-      "class": "cx-column",
-      "title": f'name: {col}; index: {col_idx}; type: {self.col_opt(col, "type", "UNKNOWN")}',
-    }
-    if self.opt('filtering'):
-      col_attrs.update({
-        "data-column-index": col_idx,
-        "data-filter-name": col,
-        "data-filter-name-full": col,
-      })
-    if self.opt('sorting'):
-      col_attrs['data-sort-method'] = self.col_sort_method(col) or 'string'
-    return col_attrs
+    def prepare_options(self) -> None:
+        self.options = {} | self.options
+        if self.opt("simple"):
+            self.options["styled"] = False
+            self.options["sorting"] = False
+            self.options["filtering"] = False
+        if self.opt("sorting") or self.opt("filtering"):
+            self.options["styled"] = True
+        # Merge and amend column options:
+        opt_cols = self.options.get("columns", {})
+        self._col_opts = {col: {} | opt_cols.get(col, {}) for col in self.columns}
+        col_idx = 0
+        for col, opts in self._col_opts.items():
+            col_idx += 1
+            opts["col_idx"] = col_idx
+            opts["none"] = self.opt("none", opts.get("none", None))
+            opts["td_class"] = self.col_class(col)
+            opts["col_attrs"] = self.col_attrs(col, opts)
 
-  def col_sort_method(self, col: str) -> str:
-    sort_method = self.col_opt(col, 'sort_method')
-    if not sort_method:
-      if self.col_opt(col, 'numeric'):
-        sort_method = 'number'
-    return sort_method
+    def col_attrs(self, col: str, opts: dict) -> dict:
+        col_idx = opts["col_idx"]
+        col_attrs = {
+            "class": "cx-column",
+            "title": f'name: {col}; index: {col_idx}; type: {self.col_opt(col, "type", "UNKNOWN")}',
+        }
+        if self.opt("filtering"):
+            col_attrs.update(
+                {
+                    "data-column-index": col_idx,
+                    "data-filter-name": col,
+                    "data-filter-name-full": col,
+                }
+            )
+        if self.opt("sorting"):
+            col_attrs["data-sort-method"] = self.col_sort_method(col) or "string"
+        return col_attrs
 
-  def col_class(self, col: str) -> Union[str, None]:
-    classes: List[str] = []
-    align = None
-    if self.col_opt(col, 'numeric'):
-      align = 'right'
-    if align := (self.col_opt(col, 'align') or align):
-      classes.append(f'cx-{align}')
-    if self.col_opt(col, 'wrap', False):
-      classes.append('cx-wrap')
-    else:
-      classes.append('cx-nowrap')
-    classes.append(self.col_opt(col, 'class', ''))
-    class_str = ' '.join([x for x in classes if x])
-    if class_str:
-      return class_str
-    return None
+    def col_sort_method(self, col: str) -> str:
+        sort_method = self.col_opt(col, "sort_method")
+        if not sort_method:
+            if self.col_opt(col, "numeric"):
+                sort_method = "number"
+        return sort_method
 
-  ######################################
-  # Helpers:
+    def col_class(self, col: str) -> Union[str, None]:
+        classes: List[str] = []
+        align = None
+        if self.col_opt(col, "numeric"):
+            align = "right"
+        if align := (self.col_opt(col, "align") or align):
+            classes.append(f"cx-{align}")
+        if self.col_opt(col, "wrap", False):
+            classes.append("cx-wrap")
+        else:
+            classes.append("cx-nowrap")
+        classes.append(self.col_opt(col, "class", ""))
+        class_str = " ".join([x for x in classes if x])
+        if class_str:
+            return class_str
+        return None
 
-  def h(self, x: Any) -> str:
-    return html.escape(str(x))
+    ######################################
+    # Helpers:
 
-  def opt(self, name, default: Optional[Any] = None) -> Any:
-    return self.options.get(name, default)
+    def h(self, x: Any) -> str:
+        return html.escape(str(x))
 
-  def col_opt(self, col: str, opt: str, default: Optional[Any] = None) -> Any:
-    return self._col_opts[col].get(opt, default)
+    def opt(self, name, default: Optional[Any] = None) -> Any:
+        return self.options.get(name, default)
 
-  def attrs(self, attrs: Optional[dict]) -> str:
-    if not attrs:
-      return ''
-    return ' '.join([self.attr(name, val) for name, val in attrs.items()]).strip()
+    def col_opt(self, col: str, opt: str, default: Optional[Any] = None) -> Any:
+        return self._col_opts[col].get(opt, default)
 
-  def attr(self, name: Optional[str], val) -> str:
-    if name and val is not None and self.data['allow_attributes']:
-      return f'{name}="{val}"'
-    return ''
+    def attrs(self, attrs: Optional[dict]) -> str:
+        if not attrs:
+            return ""
+        return " ".join([self.attr(name, val) for name, val in attrs.items()]).strip()
 
-  def class_(self, val: Any) -> str:
-    return self.attr('class', val)
+    def attr(self, name: Optional[str], val) -> str:
+        if name and val is not None and self.data["allow_attributes"]:
+            return f'{name}="{val}"'
+        return ""
 
-  ######################################
-  # Content:
+    def class_(self, val: Any) -> str:
+        return self.attr("class", val)
 
-  # pylint: disable-next=invalid-name
-  def th(self, name: str, attrs: Optional[dict] = None) -> str:
-    attrs = attrs or self.col_opt(name, 'col_attrs')
-    return f'''\
+    ######################################
+    # Content:
+
+    # pylint: disable-next=invalid-name
+    def th(self, name: str, attrs: Optional[dict] = None) -> str:
+        attrs = attrs or self.col_opt(name, "col_attrs")
+        return f"""\
 <th {self.attrs(attrs)}>\
 <span class="cx-column-name">{self.h(name)}</span>\
 <span class="cx-column-sort-indicator"></span></th>\
-'''
+"""
 
-  # pylint: disable-next=invalid-name
-  def td(self, row, row_idx: int, col: str) -> str:
-    col_tooltip = f'{row_idx} / {len(self.rows)} - {col}'
-    return f'''\
+    # pylint: disable-next=invalid-name
+    def td(self, row, row_idx: int, col: str) -> str:
+        col_tooltip = f"{row_idx} / {len(self.rows)} - {col}"
+        return f"""\
 <td {self.attrs({"class": self.col_opt(col, "td_class"), "title": col_tooltip})}>\
 {self.cell(row, col, row_idx)}\
 </td>\
-'''
+"""
 
-  def cell(self, row, col: str, _row_idx: int) -> str:
-    data = row.get(col, '')
-    replace = None
-    if data is None:
-      replace = self.col_opt(col, 'none_as', self.opt('none_as'))
-    elif isinstance(data, float) and cmath.isnan(data):
-      replace = self.col_opt(col, 'nan_as', self.opt('nan_as'))
-    elif self.col_opt(col, 'render_links', self.opt('render_links')):
-      if link := html_link(data):
-        replace = link
-    if replace is not None:
-      return replace
-    if not self.col_opt(col, 'raw', False):
-      data = self.h(data)
-    data = str(data)
-    return data
+    def cell(self, row, col: str, _row_idx: int) -> str:
+        data = row.get(col, "")
+        replace = None
+        if data is None:
+            replace = self.col_opt(col, "none_as", self.opt("none_as"))
+        elif isinstance(data, float) and cmath.isnan(data):
+            replace = self.col_opt(col, "nan_as", self.opt("nan_as"))
+        elif self.col_opt(col, "render_links", self.opt("render_links")):
+            if link := html_link(data):
+                replace = link
+        if replace is not None:
+            return replace
+        if not self.col_opt(col, "raw", False):
+            data = self.h(data)
+        data = str(data)
+        return data
 
-  def title_tr(self) -> str:
-    def stat(n, axis):
-      return tooltip(n, f'{n} {axis}')
+    def title_tr(self) -> str:
+        def stat(n, axis):
+            return tooltip(n, f"{n} {axis}")
 
-    title = []
-    if self.opt('stats'):
-      title += [
-        ''.join([
-          '<span style="cx-stats">',
-          stat(self.width, 'columns'),
-          ' x ',
-          stat(self.height, 'rows'),
-          '</span>',
-        ])
-      ]
-    if self.opt('parent_link'):
-      title += ['<span style="cx-parent-link"><a href="./" title="parent directory">..</a></span>']
-    if self.opt('title'):
-      title += [f'<span class="cx-title-text">{self.h(self.opt("title"))}</span>']
-    if not title:
-      return ''
-    title = [
-      '<tr class="cx-title-row">',
-      f'<th class="cx-title-th" colspan="{self.colspan}">',
-      '<span class="cx-title">',
-      self.h(' | ').join(title),
-      '</span></th></tr>'
-    ]
-    return ''.join(title)
+        title = []
+        if self.opt("stats"):
+            title += [
+                "".join(
+                    [
+                        '<span style="cx-stats">',
+                        stat(self.width, "columns"),
+                        " x ",
+                        stat(self.height, "rows"),
+                        "</span>",
+                    ]
+                )
+            ]
+        if self.opt("parent_link"):
+            title += [
+                '<span style="cx-parent-link"><a href="./" title="parent directory">..</a></span>'
+            ]
+        if self.opt("title"):
+            title += [f'<span class="cx-title-text">{self.h(self.opt("title"))}</span>']
+        if not title:
+            return ""
+        title = [
+            '<tr class="cx-title-row">',
+            f'<th class="cx-title-th" colspan="{self.colspan}">',
+            '<span class="cx-title">',
+            self.h(" | ").join(title),
+            "</span></th></tr>",
+        ]
+        return "".join(title)
 
-  def resource_(self, res: Resources, names: List[str], default=None) -> Any:
-    if not names:
-      return str(default)
-    data = res.read(names, None)
-    if data is None:
-      if default is None:
-        raise Exception(f'resource: cannot locate {names!r}')
-      return default
-    return data
+    def resource_(self, res: Resources, names: List[str], default=None) -> Any:
+        if not names:
+            return str(default)
+        data = res.read(names, None)
+        if data is None:
+            if default is None:
+                raise Exception(f"resource: cannot locate {names!r}")
+            return default
+        return data
 
-  def resource_opt(self, res: Resources, name: str, default=None) -> str:
-    if data := self.options.get(name, False):
-      if isinstance(data, str) and data.startswith('@'):
-        return self.resource(res, name[:1])
-      return str(data)
-    if default is None:
-      raise Exception(f'resource: cannot locate {name!r}')
-    return str(default)
+    def resource_opt(self, res: Resources, name: str, default=None) -> str:
+        if data := self.options.get(name, False):
+            if isinstance(data, str) and data.startswith("@"):
+                return self.resource(res, name[:1])
+            return str(data)
+        if default is None:
+            raise Exception(f"resource: cannot locate {name!r}")
+        return str(default)
 
-  def resource(self, res: Resources, name: str, default=None) -> str:
-    return self.resource_(res, [name], default)
+    def resource(self, res: Resources, name: str, default=None) -> str:
+        return self.resource_(res, [name], default)
 
-  def resource_min(self, res: Resources, name: str, default=None) -> str:
-    if not self.enable_min:
-      return self.resource_(res, [name], default)
-    path = Path(name)
-    parent = path.parent
-    suffix = path.suffix
-    base = path.name[:-len(suffix)]
-    name_min = parent.joinpath(f'{base}.min{suffix}')
-    return self.resource_(res, [str(name_min), name], default)
+    def resource_min(self, res: Resources, name: str, default=None) -> str:
+        if not self.enable_min:
+            return self.resource_(res, [name], default)
+        path = Path(name)
+        parent = path.parent
+        suffix = path.suffix
+        base = path.name[: -len(suffix)]
+        name_min = parent.joinpath(f"{base}.min{suffix}")
+        return self.resource_(res, [str(name_min), name], default)
 
-  def javascript(self, content: str) -> str:
-    return tag_maybe('script', content)
+    def javascript(self, content: str) -> str:
+        return tag_maybe("script", content)
 
-  def style(self, content: str) -> str:
-    return tag_maybe('style', content)
+    def style(self, content: str) -> str:
+        return tag_maybe("style", content)
 
 
 def tooltip(content: str, title: str) -> str:
-  return f'<a href="#" class="cx-tooltip" title="{title}">{content}</a>'
+    return f'<a href="#" class="cx-tooltip" title="{title}">{content}</a>'
+
 
 def tag_maybe(tag: str, content: str) -> str:
-  _tag = re.sub(r' +.*$', '', tag)
-  return f'<{tag}>{content}</{_tag}>\n' if content else ''
+    _tag = re.sub(r" +.*$", "", tag)
+    return f"<{tag}>{content}</{_tag}>\n" if content else ""
+
 
 def html_link(url: str, attrs=None) -> Optional[str]:
-  attrs = attrs or 'target="_new" rel="noopener noreferrer"'
-  url = str(url).strip()
-  if re.match(r'^(https?|ftps?)://', url):
-    return f'<a href="{url}" {attrs}>{html.escape(url)}</a>'
-  return None
+    attrs = attrs or 'target="_new" rel="noopener noreferrer"'
+    url = str(url).strip()
+    if re.match(r"^(https?|ftps?)://", url):
+        return f'<a href="{url}" {attrs}>{html.escape(url)}</a>'
+    return None
 
 
 #########################################
@@ -302,13 +316,13 @@ def html_link(url: str, attrs=None) -> Optional[str]:
 EMPTY_DICT: Dict[Any, Any] = {}
 
 UNICODE = {
-  # Left-Pointing Magnifying Glass : U+1F50D
-  'search': "🔍",
+    # Left-Pointing Magnifying Glass : U+1F50D
+    "search": "🔍",
 }
 
 #########################################
 
-HTML_HEAD = '''
+HTML_HEAD = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -329,9 +343,9 @@ ${this.resource_opt(table, 'html_head_footer', '')}
 ${this.resource(table, 'body-header.html', '')}
 ${this.resource_opt(table, 'body_header', '')}
 <div ${class_("cx-content")}>
-'''
+"""
 
-HTML_FOOT = '''
+HTML_FOOT = """
 </div>
 <div ${class_("cx-footer")}>
 ${this.resource_opt(table, 'body_footer', '')}
@@ -344,20 +358,20 @@ ${this.resource_opt(table, 'html_footer', '')}
 </div>
 </body>
 </html>
-'''
+"""
 
 #########################################
 
-TABLE_HEAD = '''
+TABLE_HEAD = """
 <table ${attrs({"id": "cx-table", "class":"cx-table"})}>
 ${this.resource_opt(table, 'table_head', '')}
-'''
-TABLE_FOOT = '''
+"""
+TABLE_FOOT = """
 ${this.resource_opt(table, 'table_foot', '')}
 </table>
-'''
+"""
 
-TABLE_INIT = '''
+TABLE_INIT = """
 % if opt('filtering'):
 ${this.javascript(this.resource_min(vendor, "zepto-1.2.0/zepto.js"))}
 ${this.javascript(this.resource_min(js, "parser_combinator.js"))}
@@ -397,24 +411,24 @@ $(document).ready(function() {
 </script>
 %endif
 
-'''
+"""
 
 #########################################
 
-THEAD_HEAD = '''
+THEAD_HEAD = """
 % if opt('header') or title_tr:
 <thead ${attrs({'class': "cx-thead"})}>
 ${title_tr}
-'''
+"""
 
-THEAD_FOOT = '''
+THEAD_FOOT = """
 </thead>
 %endif
-'''
+"""
 
 #########################################
 
-THEAD_COLUMNS = '''
+THEAD_COLUMNS = """
 <%
   col_idx = 0;
   row_title = "row #";
@@ -429,9 +443,9 @@ ${ th('#', {'class': 'cx-right', 'title': row_title, "data-sort-method": "number
 ${ th(col) }
 % endfor
 </tr>
-'''
+"""
 
-THEAD_FILTERING = '''
+THEAD_FILTERING = """
 <tr class="cx-filter-row">
   <th class="cx-filter-th" colspan="${colspan}">
     <span class="cx-filter-input-span">
@@ -458,11 +472,11 @@ THEAD_FILTERING = '''
     </span>
   </th>
 </tr>
-'''
+"""
 
 #########################################
 
-TBODY = '''
+TBODY = """
 <tbody ${class_("cx-tbody")}>
 <% row_idx = 0 %>
 % for row in rows:
@@ -477,6 +491,6 @@ ${td(row, row_idx, col)}
 </tr>
 % endfor
 </tbody>
-'''
+"""
 
 #########################################

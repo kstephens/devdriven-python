@@ -1,112 +1,133 @@
-from io import StringIO
-# pylint: disable-next=wildcard-import
-from devdriven.rbac.rbac import \
-  Resource, Action, Role, Group, RoleMembership, Identity, \
-  Domain, Request, Solver, TextLoader
-from devdriven.asserts import assert_output_by_key
+from pathlib import Path, PurePath
+from ..asserts import assert_output_by_key
+from . import Resource, Action, Request, Solver, TextLoader, DomainFileLoader
+from .util import getter
+
 # from icecream import ic
 
-def test_rbac():
-  def proc(actual_out):
-    with open(actual_out, "w", encoding='utf-8') as out:
-      def prt(x):
-        print(x, file=out)
-      run_test_rbac(prt)
-  assert_output_by_key('run_test_rbac', 'tests/devdriven/output/rbac', proc)
 
-# pylint: disable-next=too-many-statements
-def run_test_rbac(prt):
-  # pylint: disable=too-many-locals
-  admin_role = Role('admin')
-  read_role = Role('read')
-  write_role = Role('write')
-  other_role = Role('other')
-  anon_role = Role('anon')
+def test_rbac_integration():
+    run_test("test_rbac_integration", run_rbac_integration)
 
-  admin_group = Group('admins')
-  readers_group = Group('readers')
-  writers_group = Group('writers')
-  other_group = Group('other')
-  anon_group = Group('anon')
 
-  role_memberships = [
-    RoleMembership(role=role, member=member) for role, member in [
-      (admin_role, admin_group),
-      (read_role, readers_group),
-      (write_role, writers_group),
-      (other_role, other_group),
-      (anon_role, anon_group),
-    ]
-  ]
+# pylint: disable-next=too-many-statements,too-many-locals
+def run_rbac_integration(prt):
+    resource_base = PurePath("tests/data/rbac")
+    resource_root = resource_base / "root"
+    domain = None
 
-  identity_by_name = {
-    id.name: id for id in [
-      Identity('unknown', groups=[anon_group]),
-      Identity('alice', groups=[admin_group]),
-      Identity('bob', groups=[readers_group]),
-      Identity('frank', groups=[writers_group, other_group]),
-    ]
-  }
+    def print_user(user):
+        nonlocal domain
+        groups = list(map(lambda o: o.name, user.groups))
+        roles = list(map(lambda o: o.name, domain.roles_for_user(user)))
+        prt(f"# identity {user.name}")
+        prt(f"#   groups = {groups!r}")
+        prt(f"#   roles = {roles!r}")
 
-  text = '''
-  # a comment
+    with open(f"{resource_base}/user.txt", encoding="utf-8") as io:
+        users = TextLoader("").read_users(io)
+    with open(f"{resource_base}/role.txt", encoding="utf-8") as io:
+        memberships = TextLoader("").read_memberships(io)
+    roles = {}
+    for member in memberships:
+        roles[member.role.name] = member.role
+    roles = roles.values()
 
-allow *   admin  *
-allow *   admin  .*
-allow GET *      README.*
-allow GET read   *.c
-allow PUT write  *
-deny  *   *      *
+    prt("")
+    for user in users:
+        prt(f"#  user {user.name} {','.join(map(getter('name'), user.groups))}")
+    user_by_name = {user.name: user for user in users}
+    for membership in memberships:
+        prt(f"#  member {membership.role.name} {membership.member.name}")
+    for role in roles:
+        prt(f"#  role {role.name}")
 
-  '''
-  io = StringIO(text)
-  resource = Resource('/a')
-  loader = TextLoader(resource)
-  rules = loader.read(io)
+    def fut(resource, action, user_name):
+        nonlocal domain, roles, memberships
 
-  domain = Domain(
-    roles=[admin_role, read_role],
-    rules=rules,
-    role_memberships=role_memberships,
-  )
+        user = user_by_name[user_name]
+        request = Request(resource=Resource(resource), action=Action(action), user=user)
 
-  solver = Solver(domain=domain)
+        domain = (
+            DomainFileLoader()
+            .load_all(
+                users_file=Path(f"{resource_base}/user.txt"),
+                memberships_file=Path(f"{resource_base}/role.txt"),
+                resource_root=resource_root,
+                resource_path=Path(request.resource.name),
+            )
+            .create_domain()
+        )
+        solver = Solver(domain=domain)
+        rules = solver.find_rules(request)
+        prt("")
+        print_user(user)
 
-  def fut(resource, action, identity):
-    ident = identity_by_name[identity]
-    request = Request(resource=Resource(resource), action=Action(action), identity=ident)
-    rules = solver.find_rules(request)
-    result = [rule.permission.name for rule in rules]
-    prt(f"assert fut({resource!r}, {action!r}), {identity!r} == {result!r}")
+        result = [rule.permission.name for rule in rules]
+        result = [rule.brief() for rule in rules]
+        result = ", ".join(result)
 
-  prt(text)
-  fut('/nope', 'GET', 'unknown')
-  fut('/nope', 'GET', 'alice')
+        given = f"fut({resource!r}, {action!r}, {user_name!r})"
+        prt(f"assert {given:40s} == [{result}]")
 
-  fut('/a/b', 'GET', 'unknown')
-  fut('/a/b', 'GET', 'alice')
-  fut('/a/b', 'GET', 'bob')
-  fut('/a/b', 'GET', 'frank')
+    prt("\n# ############################################")
 
-  fut('/a/b.c', 'GET', 'unknown')
-  fut('/a/b.c', 'PUT', 'unknown')
-  fut('/a/b.c', 'GET', 'alice')
-  fut('/a/b.c', 'PUT', 'alice')
-  fut('/a/b.c', 'GET', 'bob')
-  fut('/a/b.c', 'PUT', 'bob')
-  fut('/a/b.c', 'GET', 'frank')
-  fut('/a/b.c', 'PUT', 'frank')
+    prt("# =========================================")
+    fut("/nope", "GET", "unknown")
+    fut("/nope", "GET", "alice")
+    fut("/nope", "GET", "root")
 
-  fut('/a/.c', 'GET', 'unknown')
-  fut('/a/.c', 'GET', 'alice')
-  fut('/a/.c', 'GET', 'bob')
-  fut('/a/.c', 'GET', 'frank')
+    prt("# =========================================")
+    fut("/.hidden", "GET", "unknown")
+    fut("/.hidden", "GET", "alice")
+    fut("/a/.hidden", "GET", "unknown")
+    fut("/a/.hidden", "GET", "alice")
+    fut("/a/b/.hidden", "GET", "unknown")
+    fut("/a/b/.hidden", "GET", "alice")
 
-  fut('/a/README.md', 'GET', 'unknown')
-  fut('/a/README.md', 'PUT', 'unknown')
-  fut('/a/README.md', 'GET', 'alice')
-  fut('/a/README.md', 'PUT', 'alice')
-  fut('/a/README.md', 'GET', 'bob')
-  fut('/a/README.md', 'PUT', 'bob')
-  fut('/a/README.md', 'GET', 'frank')
-  fut('/a/README.md', 'PUT', 'frank')
+    prt("# =========================================")
+    fut("/a/1", "GET", "unknown")
+    fut("/a/1", "GET", "alice")
+    fut("/a/1", "GET", "bob")
+    fut("/a/1", "GET", "frank")
+    fut("/a/1", "GET", "tim")
+
+    prt("# =========================================")
+    fut("/a/b/2", "GET", "unknown")
+    fut("/a/b/2", "GET", "alice")
+    fut("/a/b/2", "GET", "bob")
+    fut("/a/b/2", "GET", "frank")
+    fut("/a/b/2", "GET", "tim")
+
+    prt("# =========================================")
+    fut("/a/b/3", "PUT", "unknown")
+    fut("/a/b/3", "PUT", "alice")
+    fut("/a/b/3", "PUT", "bob")
+    fut("/a/b/3", "PUT", "frank")
+    fut("/a/b/3", "PUT", "tim")
+
+    prt("# =========================================")
+    fut("/a/b/c.txt", "PUT", "unknown")
+    fut("/a/b/c.txt", "PUT", "alice")
+    fut("/a/b/c.txt", "PUT", "bob")
+    fut("/a/b/c.txt", "PUT", "frank")
+    fut("/a/b/c.txt", "PUT", "tim")
+
+    prt("# =========================================")
+    fut("/.rbac.txt", "PUT", "unknown")
+    fut("/.rbac.txt", "PUT", "alice")
+    fut("/a/.rbac.txt", "PUT", "alice")
+    fut("/a/b/.rbac.txt", "PUT", "alice")
+    fut("/a/b/c/.rbac.txt", "PUT", "alice")
+
+
+def run_test(name, test_fun):
+    def proc(actual_out):
+        with open(actual_out, "w", encoding="utf-8") as out:
+
+            def prt(x):
+                print(x, file=out)
+
+            test_fun(prt)
+
+    assert_output_by_key(name, "tests/devdriven/output/rbac", proc)

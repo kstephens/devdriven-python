@@ -17,6 +17,7 @@ declare -gA argv_set=() argv_options=() argv_flags=()
       -argv-parse-arg "$arg"
     fi
   done
+  # declare -p argv_argv0 argv_args argv_set argv_options argv_flags >&2
 }
 
 -argv-parse-arg() {
@@ -55,7 +56,7 @@ declare -gA argv_set=() argv_options=() argv_flags=()
     argv_options["$key"]="$val"
     [[ -n "$is_flag" ]] && argv_flags["$key"]="$val"
   fi
-  # declare -p is_opt is_flag key val
+  # declare -p arg is_opt is_flag key val >&2
   # echo '  ### -argv-parse-arg ^^^^^^^^^^^^^^^^^^^^^^^^'
 }
 
@@ -94,7 +95,6 @@ declare -gA argv_set=() argv_options=() argv_flags=()
 }
 
 -argv-test-parse() {
-  # set -x
   -argv-parse-commands -argv-test-show-cmd "$@"
 }
 

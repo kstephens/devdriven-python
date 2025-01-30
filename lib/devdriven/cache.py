@@ -3,62 +3,63 @@ import logging
 from pathlib import Path
 from .file import pickle_bz2
 
-class PickleCache():
-  def __init__(self, path: str, generate: Optional[Callable]):
-    self.path = Path(path)
-    self.generate = generate
-    self._data: Any = None
-    self._ready: bool = False
-    self._stale: bool = False
 
-  @property
-  def ready(self) -> bool:
-    return self._ready
+class PickleCache:
+    def __init__(self, path: str, generate: Optional[Callable]):
+        self.path = Path(path)
+        self.generate = generate
+        self._data: Any = None
+        self._ready: bool = False
+        self._stale: bool = False
 
-  def exists(self) -> bool:
-    return self.path.exists()
+    @property
+    def ready(self) -> bool:
+        return self._ready
 
-  def is_ready(self) -> bool:
-    return self._ready
+    def exists(self) -> bool:
+        return self.path.exists()
 
-  def flush(self) -> None:
-    self.path.unlink(True)
-    self._stale = True
+    def is_ready(self) -> bool:
+        return self._ready
 
-  @property
-  def data(self) -> Any:
-    return self.get_data()
+    def flush(self) -> None:
+        self.path.unlink(True)
+        self._stale = True
 
-  @data.setter
-  def data(self, data: Any) -> None:
-    self.set_data(data)
-    self.write(self.path)
+    @property
+    def data(self) -> Any:
+        return self.get_data()
 
-  def get_data(self) -> Any:
-    logging.debug('%s', f'get_data : {self.path!r}')
-    if not self._ready:
-      if self.exists():
-        self.read(self.path)
-      else:
-        assert self.generate
-        self.set_data(self.generate())
+    @data.setter
+    def data(self, data: Any) -> None:
+        self.set_data(data)
         self.write(self.path)
-    assert self._ready
-    return self._data
 
-  def set_data(self, data: Any) -> None:
-    logging.debug('%s', f'set_data : {self.path!r}')
-    self._data = data
-    self._ready = True
-    self._stale = True
+    def get_data(self) -> Any:
+        logging.debug("%s", f"get_data : {self.path!r}")
+        if not self._ready:
+            if self.exists():
+                self.read(self.path)
+            else:
+                assert self.generate
+                self.set_data(self.generate())
+                self.write(self.path)
+        assert self._ready
+        return self._data
 
-  def write(self, path: Path) -> None:
-    logging.debug('%s', f'write : {path!r}')
-    assert self._ready
-    pickle_bz2(path, 'wb', self._data)
-    self._stale = False
+    def set_data(self, data: Any) -> None:
+        logging.debug("%s", f"set_data : {self.path!r}")
+        self._data = data
+        self._ready = True
+        self._stale = True
 
-  def read(self, path: Path) -> None:
-    logging.debug('%s', f'read : {path!r}')
-    self._data = pickle_bz2(path, 'rb')
-    self._ready = True
+    def write(self, path: Path) -> None:
+        logging.debug("%s", f"write : {path!r}")
+        assert self._ready
+        pickle_bz2(str(path), "wb", self._data)
+        self._stale = False
+
+    def read(self, path: Path) -> None:
+        logging.debug("%s", f"read : {path!r}")
+        self._data = pickle_bz2(str(path), "rb")
+        self._ready = True
