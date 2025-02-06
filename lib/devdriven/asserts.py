@@ -1,4 +1,4 @@
-from typing import Any, Optional, Iterable, Callable, Tuple, TextIO
+from typing import Any, Optional, Iterable, List, Callable, Tuple, TextIO
 import os
 import sys
 from pathlib import Path
@@ -12,7 +12,8 @@ Command = str
 FileOutputFunc = Callable[[Filepath], None]
 ContextFunc = Callable[[str], Optional[str]]
 Difference = Tuple[int, str, str, Optional[str]]
-Differences = Iterable[Difference]
+Differences = List[Difference]
+Lines = List[str]
 
 
 def assert_command_output(
@@ -75,14 +76,7 @@ def assert_files(
     if os.path.isfile(expect_out):
         differences = compare_files(actual_out, expect_out, context_line=context_line)
         if differences:
-            assert_log(f"To compare : diff -u {expect_out!r} {actual_out!r}")
-            assert_log(f"To accept  : mv {actual_out!r} {expect_out!r}")
-            assert_log("      OR   : export ASSERT_DIFF_ACCEPT=1")
-            os.system(f"exec 2>&1; set -x; diff -u {expect_out!r} {actual_out!r} 2>&1")
-            if int(os.environ.get("ASSERT_DIFF_ACCEPT", "0")):
-                accept_actual = "ASSERT_DIFF_ACCEPT"
-            else:
-                assert actual_out == expect_out
+            accept_actual = assertion_differences(actual_out, expect_out, differences)
     else:
         accept_actual = "Initialize"
 
@@ -94,6 +88,40 @@ def assert_files(
         Path(actual_out).unlink(missing_ok=True)
         return expect_out
     return actual_out
+
+
+def assertion_differences(
+    actual_out: Filepath,
+    expect_out: Filepath,
+    differences: Differences,
+):
+    common_prefix = os.path.commonprefix([actual_out, expect_out])
+    actual_suffix = actual_out.removeprefix(common_prefix)
+    expect_suffix = expect_out.removeprefix(common_prefix)
+
+    diff_command = f"diff --minimal -u {expect_out!r} {actual_out!r}"
+    mv_command = f"mv {common_prefix}" + "{" + actual_suffix + "," + expect_suffix + "}"
+    accept_command = "export ASSERT_DIFF_ACCEPT=1"
+
+    assert_log(
+        f"{common_prefix!r} : {len(differences)} differences found between {actual_suffix!r} and {expect_suffix!r}"
+    )
+    # for diff in differences:
+    #    assert_log(f"{diff!r}")
+
+    assert_log(f"To compare : {diff_command}")
+    assert_log(f"To accept  : {mv_command}")
+    assert_log(f"      OR   : {accept_command}")
+
+    n_lines = 50
+    assert_log("Difference: first {n_lines} lines")
+    os.system(f"exec 2>&1; (set -x; {diff_command}) | head -{n_lines} 2>&1")
+
+    if int(os.environ.get("ASSERT_DIFF_ACCEPT", "0")):
+        accept_actual = "ASSERT_DIFF_ACCEPT"
+    else:
+        assert actual_out == expect_out
+    return accept_actual
 
 
 def compare_files(
@@ -124,8 +152,8 @@ def compare_files(
 
 
 def compare_lines(
-    actual_lines: Iterable[str],
-    expect_lines: Iterable[str],
+    actual_lines: Lines,
+    expect_lines: Lines,
     context_line: Optional[ContextFunc] = None,
 ) -> Differences:
     i = 0
@@ -140,6 +168,22 @@ def compare_lines(
         if actual_line != expect_line:
             differences.append((i, actual_line, expect_line, context))
     return differences
+
+
+def context_lines(
+    side: str,
+    lines: Lines,
+    context_line: Optional[ContextFunc] = None,
+) -> List:
+    if not context_line:
+        return lines
+    result, context = [], None
+    for line in lines:
+        if new_context := context_line(line):
+            context = new_context
+            result.append(f"### context: {side} {context}")
+        result.append(line)
+    return result
 
 
 def fix_file(file: Filepath, fix_line: Optional[FilterFunc] = None) -> None:
