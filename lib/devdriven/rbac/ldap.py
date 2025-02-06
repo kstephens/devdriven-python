@@ -63,12 +63,10 @@ class LDAPService:
         return res
 
     def encode_auth_token(self, req):
-        return Cipher(self.auth_token_key()).encipher_token(
-            (req["user"], req["secret"])
-        )
+        return Cipher(self.auth_token_key()).encipher((req["user"], req["secret"]))
 
     def decode_auth_token(self, token):
-        user, secret = Cipher(self.auth_token_key()).decipher_token(token)
+        user, secret = Cipher(self.auth_token_key()).decipher(token)
         return {"user": user, "secret": secret}
 
     def auth_token_key(self) -> str:
