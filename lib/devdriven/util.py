@@ -281,6 +281,12 @@ def slice_keys_compare(d1: dict, d2: dict) -> bool:
 # Sequence
 
 
+def count(seq: Iterable[Any], pred: Optional[Callable[[Any], bool]] = None) -> int:
+    if pred:
+        return sum(1 for x in seq if pred(x))
+    return sum(1 for _ in seq)
+
+
 def trim_list(lst: List[Any]) -> List[Any]:
     lst = lst.copy()
     while lst and not lst[0]:
