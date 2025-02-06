@@ -21,177 +21,177 @@
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/nope', 'GET', 'unknown')           == [('deny', '*', 'anon-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/nope', 'GET', 'alice')             == [('allow', '*', 'admin-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity root
-#   groups = ['Other']
-#   roles = ['admin-role', 'other-role']
+#   groups=['Other']
+#   roles=['admin-role', 'other-role']
 assert fut('/nope', 'GET', 'root')              == [('allow', '*', 'admin-role', '/**'), ('allow', 'GET', '*', '/**')]
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/.hidden', 'GET', 'unknown')        == [('deny', '*', 'anon-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/.hidden', 'GET', 'alice')          == [('allow', '*', 'admin-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/a/.hidden', 'GET', 'unknown')      == [('deny', '*', 'anon-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/.hidden', 'GET', 'alice')        == [('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('allow', 'GET', '*', '/**')]
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/a/b/.hidden', 'GET', 'unknown')    == [('deny', '*', 'anon-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/b/.hidden', 'GET', 'alice')      == [('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('allow', 'GET', '*', '/**')]
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/a/1', 'GET', 'unknown')            == [('deny', '*', 'anon-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/1', 'GET', 'alice')              == [('allow', '*', 'admin-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity bob
-#   groups = ['Readers']
-#   roles = ['read-role']
+#   groups=['Readers']
+#   roles=['read-role']
 assert fut('/a/1', 'GET', 'bob')                == [('allow', 'GET', '*', '/**')]
 
 # identity frank
-#   groups = ['Writers', 'Other']
-#   roles = ['write-role', 'other-role']
+#   groups=['Writers', 'Other']
+#   roles=['write-role', 'other-role']
 assert fut('/a/1', 'GET', 'frank')              == [('allow', 'GET', 'other-role', '/a/*'), ('allow', 'GET', '*', '/**')]
 
 # identity tim
-#   groups = ['Other']
-#   roles = ['other-role']
+#   groups=['Other']
+#   roles=['other-role']
 assert fut('/a/1', 'GET', 'tim')                == [('allow', 'GET', 'other-role', '/a/*'), ('allow', 'GET', '*', '/**')]
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/a/b/2', 'GET', 'unknown')          == [('deny', '*', 'anon-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/b/2', 'GET', 'alice')            == [('allow', '*', 'admin-role', '/**'), ('allow', 'GET', '*', '/**')]
 
 # identity bob
-#   groups = ['Readers']
-#   roles = ['read-role']
+#   groups=['Readers']
+#   roles=['read-role']
 assert fut('/a/b/2', 'GET', 'bob')              == [('allow', 'GET', 'read-role', '/a/b/*'), ('allow', 'GET', '*', '/**')]
 
 # identity frank
-#   groups = ['Writers', 'Other']
-#   roles = ['write-role', 'other-role']
+#   groups=['Writers', 'Other']
+#   roles=['write-role', 'other-role']
 assert fut('/a/b/2', 'GET', 'frank')            == [('allow', 'GET', '*', '/**')]
 
 # identity tim
-#   groups = ['Other']
-#   roles = ['other-role']
+#   groups=['Other']
+#   roles=['other-role']
 assert fut('/a/b/2', 'GET', 'tim')              == [('allow', 'GET', '*', '/**')]
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/a/b/3', 'PUT', 'unknown')          == [('deny', '*', 'anon-role', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/b/3', 'PUT', 'alice')            == [('allow', '*', 'admin-role', '/**')]
 
 # identity bob
-#   groups = ['Readers']
-#   roles = ['read-role']
+#   groups=['Readers']
+#   roles=['read-role']
 assert fut('/a/b/3', 'PUT', 'bob')              == []
 
 # identity frank
-#   groups = ['Writers', 'Other']
-#   roles = ['write-role', 'other-role']
+#   groups=['Writers', 'Other']
+#   roles=['write-role', 'other-role']
 assert fut('/a/b/3', 'PUT', 'frank')            == []
 
 # identity tim
-#   groups = ['Other']
-#   roles = ['other-role']
+#   groups=['Other']
+#   roles=['other-role']
 assert fut('/a/b/3', 'PUT', 'tim')              == []
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/a/b/c.txt', 'PUT', 'unknown')      == [('deny', '*', 'anon-role', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/b/c.txt', 'PUT', 'alice')        == [('allow', '*', 'admin-role', '/**')]
 
 # identity bob
-#   groups = ['Readers']
-#   roles = ['read-role']
+#   groups=['Readers']
+#   roles=['read-role']
 assert fut('/a/b/c.txt', 'PUT', 'bob')          == []
 
 # identity frank
-#   groups = ['Writers', 'Other']
-#   roles = ['write-role', 'other-role']
+#   groups=['Writers', 'Other']
+#   roles=['write-role', 'other-role']
 assert fut('/a/b/c.txt', 'PUT', 'frank')        == [('allow', 'PUT', 'write-role', '/a/b/*.txt')]
 
 # identity tim
-#   groups = ['Other']
-#   roles = ['other-role']
+#   groups=['Other']
+#   roles=['other-role']
 assert fut('/a/b/c.txt', 'PUT', 'tim')          == []
 # =========================================
 
 # identity unknown
-#   groups = ['Anon']
-#   roles = ['anon-role']
+#   groups=['Anon']
+#   roles=['anon-role']
 assert fut('/.rbac.txt', 'PUT', 'unknown')      == [('deny', '*', 'anon-role', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/.rbac.txt', 'PUT', 'alice')        == [('allow', '*', 'admin-role', '/**')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/.rbac.txt', 'PUT', 'alice')      == [('allow', '*', 'admin-role', '/**/.rbac.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.rbac.txt')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/b/.rbac.txt', 'PUT', 'alice')    == [('allow', '*', 'admin-role', '/**/.rbac.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.rbac.txt')]
 
 # identity alice
-#   groups = ['Admins']
-#   roles = ['admin-role']
+#   groups=['Admins']
+#   roles=['admin-role']
 assert fut('/a/b/c/.rbac.txt', 'PUT', 'alice')  == [('allow', '*', 'admin-role', '/**/.rbac.txt'), ('allow', '*', 'admin-role', '/**'), ('allow', '*', 'admin-role', '/**/.*'), ('deny', '*', '*', '/**/.rbac.txt')]

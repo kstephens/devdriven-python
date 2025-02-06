@@ -48,7 +48,7 @@ def basic_auth_decode(x):
 
 
 def add_header(x):
-    # print(f"HEADER = {HEADER!r}")
+    # print(f{HEADER=}")
     return b"1\t" + x
 
 
@@ -76,8 +76,8 @@ def pad(x: str, size):
 if __name__ == "__main__":
     cipher = Cipher("secret-key")
     data_in = ("username", "password")
-    print(f"data_in = {data_in!r}")
+    print(f"{data_in=}")
     data_enc = cipher.encipher_token(data_in)
-    print(f"data_enc = {data_enc!r}")
+    print(f"{data_enc=}")
     data_out = cipher.decipher_token(data_enc)
-    print(f"data_out = {data_out!r}")
+    print(f"{data_out=}")

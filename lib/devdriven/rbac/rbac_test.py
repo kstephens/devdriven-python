@@ -21,8 +21,8 @@ def run_rbac_integration(prt):
         groups = list(map(lambda o: o.name, user.groups))
         roles = list(map(lambda o: o.name, domain.roles_for_user(user)))
         prt(f"# identity {user.name}")
-        prt(f"#   groups = {groups!r}")
-        prt(f"#   roles = {roles!r}")
+        prt(f"#   {groups=}")
+        prt(f"#   {roles=}")
 
     with open(f"{resource_base}/user.txt", encoding="utf-8") as io:
         users = TextLoader("").read_users(io)
