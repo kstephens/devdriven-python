@@ -251,6 +251,12 @@ def merge_dicts(*dicts) -> dict:
     return {k: v for d in dicts for k, v in d.items()}
 
 
+def merge_deep(a: Any, b: Any) -> Any:
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a | {k: merge_deep(a.get(k), v) for k, v in b.items()}
+    return b
+
+
 def setattr_from_dict(obj, attrs: Dict[str, Any]) -> None:
     for name, val in attrs.items():
         setattr(obj, name, val)

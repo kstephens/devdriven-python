@@ -281,6 +281,38 @@ def test_merge_dicts():
     assert util.merge_dicts(*dicts) == {"a": 2, "b": 11, "c": 7, "d": 13}
 
 
+def test_merge_deep():
+    fut = util.merge_deep
+    assert fut(2, 3) == 3
+    assert fut({"a": 2}, 3) == 3
+    assert fut(2, {"a": 3}) == {"a": 3}
+    assert fut({"a": 2}, {"a": 3}) == {"a": 3}
+    assert fut({"a": 2, "b": 3}, {"b": 5, "c": 7}) == {"a": 2, "b": 5, "c": 7}
+    a = {
+        "a": 2,
+        "b": 3,
+        "c": {
+            "d": 5,
+        },
+    }
+    b = {
+        "b": 7,
+        "c": {
+            "d": 11,
+            "e": 12,
+        },
+    }
+    expected = {
+        "a": 2,
+        "b": 7,
+        "c": {
+            "d": 11,
+            "e": 12,
+        },
+    }
+    assert fut(a, b) == expected
+
+
 def test_first():
     assert util.first(lambda x: x % 2 == 1, [2, 3, 5], "not-found") == 3
     assert util.first(lambda x: x % 2 == 1, [2, 4, 6], "not-found") == "not-found"
