@@ -1,6 +1,6 @@
 import re
 import logging
-from typing import Any, Optional, Union, Dict, Tuple
+from typing import Any, Union, Dict, Tuple
 import urllib.request
 import urllib.parse
 from .to_dict import dump_json
@@ -13,7 +13,7 @@ Data = Union[str, bytes, None]
 
 
 def send_to_url(
-    url: str, data: Data, headers: Optional[Headers] = None, **options
+    url: str, data: Data, headers: Headers | None = None, **options
 ) -> HttpResult:
     if not headers:
         headers = {}
@@ -32,7 +32,7 @@ def send_to_url(
 
 
 def http_method_url(
-    maybe_method_and_url: str, context: Optional[Dict] = None
+    maybe_method_and_url: str, context: Dict | None = None
 ) -> Tuple[str, str | None]:
     if context:
         maybe_method_and_url = maybe_method_and_url.format(**context)
@@ -44,7 +44,7 @@ def http_method_url(
 
 # pylint: disable=too-many-locals
 def http_post(
-    url: str, body: str | bytes, headers: Optional[Headers] = None, **options
+    url: str, body: str | bytes, headers: Headers | None = None, **options
 ) -> HttpResult:
     url, method = http_method_url(url, context=options.get("context"))
     if not method:
@@ -94,7 +94,7 @@ def http_post(
 
 def http_do_request(
     req: Any, body: bytes, options: Options
-) -> Tuple[HttpResult, Optional[HttpResult]]:
+) -> Tuple[HttpResult, HttpResult | None]:
     res = error = None
     try:
         with urllib.request.urlopen(req, body) as res:

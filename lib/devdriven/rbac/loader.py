@@ -1,4 +1,4 @@
-from typing import Any, Self, Optional, Callable, Iterable, Tuple, List, Type, IO
+from typing import Any, Self, Callable, Iterable, Tuple, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
@@ -115,7 +115,7 @@ MEMBERSHIP_RX = re.compile(r"member\s+(?P<role>\S+)\s+(?P<members>\S+)")
 USER_RX = re.compile(r"user\s+(?P<user>\S+)\s+(?P<groups>\S+)")
 
 
-def real_open_file(file: Path) -> Optional[IO]:
+def real_open_file(file: Path) -> IO | None:
     try:
         return open(str(file), "r", encoding="utf-8")
     except OSError:

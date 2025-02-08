@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Iterable, Callable, List, Mapping, Dict, Tuple
+from typing import Any, Union, Iterable, Callable, List, Mapping, Dict, Tuple
 import os
 import subprocess
 import logging
@@ -44,7 +44,7 @@ def get_safe(items: Indexable, key: Any, default=None) -> Any:
         return default
 
 
-def len_or_none(obj: Any) -> Optional[int]:
+def len_or_none(obj: Any) -> int | None:
     return len(obj) if obj else None
 
 
@@ -64,8 +64,8 @@ def shorten_string(a_str: str, max_len: int, placeholder: str = "...") -> str:
     return a_str
 
 
-def maybe_decode_bytes(obj: Optional[bytes], encoding: str = "utf-8") -> Optional[str]:
-    if not obj:
+def maybe_decode_bytes(obj: bytes | None, encoding: str = "utf-8") -> str | None:
+    if obj is None:
         return None
     try:
         return obj.decode(encoding)
@@ -145,7 +145,7 @@ DATETIME_ISO8601_FMT = "%Y-%m-%d %H:%M:%S.%f%z"
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
 
 
-def datetime_iso8601(val: datetime, zone: Optional[timezone] = None) -> str:
+def datetime_iso8601(val: datetime, zone: timezone | None = None) -> str:
     if not zone:
         zone = timezone.utc
     return val.replace(tzinfo=zone).strftime(DATETIME_ISO8601_FMT)
@@ -156,13 +156,13 @@ def convert_windows_timestamp_to_iso8601(ts_str: int | str) -> str:
     return datetime_iso8601(datetime.fromtimestamp(ts_milli))
 
 
-def datetime_diff_sec(a: Optional[datetime], b: Optional[datetime]) -> float:
+def datetime_diff_sec(a: datetime | None, b: datetime | None) -> float:
     if a is None or b is None:
         return 0
     return (a - b).total_seconds()
 
 
-def datetime_diff_ms(a: Optional[datetime], b: Optional[datetime]) -> float:
+def datetime_diff_ms(a: datetime | None, b: datetime | None) -> float:
     if a is None or b is None:
         return 0
     return datetime_diff_sec(a, b) * 1000
@@ -177,7 +177,7 @@ def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
 
 def elapsed_ms_exception(
     exc_klass: Any, func: FuncAny, *args: Any, **kwargs: Any
-) -> Tuple[Any, float, Optional[Exception]]:
+) -> Tuple[Any, float, Exception | None]:
     time_0 = time.time()
     try:
         result = func(*args, **kwargs)
@@ -236,7 +236,7 @@ def exec_command(cmd_line: List[str], **options: Any) -> SubprocessResult:
 
 def exec_command_unless_dry_run(
     cmd_line: List[str], dry_run: bool, **options: Any
-) -> Optional[SubprocessResult]:
+) -> SubprocessResult | None:
     if dry_run:
         logging.info("DRY-RUN : exec_command : %s", repr(cmd_line))
         return None
@@ -263,7 +263,7 @@ def setattr_from_dict(obj, attrs: Dict[str, Any]) -> None:
 
 
 def dataclass_from_dict(
-    klass, opts: Dict, defaults: Optional[Dict[str, Any]] = None
+    klass, opts: Dict, defaults: Dict[str, Any] | None = None
 ) -> Any:
     opts = (defaults or {}) | opts
     args = {f.name: opts[f.name] for f in dataclasses.fields(klass) if f in opts}
@@ -287,7 +287,7 @@ def slice_keys_compare(d1: dict, d2: dict) -> bool:
 # Sequence
 
 
-def count(seq: Iterable[Any], pred: Optional[Callable[[Any], bool]] = None) -> int:
+def count(seq: Iterable[Any], pred: Callable[[Any], bool] | None = None) -> int:
     if pred:
         return sum(1 for x in seq if pred(x))
     return sum(1 for _ in seq)
@@ -438,7 +438,7 @@ def cwd(path: str) -> Any:
 # Regexp
 
 
-def glob_to_rx(glob: str, glob_terminator: Optional[str] = None) -> re.Pattern:
+def glob_to_rx(glob: str, glob_terminator: str | None = None) -> re.Pattern:
     assert not glob_terminator
     rx = glob
     rx = rx.replace(".", r"[^/]")
@@ -455,7 +455,7 @@ def set_from_match(obj, match: re.Match):
 # Networking
 
 
-def ip_to_host(ip: str) -> Optional[str]:
+def ip_to_host(ip: str) -> str | None:
     try:
         return socket.gethostbyaddr(ip)[0].lower()
     # pylint: disable-next=bare-except

@@ -1,7 +1,6 @@
-from typing import Optional  # Any, Self, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
 from .identity import User, Users, Group, Groups, Identity
-from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request  # , Action
+from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request
 from .util import find
 
 
@@ -52,7 +51,7 @@ class RuleDomain:
     rules: Rules = field(default_factory=list)
 
     def find_rules(
-        self, request: Request, roles: Roles, max_rules: Optional[int] = None
+        self, request: Request, roles: Roles, max_rules: int | None = None
     ) -> Rules:
         rules = []
         for rule in self.rules:
@@ -79,7 +78,7 @@ class Domain:
     role_domain: RoleDomain
     rule_domain: RuleDomain
 
-    def find_rules(self, request: Request, max_rules: Optional[int] = None) -> Rules:
+    def find_rules(self, request: Request, max_rules: int | None = None) -> Rules:
         return self.rule_domain.find_rules(
             request, self.role_domain.roles_for_user(request.user), max_rules
         )
@@ -110,5 +109,5 @@ class Domain:
 class Solver:
     domain: Domain
 
-    def find_rules(self, request: Request, max_rules: Optional[int] = None) -> Rules:
+    def find_rules(self, request: Request, max_rules: int | None = None) -> Rules:
         return self.domain.find_rules(request, max_rules)

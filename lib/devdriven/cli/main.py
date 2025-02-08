@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.11
-from typing import Any, Optional, Self, Tuple, List, Dict, IO, NoReturn
+from typing import Any, Self, Tuple, List, Dict, IO, NoReturn
 import logging as log
 import json
 import re
@@ -89,7 +89,7 @@ class Main:
         self.build_command(commands, command_argv)
         return commands
 
-    def build_command(self, commands: list, argv: Argv) -> Optional[Command]:
+    def build_command(self, commands: list, argv: Argv) -> Command | None:
         if argv:
             if command := self.make_command(argv):
                 command.main = self
@@ -152,7 +152,7 @@ class Main:
             return (True, mtch.group(1))
         return (False, arg)
 
-    def fatal(self, msg: str, exit_code: Optional[int] = None) -> NoReturn:
+    def fatal(self, msg: str, exit_code: int | None = None) -> NoReturn:
         self.exit_code = exit_code or 1
         print(msg, file=self.stderr)
         sys.exit(self.exit_code)

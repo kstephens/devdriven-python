@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 import re
 from .typing import Arity1, Arity2
 from .combinator import re_pred
@@ -26,7 +26,7 @@ BINARY_OPS = (
 )
 
 
-def binary_op(operator: str) -> Optional[Arity2]:
+def binary_op(operator: str) -> Arity2 | None:
     """
     A function that takes an binary operator name and returns arity-2 function.
     """
@@ -63,7 +63,7 @@ def binary_op(operator: str) -> Optional[Arity2]:
     return None
 
 
-def binary_op_const(operator: str, b: Any) -> Optional[Arity1]:
+def binary_op_const(operator: str, b: Any) -> Arity1 | None:
     """
     A function that takes an binary operator name with a right hand constant and returns arity-1 function.
     """
@@ -77,7 +77,7 @@ def binary_op_const(operator: str, b: Any) -> Optional[Arity1]:
     return None
 
 
-def unary_op(operator: str) -> Optional[Arity1]:
+def unary_op(operator: str) -> Arity1 | None:
     """
     A function that takes a unary operator name and returns arity-1 function.
     """

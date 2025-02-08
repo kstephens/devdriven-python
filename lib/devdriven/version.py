@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, Self, List, Tuple, Callable
+from typing import Any, Union, Self, List, Tuple, Callable
 from collections.abc import Sequence
 import re
 
@@ -92,7 +92,7 @@ def coerce_to_version(other: CoerceableVersion) -> Version:
     raise TypeError(f"cannot coerce to Version : {type(other).__name__} : {other!r}")
 
 
-def convert_to_version(ver: Any) -> Optional[Version]:
+def convert_to_version(ver: Any) -> Version | None:
     if isinstance(ver, Version):
         return ver
     if isinstance(ver, str):

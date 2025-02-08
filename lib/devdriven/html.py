@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self, List, Tuple, Dict, IO
+from typing import Any, Self, List, Tuple, Dict, IO
 from io import StringIO
 from pathlib import Path
 import re
@@ -164,18 +164,18 @@ class Table:
     def h(self, x: Any) -> str:
         return html.escape(str(x))
 
-    def opt(self, name, default: Optional[Any] = None) -> Any:
+    def opt(self, name, default: Any | None = None) -> Any:
         return self.options.get(name, default)
 
-    def col_opt(self, col: str, opt: str, default: Optional[Any] = None) -> Any:
+    def col_opt(self, col: str, opt: str, default: Any | None = None) -> Any:
         return self._col_opts[col].get(opt, default)
 
-    def attrs(self, attrs: Optional[dict]) -> str:
+    def attrs(self, attrs: dict | None) -> str:
         if not attrs:
             return ""
         return " ".join([self.attr(name, val) for name, val in attrs.items()]).strip()
 
-    def attr(self, name: Optional[str], val) -> str:
+    def attr(self, name: str | None, val) -> str:
         if name and val is not None and self.data["allow_attributes"]:
             return f'{name}="{val}"'
         return ""
@@ -187,7 +187,7 @@ class Table:
     # Content:
 
     # pylint: disable-next=invalid-name
-    def th(self, name: str, attrs: Optional[dict] = None) -> str:
+    def th(self, name: str, attrs: dict | None = None) -> str:
         attrs = attrs or self.col_opt(name, "col_attrs")
         return f"""\
 <th {self.attrs(attrs)}>\
@@ -303,7 +303,7 @@ def tag_maybe(tag: str, content: str) -> str:
     return f"<{tag}>{content}</{_tag}>\n" if content else ""
 
 
-def html_link(url: str, attrs=None) -> Optional[str]:
+def html_link(url: str, attrs=None) -> str | None:
     attrs = attrs or 'target="_new" rel="noopener noreferrer"'
     url = str(url).strip()
     if re.match(r"^(https?|ftps?)://", url):

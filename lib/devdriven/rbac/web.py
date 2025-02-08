@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Any, Optional, Callable, Dict  # List, Iterable
+from typing import Any, Callable, Dict  # List, Iterable
 import logging
 import json
 import sys
@@ -22,8 +22,8 @@ class AuthRequest:
     method: str
     resource: str
     user: str
-    password: Optional[str]
-    token: Optional[str]
+    password: str | None
+    token: str | None
     env: Dict[str, Any]
 
 
@@ -60,7 +60,7 @@ class WebAuthService:
         )
 
 
-def parse_bearer_token(auth: str) -> Optional[str]:
+def parse_bearer_token(auth: str) -> str | None:
     if m := re.match(r"^\s*Bearer\s*(\S*)\s*$", auth):
         return m[1]
     return None

@@ -1,4 +1,3 @@
-from typing import Optional
 from datetime import datetime
 from .util import datetime_diff_sec, now_utc
 
@@ -11,13 +10,13 @@ class Timer:
     elapsed_avg_running: float
     running: bool
     paused: bool
-    started_at: Optional[datetime]
-    stopped_at: Optional[datetime]
-    paused_at: Optional[datetime]
-    resumed_at: Optional[datetime]
-    tick_t0: Optional[datetime]
-    tick_t1: Optional[datetime]
-    tick_t1_prev: Optional[datetime]
+    started_at: datetime | None
+    stopped_at: datetime | None
+    paused_at: datetime | None
+    resumed_at: datetime | None
+    tick_t0: datetime | None
+    tick_t1: datetime | None
+    tick_t1_prev: datetime | None
 
     def __init__(self):
         self.tick_n = 0
@@ -50,13 +49,13 @@ class Timer:
         self.resumed_at = self._now()
         self.tick_t1_prev = self.resumed_at
 
-    def tick(self, now: Optional[datetime] = None):
+    def tick(self, now: datetime | None = None):
         if self.paused:
             return
         self.tick_t0 = self.tick_t1
         self.tick_end(now=now)
 
-    def tick_begin(self, now: Optional[datetime] = None):
+    def tick_begin(self, now: datetime | None = None):
         if self.paused:
             return
         now = now or self._now()
@@ -64,7 +63,7 @@ class Timer:
         self.tick_t0 = now
         self.tick_n += 1
 
-    def tick_end(self, now: Optional[datetime] = None, elapsed: float = 0.0):
+    def tick_end(self, now: datetime | None = None, elapsed: float = 0.0):
         if self.paused:
             return
         now = now or self._now()

@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Tuple, Literal
+from typing import Any, Tuple, Literal
 from urllib.parse import urlparse, urlunparse, urljoin, ParseResult
 
 FalseVal = Literal[False]
@@ -8,7 +8,7 @@ StrOrUrl = str | URL
 UrlScheme = str | FalseVal
 
 
-def url_normalize(url: StrOrUrl, base_url: Optional[StrOrUrl] = None) -> URL:
+def url_normalize(url: StrOrUrl, base_url: StrOrUrl | None = None) -> URL:
     if base_url:
         return url_join(base_url, url)
     return url_parse(url)
@@ -52,7 +52,7 @@ def url_to_str(url: StrOrUrl) -> str:
 
 def url_and_method(
     maybe_method_and_url: str, context: Any = None
-) -> Tuple[str, Optional[str]]:
+) -> Tuple[str, str | None]:
     if context:
         maybe_method_and_url = maybe_method_and_url.format(**context)
     if match := re.match(

@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self, Type, List, Dict
+from typing import Any, Self, Type, List, Dict
 import re
 from dataclasses import dataclass, field
 from .options import Options, make_options
@@ -9,7 +9,7 @@ from ..util import set_from_match, unpad_lines, trim_list
 class Example:
     command: str
     comments: List[str]
-    output: Optional[str] = field(default=None)
+    output: str | None = field(default=None)
 
 
 class Descriptor:
@@ -112,5 +112,5 @@ class Section:
 class SectionDescriptorExample:
     section: Section
     descriptor: Descriptor
-    example: Optional[Example]
-    output: Optional[str] = field(default=None)
+    example: Example | None
+    output: str | None = field(default=None)

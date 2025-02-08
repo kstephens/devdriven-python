@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict
+from typing import Union, List, Dict
 import platform
 import os
 from .util import exec_command
@@ -84,8 +84,8 @@ def diff_run(
 
 
 def diff_files_stats(
-    expected: Optional[int],
-    actual: Optional[int],
+    expected: int | None,
+    actual: int | None,
     old: int,
     new: int,
     diff_exit_code: int,

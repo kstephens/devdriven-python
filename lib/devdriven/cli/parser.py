@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 import re
 import argparse
 from .descriptor import Descriptor, Example
@@ -63,7 +63,7 @@ class Parser:
     ##########################################
     # From Options.parse_doc():
 
-    def parse_options_docstring(self, options: Options, line: str) -> Optional[Options]:
+    def parse_options_docstring(self, options: Options, line: str) -> Options | None:
         m = None
 
         def add_arg(m):
@@ -93,11 +93,11 @@ class Parser:
     ##########################################
     # Option
 
-    def parse_option_arg(self, option: Option, arg: str) -> Optional[Option]:
+    def parse_option_arg(self, option: Option, arg: str) -> Option | None:
         option.style = "arg"
         return self.parse_option_simple(option, arg)
 
-    def parse_option_doc(self, option: Option, arg: str) -> Optional[Option]:
+    def parse_option_doc(self, option: Option, arg: str) -> Option | None:
         option.style = "doc"
         aliases = []
         if m := re.match(r"^(?:.+  |)Default: +(.+?)\.$", arg):
@@ -111,7 +111,7 @@ class Parser:
             ]
         return result
 
-    def parse_option_alias(self, option: Option, opt: str) -> Optional[Option]:
+    def parse_option_alias(self, option: Option, opt: str) -> Option | None:
         alias = Option(**{})
         assert self.parse_option_simple(
             alias, opt
@@ -123,7 +123,7 @@ class Parser:
         alias.alias_of = option.name
         return alias
 
-    def parse_option_simple(self, option: Option, arg: str) -> Optional[Option]:
+    def parse_option_simple(self, option: Option, arg: str) -> Option | None:
         def matched_long(kind, name, val):
             option.arg = arg
             option.kind, option.full, option.name, option.value = (

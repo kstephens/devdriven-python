@@ -1,4 +1,4 @@
-from typing import Any, Self, Optional, List, Dict
+from typing import Any, Self, List, Dict
 import re
 import inspect
 from dataclasses import dataclass, field
@@ -69,12 +69,12 @@ class Options:
     def opt_default(self, name: str) -> Any:
         return self.maybe_delegate("opt_default", self.opts_defaults.get(name), name)
 
-    def opt_name_key(self, name: str) -> Optional[str]:
+    def opt_name_key(self, name: str) -> str | None:
         return self.maybe_delegate(
             "opt_name_key", self.opt_char_map.get(name, name), name
         )
 
-    def opt_name_normalize(self, name: str) -> Optional[str]:
+    def opt_name_normalize(self, name: str) -> str | None:
         if opt := self.opt_by_name.get(name):
             return opt.name
         if alias := self.opt_aliases.get(name):
@@ -82,7 +82,7 @@ class Options:
         return None
 
     # See: Descriptor
-    def parse_docstring(self, line: str) -> Optional[Self]:
+    def parse_docstring(self, line: str) -> Self | None:
         m = None
 
         def add_arg(m):
@@ -122,7 +122,7 @@ class Options:
             cmd.append(arg)
         return cmd
 
-    def get_opt(self, name: str, aliases=False) -> Optional[Option]:
+    def get_opt(self, name: str, aliases=False) -> Option | None:
         for opt in self.opts:
             if opt.name == name:
                 return opt

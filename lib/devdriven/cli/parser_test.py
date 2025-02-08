@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 from dataclasses import asdict
 from . import parser as sut
 from ..util import slice_keys
@@ -129,7 +129,7 @@ examples:
 ##########################################
 
 
-def parse_command_argv(argv: List[str]) -> Optional[Options]:
+def parse_command_argv(argv: List[str]) -> Options | None:
     return sut.Parser().parse_command_argv(Command(**{}), argv.copy())
 
 
@@ -155,7 +155,7 @@ def test_parse_command_argv():
 ##########################################
 
 
-def parse_options_argv(argv: List[str]) -> Optional[Options]:
+def parse_options_argv(argv: List[str]) -> Options | None:
     return sut.Parser().parse_options_argv(Options(**{}), argv.copy())
 
 
@@ -201,7 +201,7 @@ def test_parse_options_argv_dash_in_args():
 ##########################################
 
 
-def parse_option_doc(line: str) -> Optional[Option]:
+def parse_option_doc(line: str) -> Option | None:
     return sut.Parser().parse_option_doc(Option(**{}), line)
 
 

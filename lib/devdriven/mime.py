@@ -1,10 +1,10 @@
-from typing import Optional, List, Tuple, Dict
+from typing import List, Tuple, Dict
 import mimetypes
 import re
 import platform
 from pathlib import Path
 
-MimeType = Tuple[Optional[str], Optional[str]]
+MimeType = Tuple[str | None, str | None]
 
 LONG_SUFFIX_RX = re.compile(r"(?:^|/)[^.]+(\.[^/]+)$")
 

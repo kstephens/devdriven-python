@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self, List, Dict, Callable
+from typing import Any, Self, List, Dict, Callable
 from dataclasses import dataclass, field
 import os
 import logging
@@ -10,20 +10,20 @@ Converter = Callable[[Any], Any]
 
 @dataclass
 class Config:
-    file: Optional[str] = field(default=None)
-    file_default: Optional[str] = field(default=None)
+    file: str | None = field(default=None)
+    file_default: str | None = field(default=None)
     opts: Dict[str, str] = field(default_factory=dict)
     conf: Dict[str, str] = field(default_factory=dict)
     env_prefix: str = field(default_factory=str)
     env: Dict[str, str] = field(default_factory=dict)
     converters: Dict[str, Converter] = field(default_factory=dict)
-    file_loaded: Optional[str] = field(default=None)
-    parent: Optional[Any] = field(default=None)
+    file_loaded: str | None = field(default=None)
+    parent: Any | None = field(default=None)
 
     def __post_init__(self):
         self.cache = {}
 
-    def config_file(self) -> Optional[str]:
+    def config_file(self) -> str | None:
         return self.get_opt_env("config_file") or self.file or self.file_default
 
     def load_file(self, file: str, ok_if_missing: bool = True):
@@ -47,8 +47,8 @@ class Config:
     def opt(
         self,
         key: str,
-        default: Optional[Any] = None,
-        converter: Optional[Converter] = None,
+        default: Any | None = None,
+        converter: Converter | None = None,
     ) -> Any:
         if not self.cache:
             self.cache = {}
@@ -60,8 +60,8 @@ class Config:
     def get_opt(
         self,
         key: str,
-        default: Optional[Any] = None,
-        converter: Optional[Converter] = None,
+        default: Any | None = None,
+        converter: Converter | None = None,
     ) -> Any:
         val: Any = None
         opts_val = self.opts.get(key)
@@ -84,7 +84,7 @@ class Config:
         env_key = (self.env_prefix + key).upper().replace("-", "_")
         return self.env.get(env_key)
 
-    def convert(self, key: str, value: Any, converter: Optional[Converter]) -> Any:
+    def convert(self, key: str, value: Any, converter: Converter | None) -> Any:
         if converter := converter or self.converters.get(key):
             return converter(value)
         return value

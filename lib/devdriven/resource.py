@@ -1,10 +1,10 @@
-from typing import Any, Optional, List, Sequence, Self
+from typing import Any, List, Sequence, Self
 from pathlib import Path
 from dataclasses import dataclass, field
 import importlib.util
 
 Pathish = Path | str
-PathishMaybe = Optional[Pathish]
+PathishMaybe = Pathish | None
 Paths = Sequence[Pathish]
 
 
