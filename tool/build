@@ -222,7 +222,7 @@ minify() { #: in out
   x rm -rf ./__pycache__ ./.pytest_cache ./.mypy_cache ./mypy-report ./htmlcov "${coverage_dir:?}/"
   find /dev/null $lib_dirs $test_dirs -name '__pycache__' -a -type d | sort -r | xargs --verbose rm -rf {}
   - minify-clean
-  x find /dev/null $lib_dirs $test_dirs '*.pyi' -exec rm '{}' \;
+  x find /dev/null $lib_dirs $test_dirs -name '*.pyi' -a -type f -exec rm '{}' \;
 }
 
 ################################
