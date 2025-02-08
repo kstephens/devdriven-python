@@ -160,13 +160,14 @@ class AuthWebService:
 
     # This can be overriden to use a different domain loader.
     def make_domain(self, resource: Resource) -> Domain:
-        domain_loader = DomainFileLoader()
-        domain = domain_loader.load_all(
-            self.config_root / "user.txt",
-            self.config_root / "role.txt",
-            self.resource_root,
-            Path(resource.name),
-        ).create_domain()
+        domain_loader = DomainFileLoader(
+            user_file=self.config_root / "user.txt",
+            membership_file=self.config_root / "role.txt",
+            password_file=self.config_root / "password.txt",
+            resource_root=self.resource_root,
+            resource_path=Path(resource.name),
+        )
+        domain = domain_loader.domain()
         self.domain_loader = domain_loader
         return domain
 
@@ -184,7 +185,9 @@ class UnsafeAuthenticator(Authenticator):
         return auth[2], auth
 
 
-def start_app(root="tests/data/rbac/root", config_dir="tests/data/rbac", port=8080):
+def start_app(
+    root="tests/data/rbac/root", config_dir="tests/data/rbac/domain", port=8080
+):
     # pylint: disable-next=import-outside-toplevel
     from wsgiref.simple_server import make_server
 
