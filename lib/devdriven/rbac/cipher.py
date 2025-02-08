@@ -53,13 +53,13 @@ class Cipher:
 
     def coders(self):
         return (
-            ("str_to_bytes", str_encode, str_decode),
+            ("str_encode", str_encode, str_decode),
             ("check_bytes", is_bytes, is_bytes),
             ("checksum", self.checksum_encode, self.checksum_decode),
             ("frame", self.frame_encode, self.frame_decode),
             ("cipher", self.cipher_encode, self.cipher_decode),
             ("base64", base64.b64encode, base64.b64decode),
-            ("bytes_to_str", str_decode, str_encode),
+            ("str_decode", str_decode, str_encode),
         )
 
     ###################################################
@@ -67,7 +67,7 @@ class Cipher:
 
     def frame_encode(self, data: bytes) -> bytes:
         """
-        Frame data as fields separated by self.frame_separator():
+        Frame data as fields:
         - frame version
         - cipher name
         - data length
