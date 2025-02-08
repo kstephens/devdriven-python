@@ -131,5 +131,5 @@ class Canvas:
         return self
 
 
-def pos_in(p: Position, rec: Position):
+def pos_in(p: Position, rec: Position) -> bool:
     return 0 <= p[0] and p[0] < rec[0] and 0 <= p[1] and p[1] < rec[1]

@@ -13,4 +13,4 @@ from .rbac import (
 )
 from .domain import IdentityDomain, RoleDomain, RuleDomain, Domain, Solver
 from .identity import User, Group, Identity
-from .loader import TextLoader, DomainFileLoader
+from .loader import DomainLoader, TextLoader, DomainFileLoader

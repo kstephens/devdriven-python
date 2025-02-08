@@ -85,7 +85,7 @@ class Domain:
 
     def user_for_name(self, name: str) -> User:
         user = self.identity_domain.user_by_name(name)
-        if not user.groups:
+        if user and not user.groups:
             user.groups = self.identity_domain.groups_for_user(user)
         return user
 

@@ -1,12 +1,27 @@
-from typing import Dict  # Any, Self, Callable, Iterable, List, Type, IO
+"""
+To start:
+PYTHONPATH=lib:$PYTHONPATH python -m devdriven.rbac.auth_web_service
+
+curl http://localhost:8080/a/x
+curl http://bob@localhost:8080/a/x
+curl -H 'Authorization: Bearer bob' http://localhost:8080/a/x
+curl -H 'Cookie: SESSIONID=bob' http://localhost:8080/a/x
+curl http://asdfasdf@localhost:8080/a/x
+
+"""
+
+from typing import Self, Dict, Tuple, List
 import copy
 from pathlib import Path
 import json
 import logging
 import sys
+import os
 from icecream import ic
-from .loader import DomainFileLoader  # TextLoader
+from .loader import DomainLoader, DomainFileLoader  # TextLoader
+from .auth import Authenticator, AuthBasic, AuthBearer, AuthCookie, Auth
 from ..rbac import (
+    Domain,
     Solver,
     Request,
     Permission,
@@ -19,19 +34,29 @@ from ..rbac import (
 # https://www.toptal.com/python/pythons-wsgi-server-application-interface
 
 
+AuthResponse = Tuple[str, List[Tuple[str, str]], str]
+
+
 class AuthWebService:
-    def __init__(self, base: Path, root: Path):
-        self.base = base
-        self.resource_root = root
+    domain_loader: DomainLoader | None
+
+    def __init__(
+        self, resource_root: Path, config_root: Path, authenticator: Authenticator
+    ):
+        self.resource_root = resource_root
+        self.config_root = config_root
+        self.authenticator = authenticator
         self.environ: Dict[str, str] = {}
         self.start_response = None
         self.request_number = 0
+        self.domain_loader = None
 
-    def __call__(self, environ, start_response):
+    def __call__(self, environ, start_response) -> Self:
         self.request_number += 1
         inst = copy.copy(self)
         inst.environ = environ
         inst.start_response = start_response
+        self.domain_loader = None
         return inst
 
     def __iter__(self):
@@ -39,19 +64,20 @@ class AuthWebService:
         self.start_response(status, headers)
         yield body.encode()
 
-    def process_request(self, env: dict):
-        # env = {k: v for k, v in env.items() if k not in os.environ}
-        # ic(list(sorted(env.keys())))
-        # ic(env['HTTP_AUTHORIZATION'])
+    def process_request(self, env: dict) -> AuthResponse:
+        env = {k: v for k, v in env.items() if k not in os.environ}
+        ic(list(sorted(env.keys())))
         action = env.get("HTTP_X_AUTH_ACTION", env.get("REQUEST_METHOD"))
         resource = env.get("HTTP_X_AUTH_RESOURCE", env.get("PATH_INFO"))
-        user = env.get("HTTP_X_AUTH_USER", env.get("REMOTE_USER")) or "unknown"
-        rule = self.solve(action, resource, user)
+        username = self.authenticate(env)
+        ic(username)
+        rule = self.solve(action, resource, username)
         result = {
+            "request_id": self.request_number,
             "permission": rule.permission.name,
             "action": action,
             "resource": resource,
-            "user": user,
+            "user": username,
             "rule": str(rule),
         }
         if rule.permission.name == "allow":
@@ -59,7 +85,6 @@ class AuthWebService:
         else:
             status = "403 Forbidden"
         body = f"""
-{self.request_number}
 {json.dumps(result, indent=2)}
 """
         return (
@@ -68,27 +93,40 @@ class AuthWebService:
             body,
         )
 
-    def solve(self, action_name: str, resource_path: str, user_name: str):
-        domain_loader = DomainFileLoader()
-        domain = domain_loader.load_all(
-            self.base / "user.txt",
-            self.base / "role.txt",
-            self.resource_root,
-            Path(resource_path),
-        ).create_domain()
+    def authenticate(self, env: dict) -> str:
+        username = None
+        header = env.get("HTTP_X_AUTHORIZATION", env.get("HTTP_AUTHORIZATION"))
+        if header:
+            if auth := self.authenticator.auth_header(header):
+                username = auth[0]
+        header = env.get("HTTP_X_COOKIE", env.get("HTTP_COOKIE"))
+        if header:
+            if auth := self.authenticator.auth_cookie(header):
+                username = auth[0]
+        if username is None:
+            username = ""
+        return username
 
+    def solve(self, action_name: str, resource_path: str, user_name: str) -> Rule:
+        resource = Resource(resource_path)
+        domain = self.make_domain(resource)
+        solver = Solver(domain=domain)
+        user = domain.user_for_name(user_name)
         request = Request(
             action=Action(action_name),
-            resource=Resource(resource_path),
-            user=domain.user_for_name(user_name),
+            resource=resource,
+            user=user,
         )
 
-        solver = Solver(domain=domain)
+        if not (action_name and user_name and user):
+            return self.default_rule(request)
         rules = solver.find_rules(request)
 
-        logging.info(
-            "  files_loaded  : %s", repr([str(p) for p in domain_loader.files_loaded])
-        )
+        if isinstance(self.domain_loader, DomainFileLoader):
+            logging.info(
+                "  files_loaded  : %s",
+                repr([str(p) for p in self.domain_loader.files_loaded]),
+            )
         logging.info("  action        : %s", repr(request.action.name))
         logging.info("  resource      : %s", repr(request.resource.name))
         logging.info("  user          : %s", repr(request.user.name))
@@ -107,7 +145,9 @@ class AuthWebService:
             return next(iter(rules))
         return self.default_rule(request)
 
-    def default_rule(self, request: Request):
+    ##########################################################
+
+    def default_rule(self, request: Request) -> Rule:
         return Rule(
             permission=Permission("deny"),
             action=request.action,
@@ -116,16 +156,45 @@ class AuthWebService:
             description="<<DEFAULT>>",
         )
 
+    ##########################################################
 
-def start_app(port=8080):
+    # This can be overriden to use a different domain loader.
+    def make_domain(self, resource: Resource) -> Domain:
+        domain_loader = DomainFileLoader()
+        domain = domain_loader.load_all(
+            self.config_root / "user.txt",
+            self.config_root / "role.txt",
+            self.resource_root,
+            Path(resource.name),
+        ).create_domain()
+        self.domain_loader = domain_loader
+        return domain
+
+
+class UnsafeAuthenticator(Authenticator):
+    def challenge_basic(self, auth: AuthBasic) -> Auth | None:
+        return auth[1], auth
+
+    def challenge_bearer(self, auth: AuthBearer) -> Auth | None:
+        return auth[1], auth
+
+    def challenge_cookie(self, auth: AuthCookie) -> Auth | None:
+        if auth[1] != "SESSIONID":
+            return None
+        return auth[2], auth
+
+
+def start_app(root="tests/data/rbac/root", config_dir="tests/data/rbac", port=8080):
     # pylint: disable-next=import-outside-toplevel
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    base = Path("tests/data/rbac")
-    root = base / "root"
-
-    app = AuthWebService(base=base, root=root)
+    authenticator = UnsafeAuthenticator()
+    app = AuthWebService(
+        resource_root=Path(root),
+        config_root=Path(config_dir),
+        authenticator=authenticator,
+    )
     ic(app)
 
     httpd = make_server("", port, app)

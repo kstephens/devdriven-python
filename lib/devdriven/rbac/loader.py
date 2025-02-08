@@ -1,6 +1,7 @@
 from typing import Any, Self, Callable, Iterable, Tuple, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
+from abc import ABC, abstractmethod
 import re
 import logging
 from .identity import User, Users, Group, Groups
@@ -122,8 +123,14 @@ def real_open_file(file: Path) -> IO | None:
         return None
 
 
+class DomainLoader(ABC):
+    @abstractmethod
+    def create_domain(self) -> Domain:
+        pass
+
+
 @dataclass
-class DomainFileLoader:
+class DomainFileLoader(DomainLoader):
     """
     Loads user/group file, role/membership file, rules for a resource path.
     Creates a static Domain.
