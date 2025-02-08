@@ -33,7 +33,7 @@ def send_to_url(
 
 def http_method_url(
     maybe_method_and_url: str, context: Optional[Dict] = None
-) -> Tuple[str, Union[str, None]]:
+) -> Tuple[str, str | None]:
     if context:
         maybe_method_and_url = maybe_method_and_url.format(**context)
     match = re.match(r"^(GET|HEAD|POST|PUT|DELETE|PATCH) (.*)$", maybe_method_and_url)
@@ -44,7 +44,7 @@ def http_method_url(
 
 # pylint: disable=too-many-locals
 def http_post(
-    url: str, body: Union[str, bytes], headers: Optional[Headers] = None, **options
+    url: str, body: str | bytes, headers: Optional[Headers] = None, **options
 ) -> HttpResult:
     url, method = http_method_url(url, context=options.get("context"))
     if not method:

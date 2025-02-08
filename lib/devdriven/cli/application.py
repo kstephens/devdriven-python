@@ -1,4 +1,4 @@
-from typing import Union, Type, List, Dict
+from typing import Type, List, Dict
 import logging
 from .descriptor import Descriptor, Section, SectionDescriptorExample
 
@@ -47,7 +47,7 @@ class Application:
             )
             raise exc
 
-    def descriptor(self, name_or_klass: Union[str, Type], default=None) -> Descriptor:
+    def descriptor(self, name_or_klass: str | Type, default=None) -> Descriptor:
         return self.descriptor_by_any.get(name_or_klass, default)
 
     def descriptors_for_section(self, name: str) -> List[Descriptor]:

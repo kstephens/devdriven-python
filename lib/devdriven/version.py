@@ -15,7 +15,7 @@ def constraint(x):
 
 ###################################################################
 
-VersionElement = Union[int, str]
+VersionElement = int | str
 VersionElements = Sequence[VersionElement]
 Indexable = Union[List[VersionElement], Tuple[VersionElement, ...]]
 ElementRelational = Callable[[VersionElement, VersionElement], bool]
@@ -26,7 +26,7 @@ class Version:
     _str: str
     _repr: str
 
-    def __init__(self, other: Union[Self, str]):
+    def __init__(self, other: Self | str):
         if isinstance(other, Version):
             ver: Version = other
             self._str = ver._str
@@ -73,7 +73,7 @@ class Version:
         return cmp_list_right(self.elems, typecheck_op(self, other, op_name).elems)
 
 
-CoerceableVersion = Union[Version, str]
+CoerceableVersion = Version | str
 
 
 def typecheck_op(self: Version, other: CoerceableVersion, name: str) -> Any:

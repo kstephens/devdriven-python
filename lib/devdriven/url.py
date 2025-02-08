@@ -1,11 +1,11 @@
 import re
-from typing import Any, Optional, Union, Tuple, Literal
+from typing import Any, Optional, Tuple, Literal
 from urllib.parse import urlparse, urlunparse, urljoin, ParseResult
 
 FalseVal = Literal[False]
 URL = ParseResult
-StrOrUrl = Union[str, URL]
-UrlScheme = Union[str, FalseVal]
+StrOrUrl = str | URL
+UrlScheme = str | FalseVal
 
 
 def url_normalize(url: StrOrUrl, base_url: Optional[StrOrUrl] = None) -> URL:

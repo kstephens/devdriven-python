@@ -1,9 +1,9 @@
-from typing import Any, Optional, Union, List, Sequence, Self
+from typing import Any, Optional, List, Sequence, Self
 from pathlib import Path
 from dataclasses import dataclass, field
 import importlib.util
 
-Pathish = Union[Path, str]
+Pathish = Path | str
 PathishMaybe = Optional[Pathish]
 Paths = Sequence[Pathish]
 

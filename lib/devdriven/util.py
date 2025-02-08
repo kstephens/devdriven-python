@@ -22,8 +22,8 @@ Func0 = Callable[[], Any]
 Func1 = Callable[[Any], Any]
 FuncAny = Callable[..., Any]
 SubprocessResult = Any  # subprocess.CompletedProcess
-Data = Union[str, bytes]
-Number = Union[int, float]
+Data = str | bytes
+Number = int | float
 
 
 ic.configureOutput(includeContext=True, contextAbsPath=True)
@@ -151,7 +151,7 @@ def datetime_iso8601(val: datetime, zone: Optional[timezone] = None) -> str:
     return val.replace(tzinfo=zone).strftime(DATETIME_ISO8601_FMT)
 
 
-def convert_windows_timestamp_to_iso8601(ts_str: Union[int, str]) -> str:
+def convert_windows_timestamp_to_iso8601(ts_str: int | str) -> str:
     ts_milli = int(ts_str) / 1000
     return datetime_iso8601(datetime.fromtimestamp(ts_milli))
 
@@ -394,7 +394,7 @@ def min_max(
 # Range
 
 
-def parse_range(x: str, n: int) -> Union[None, range]:
+def parse_range(x: str, n: int) -> None | range:
     if m := re.match(r"^(-?\d+)?:(-?\d+)?(?::(-?\d+))?$", x):
         if m[0] == "-" or m[1] == "-" or m[2] == "-":
             return None
@@ -402,9 +402,7 @@ def parse_range(x: str, n: int) -> Union[None, range]:
     return None
 
 
-def make_range(
-    start: Number, end: Number, step: Number, n: Number
-) -> Union[range, None]:
+def make_range(start: Number, end: Number, step: Number, n: Number) -> range | None:
     if not start:
         start = 0
     if not end:

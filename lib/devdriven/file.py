@@ -1,4 +1,4 @@
-from typing import Optional, Union, Any, List
+from typing import Optional, Any, List
 import platform
 import os
 import pickle
@@ -6,7 +6,7 @@ import bz2
 from .util import exec_command
 
 
-def read_file(name: str, encoding: Optional[str] = None) -> Optional[Union[bytes, str]]:
+def read_file(name: str, encoding: Optional[str] = None) -> Optional[bytes | str]:
     try:
         if encoding:
             with open(name, "r", encoding=encoding) as input_io:

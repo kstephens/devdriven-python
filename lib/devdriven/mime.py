@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Tuple, Dict
+from typing import Optional, List, Tuple, Dict
 import mimetypes
 import re
 import platform
@@ -36,7 +36,7 @@ def guess_type(file: str) -> MimeType:
     return content_type, content_encoding
 
 
-MimeTypeDict = Dict[Union[str, None], MimeType]
+MimeTypeDict = Dict[str | None, MimeType]
 MIMETYPES_OVERRIDE: MimeTypeDict = {}
 MIMETYPES_MORE: MimeTypeDict = {
     None: (None, None),

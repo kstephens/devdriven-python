@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Self, List, Tuple, Dict, IO
+from typing import Any, Optional, Self, List, Tuple, Dict, IO
 from io import StringIO
 from pathlib import Path
 import re
@@ -21,7 +21,7 @@ class Table:
     columns: list = field(default_factory=list)
     rows: List[Any] = field(default_factory=list)
     options: dict = field(default_factory=dict)
-    output: Union[IO, None] = None
+    output: IO | None = None
     data: dict = field(default_factory=dict)
     width: int = 0
     height: int = 0
@@ -141,7 +141,7 @@ class Table:
                 sort_method = "number"
         return sort_method
 
-    def col_class(self, col: str) -> Union[str, None]:
+    def col_class(self, col: str) -> str | None:
         classes: List[str] = []
         align = None
         if self.col_opt(col, "numeric"):

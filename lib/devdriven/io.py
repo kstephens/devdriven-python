@@ -1,8 +1,8 @@
-from typing import Any, Optional, Union, Self, List, IO
+from typing import Any, Optional, Self, List, IO
 from dataclasses import dataclass, field
 from io import StringIO
 
-Data = Union[str, bytes]
+Data = str | bytes
 
 
 @dataclass

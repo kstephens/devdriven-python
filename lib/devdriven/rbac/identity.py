@@ -1,4 +1,4 @@
-from typing import Union, Iterable
+from typing import Iterable
 from dataclasses import dataclass, field
 
 
@@ -19,4 +19,4 @@ class User:
 
 
 Users = Iterable[User]
-Identity = Union[User, Group]
+Identity = User | Group
