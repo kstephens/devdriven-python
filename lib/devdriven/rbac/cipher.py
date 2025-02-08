@@ -1,5 +1,7 @@
 from typing import Any, Iterable
 import base64
+import hashlib
+import hmac
 import secrets
 import random
 import zlib
@@ -8,6 +10,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 
 Data = str | bytes
+Step = str
+Steps = Iterable[Step]
 
 
 class Cipher:
@@ -15,52 +19,87 @@ class Cipher:
         self,
         key: str,
         cipher_name: str = "",
+        hash_name: str = "",
         frame_version: str = "",
-        steps: Iterable[str] | None = None,
     ):
         if not cipher_name:
             cipher_name = self.valid_cipher_names()[0]
+        if not hash_name:
+            hash_name = "sha1"
         if not frame_version:
             frame_version = "1"
         self.key, self.cipher_name, self.frame_version = key, cipher_name, frame_version
+        self.hash_name = hash_name
         self.salt_length_range = range(0, 16)
-        self.steps = set(steps or [step[0] for step in self.coders()])
         self.field_separator = b"\t"
 
     ###################################################
+    # Hashing
+
+    def hash(self, data: Data) -> Data:
+        return self.coders_apply(self.hash_steps(), 0, data)
+
+    def hmac(self, data: bytes) -> bytes:
+        """Compute hash of arbitrary data."""
+        frame = (
+            str_encode(self.frame_version),
+            b"hmac:" + str_encode(self.hash_name),
+            str_encode(str(len(data))),
+            data,
+        )
+        return hmac.digest(
+            str_encode(self.key),
+            self.fields_encode(frame),
+            getattr(hashlib, self.hash_name),
+        )
+
+    def hash_steps(self) -> Steps:
+        return ("str_encode", "hmac", "base64", "str_decode")
+
+    ###################################################
+    # Encipher/Decipher
 
     def encipher(self, data: Data) -> Data:
-        value: Any = data
-        # print(f"encipher: <<< : {value=}")
-        for name, enc, _ in self.coders():
-            if name in self.steps:
-                # print(f"encipher: {name=}")  # {enc=}")
-                value = enc(value)
-                # print(f"--------:   {value=}")
-        # print(f"encipher: >>> : {value=}")
-        return value
+        """Encipher arbitrary data."""
+        return self.coders_apply(self.cipher_steps(), 0, data)
 
     def decipher(self, data: Data) -> Data:
+        """Decipher data enciphered above."""
+        return self.coders_apply(self.cipher_steps(), 1, data)
+
+    def cipher_steps(self) -> Steps:
+        return (
+            "str_encode",
+            "check_bytes",
+            "checksum",
+            "frame",
+            "cipher",
+            "base64",
+            "str_decode",
+        )
+
+    ###################################################
+
+    def coders_apply(self, steps: Iterable[str], direction: int, data: Data) -> Data:
+        if direction == 1:
+            steps = reversed(tuple(steps))
+        coders = self.coders()
         value: Any = data
-        # print(f"decipher: <<< : {value=}")
-        for name, _, dec in reversed(self.coders()):
-            if name in self.steps:
-                # print(f"decipher: {name=}")  # {dec=}")
-                value = dec(value)
-                # print(f"--------:   {value=}")
-        # print(f"decipher: >>>  : {value=}")
+        for step in steps:
+            value = coders[step][direction](value)
         return value
 
     def coders(self):
-        return (
-            ("str_encode", str_encode, str_decode),
-            ("check_bytes", is_bytes, is_bytes),
-            ("checksum", self.checksum_encode, self.checksum_decode),
-            ("frame", self.frame_encode, self.frame_decode),
-            ("cipher", self.cipher_encode, self.cipher_decode),
-            ("base64", base64.b64encode, base64.b64decode),
-            ("str_decode", str_decode, str_encode),
-        )
+        return {
+            "str_encode": (str_encode, str_decode),
+            "check_bytes": (is_bytes, is_bytes),
+            "hmac": (self.hmac, identity),
+            "checksum": (self.checksum_encode, self.checksum_decode),
+            "frame": (self.frame_encode, self.frame_decode),
+            "cipher": (self.cipher_encode, self.cipher_decode),
+            "base64": (base64.b64encode, base64.b64decode),
+            "str_decode": (str_decode, str_encode),
+        }
 
     ###################################################
     # Framing
@@ -193,11 +232,15 @@ def identity(x):
     return x
 
 
-def str_encode(x: str) -> bytes:
+def str_encode(x: Data) -> bytes:
+    if isinstance(x, bytes):
+        return x
     return x.encode("utf-8")
 
 
-def str_decode(x: bytes) -> str:
+def str_decode(x: Data) -> str:
+    if isinstance(x, str):
+        return x
     return x.decode("utf-8")
 
 
