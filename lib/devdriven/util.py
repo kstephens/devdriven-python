@@ -455,6 +455,7 @@ def ip_to_host(ip: str) -> Optional[str]:
     try:
         return socket.gethostbyaddr(ip)[0].lower()
     # pylint: disable-next=bare-except
+    # pylint: disable-next=broad-exception-caught
     except Exception:
         return None
 
@@ -551,6 +552,7 @@ def root_loggers() -> Iterable[Any]:
         # pylint: disable-next=no-member
         return [logging.getLogger(name) for name in logging.root.manager.loggerDict]
     # pylint: disable-next=bare-except
+    # pylint: disable-next=broad-exception-caught
     except Exception:
         pass
     return []

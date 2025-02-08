@@ -74,6 +74,7 @@ class Runner:
             self.now = self._now()
             self.timer.tick_begin(now=self.now)
             self.callback(self, self.now)
+        # pylint: disable-next=broad-exception-caught
         except Exception as exc:
             log_exc(exc, sys.exc_info(), msg)
         self.timer.tick_end(now=self._now())
