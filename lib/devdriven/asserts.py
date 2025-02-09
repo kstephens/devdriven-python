@@ -114,7 +114,7 @@ def assertion_differences(
     assert_log(f"      OR   : {accept_command}")
 
     n_lines = 50
-    assert_log("Difference: first {n_lines} lines")
+    assert_log(f"Difference: first {n_lines} lines")
     os.system(f"exec 2>&1; (set -x; {diff_command}) | head -{n_lines} 2>&1")
 
     if int(os.environ.get("ASSERT_DIFF_ACCEPT", "0")):
