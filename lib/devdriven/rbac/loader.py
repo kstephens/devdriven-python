@@ -113,16 +113,12 @@ class TextLoader:
         return parse_lines(io, PASSWORD_RX, make_password)
 
 
-COMMENT_RX = re.compile(r"#.*$")
-TRIM_SPACE_RX = re.compile(r"^\s+|\s+$")
-# LEADING_SPACE_RX = re.compile(r"^\s+")
 RULE_RX = re.compile(
     r"rule\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)"
 )
 MEMBERSHIP_RX = re.compile(r"member\s+(?P<role>\S+)\s+(?P<members>\S+)")
 USER_RX = re.compile(r"user\s+(?P<user>\S+)\s+(?P<groups>\S+)")
 PASSWORD_RX = re.compile(r"password\s+(?P<username>\S+)\s+(?P<password>\S+)")
-PARSE_LIST_RX = re.compile(r"\s*,\s*")
 
 
 def real_open_file(file: Path) -> IO | None:
@@ -184,7 +180,10 @@ class FileSystemLoader:
         auth_file = self.auth_file(path)
         io: IO = self.open_file(auth_file)
         if io:
-            return TextLoader(prefix=str(path) + "/").read_rules(io)
+            try:
+                return TextLoader(prefix=str(path) + "/").read_rules(io)
+            finally:
+                io.close()
         return []
 
     def resource_paths(self, resource: Path) -> Iterable[Path]:
@@ -211,7 +210,14 @@ def parse_list(val: str) -> Iterable[str]:
     return re.split(PARSE_LIST_RX, val)
 
 
+PARSE_LIST_RX = re.compile(r"\s*,\s*")
+
+
 def trim_line(line: str) -> str:
     line = line.removesuffix("\n")
     line = re.sub(TRIM_SPACE_RX, "", line)
     return re.sub(COMMENT_RX, "", line)
+
+
+COMMENT_RX = re.compile(r"#.*$")
+TRIM_SPACE_RX = re.compile(r"^\s+|\s+$")
