@@ -158,9 +158,7 @@ class App:
         )
 
         rules: Iterable = []
-        if not (action_name and username and user):
-            rules = [self.default_rule(request)]
-        else:
+        if action_name and username and user:
             rules = solver.find_rules(request)
 
         if self.verbose:
@@ -184,9 +182,9 @@ class App:
             for rule in rules:
                 logging.info("                : %s", rule.brief())
 
-        if not rules:
-            return self.default_rule(request)
-        return next(iter(rules))
+        if rules:
+            return next(iter(rules))
+        return self.default_rule(request)
 
     ##########################################################
 
@@ -254,9 +252,10 @@ class App:
 
 
 def normalize_path(path: str) -> str:
-    path = re.sub(r'//+', '/', f"/{path}")
+    path = re.sub(r"//+", "/", f"/{path}")
     logging.info("%s", f"{path=}")
     return path
+
 
 def status_result(status: int) -> ResourceResponse:
     return status, {"Content-Type": "text/plain"}, f"{status}\n".encode()
