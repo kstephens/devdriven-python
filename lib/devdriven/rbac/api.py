@@ -3,16 +3,16 @@ To start:
 
 PYTHONPATH=lib:$PYTHONPATH python -m devdriven.rbac.api
 
-curl http://localhost:8888/__access/GET/a/f1.txt | jqm
-curl http://bob@localhost:8888/__access/GET/a/f1.txt | jqm
-curl http://bob:@localhost:8888/__access/GET/a/f1.txt | jqm
-curl http://bob:b0b3r7@localhost:8888/a/f1.txt | jqm
-curl http://bob:b0b3r7@localhost:8888/__access/GET/a/f1.txt | jqm
-curl http://bob@localhost:8888/__access/GET/a/f1.txt
-curl http://localhost:8888/__access/GET/a/f1.txt
+curl http://localhost:8888/__/access/GET/a/f1.txt
+curl http://bob@localhost:8888/__/access/GET/a/f1.txt
+curl http://bob:@localhost:8888/__/access/GET/a/f1.txt
+curl http://bob:b0b3r7@localhost:8888/a/f1.txt
+curl http://bob:b0b3r7@localhost:8888/__/access/GET/a/f1.txt
+curl http://bob@localhost:8888/__/access/GET/a/f1.txt
+curl http://localhost:8888/__/access/GET/a/f1.txt
 curl http://bolocalhost:8888/a/f1.txt
-curl http://bob:b0b3r7@localhost:8888/__access/GET/a/f1.txt
-curl http://bob:b0b3r7@localhost:8888/__access/GET/a/f2.txt
+curl http://bob:b0b3r7@localhost:8888/__/access/GET/a/f1.txt
+curl http://bob:b0b3r7@localhost:8888/__/access/GET/a/f2.txt
 curl http://bob:b0b3r7@localhost:8888/a/f2.txt
 curl http://bob:b0b3r7@localhost:8888/a/f1.txt
 curl --data-binary='abc' -X PUT http://bob:b0b3r7@localhost:8888/a/f9.txt
@@ -28,7 +28,7 @@ import re
 import logging
 import sys
 import uvicorn
-from fastapi import FastAPI, Cookie, Path, Form, Header, status
+from fastapi import FastAPI, Path, Form, status
 from fastapi.responses import RedirectResponse, Response, HTMLResponse
 from fastapi.requests import Request
 from asgiref.sync import async_to_sync
@@ -47,20 +47,20 @@ app = App(
 ####################################################
 
 UserName = Annotated[str, Path(pattern=re.compile(r"^[a-z][a-z0-9_]*$"))]
-
-api = FastAPI()
-
 ActionName = Literal["GET", "HEAD", "PUT", "DELETE"]
-SessionCookie = Annotated[str | None, Cookie()]
-AuthorizationHeader = Annotated[str | None, Header()]
+
+api = FastAPI(
+    docs_url="/__/docs",
+    openapi_url="/__/openapi.json",
+)
 
 
-@api.get("/")
+@api.get("/__/")
 def redirect_to_docs():
-    return RedirectResponse("/docs", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse("/__/docs", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@api.get("/__login")
+@api.get("/__/login")
 def get_login():
     body = """
 <html>
@@ -86,7 +86,7 @@ def get_login():
     return HTMLResponse(content=body, status_code=200)
 
 
-@api.post("/__login")
+@api.post("/__/login")
 def post_login(
     username: Annotated[str, Form()],
     password: Annotated[str, Form()],
@@ -98,14 +98,21 @@ def post_login(
         response = HTMLResponse(content="OK", status_code=200)
         response.set_cookie(cookie.name, cookie.value)
     else:
-        response = RedirectResponse("/__login", status_code=status.HTTP_303_SEE_OTHER)
+        response = RedirectResponse("/__/login", status_code=status.HTTP_303_SEE_OTHER)
+    return response
+
+
+@api.get("/__/logout")
+def get_logout():
+    response = HTMLResponse(content="OK", status_code=200)
+    response.delete_cookie(app.auth_cookie_name)
     return response
 
 
 ######################################
 
 
-@api.get("/__access/{action}/{resource:path}")
+@api.get("/__/access/{action}/{resource:path}")
 def check_get_access(action: ActionName, resource: str, request: Request):
     return resource_request(action, resource, request, app.check_access)
 

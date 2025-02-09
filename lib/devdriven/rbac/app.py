@@ -3,7 +3,9 @@ from pathlib import Path
 import logging
 import os
 import json
+from datetime import datetime, timezone
 from dataclasses import dataclass
+import tabulate
 from .loader import DomainFileLoader
 from .identity import UserPass, Cookie
 from .auth import (
@@ -59,6 +61,8 @@ class App:
 
     def resource_get(self, request: ResourceRequest) -> ResourceResponse:
         def read_file(path: Path):
+            if path.is_dir():
+                return self.dir_index(path)
             size = os.stat(str(path)).st_size
             logging.info("resource_get: %s", f"{request.action} {size} bytes <= {path}")
             with open(path, "rb") as io:
@@ -116,11 +120,7 @@ class App:
             "action": action,
             "resource": resource,
             "user": username,
-            "rule": {
-                "permission": rule.permission.name,
-                "action": rule.action.name,
-                "role": rule.role.name,
-            },
+            "role": rule.role.name,
         }
         return rule.permission.name == "allow", result
 
@@ -229,6 +229,26 @@ class App:
             password_domain=self.password_domain,
         )
         return domain
+
+    def dir_index(self, path: Path) -> ResourceResponse:
+        files = sorted(os.listdir(str(path)))
+        files = [f for f in files if not f.startswith(".")]
+
+        def row(f):
+            stat = os.stat(path / f)
+            mtime = (
+                datetime.fromtimestamp(stat.st_mtime)
+                .replace(tzinfo=timezone.utc)
+                .isoformat()
+            )
+            return [f, stat.st_size, mtime]
+
+        rows = [row(f) for f in files]
+        tabulate.PRESERVE_WHITESPACE = True
+        table = tabulate.tabulate(
+            rows, headers=["name", "size", "mtime"], tablefmt="pipe"
+        )
+        return 200, {"Content-Type": "text/plain"}, (table + "\n").encode()
 
 
 def status_result(status: int) -> ResourceResponse:
