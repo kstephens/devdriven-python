@@ -146,7 +146,7 @@ def resource_request(
 ):
     auth_header = request.headers.get("Authorization")
     auth_cookie = request.cookies.get(app.auth_cookie_name)
-    req = ResourceRequest(action, f"/{resource}", auth_header, auth_cookie, body)
+    req = ResourceRequest(action, resource, auth_header, auth_cookie, body)
     code, headers, body = func(req)
     return Response(content=body, headers=headers, status_code=code)
 

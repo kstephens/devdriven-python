@@ -2,6 +2,7 @@ from typing import Any, Iterable, Dict, Tuple, Callable
 from pathlib import Path
 import logging
 import os
+import re
 import json
 from datetime import datetime, timezone
 from dataclasses import dataclass
@@ -100,7 +101,7 @@ class App:
         with_path: Callable[[Path], ResourceResponse],
         must_exist: bool = True,
     ) -> ResourceResponse:
-        path = Path(str(self.resource_root) + request.resource)
+        path = Path(str(self.resource_root) + normalize_path(request.resource))
         exists = os.access(str(path), os.R_OK)
         logging.info("resource_request: %s", f"{request.action} {path=} {exists=}")
         if must_exist and not exists:
@@ -145,6 +146,7 @@ class App:
         return ""
 
     def solve(self, action_name: str, resource_path: str, username: str) -> Rule:
+        resource_path = normalize_path(resource_path)
         resource = Resource(resource_path)
         domain = self.make_domain(resource)
         solver = Solver(domain=domain)
@@ -250,6 +252,11 @@ class App:
         )
         return 200, {"Content-Type": "text/plain"}, (table + "\n").encode()
 
+
+def normalize_path(path: str) -> str:
+    path = re.sub(r'//+', '/', f"/{path}")
+    logging.info("%s", f"{path=}")
+    return path
 
 def status_result(status: int) -> ResourceResponse:
     return status, {"Content-Type": "text/plain"}, f"{status}\n".encode()
