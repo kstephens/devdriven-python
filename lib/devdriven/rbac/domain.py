@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from .identity import User, Users, Group, Groups, Identity, Password, Passwords
+from .identity import User, Users, Group, Groups, Identity, UserPass, UserPasses
 from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request
 from .util import find
 
@@ -74,15 +74,11 @@ class RuleDomain:
 
 @dataclass
 class PasswordDomain:
-    passwords: Passwords = field(default_factory=list)
+    passwords: UserPasses = field(default_factory=list)
 
-    def matches(self, user: User, challenge: str) -> bool:
-        password = self.find_password(user)
-        return password is not None and password.password == challenge
-
-    def find_password(self, user: User) -> Password | None:
+    def password_for_user(self, user: User) -> UserPass | None:
         for password in self.passwords:
-            if password.name == user.name:
+            if password.username == user.name:
                 return password
         return None
 
@@ -120,8 +116,11 @@ class Domain:
     def memberships_for_identity(self, identity: Identity) -> Memberships:
         return self.role_domain.memberships_for_identity(identity)
 
-    def password_for_user(self, user: User) -> Password | None:
-        return self.password_domain.find_password(user)
+    def password_for_user(self, user: User) -> UserPass | None:
+        return self.password_domain.password_for_user(user)
+
+    def token_by_name(self, user: User) -> UserPass | None:
+        return self.password_domain.password_for_user(user)
 
 
 @dataclass

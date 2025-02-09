@@ -1,6 +1,6 @@
 from pathlib import Path, PurePath
 from ..asserts import assert_output_by_key
-from . import Resource, Action, Request, Solver, TextLoader, DomainFileLoader
+from . import Resource, Action, Request, Solver, Domain, TextLoader, DomainFileLoader
 from .util import getter
 
 
@@ -43,7 +43,7 @@ def run_rbac_integration(prt):
     for role in roles:
         prt(f"#  role {role.name}")
     for password in passwords:
-        prt(f"#  password {password.name} {password.password}")
+        prt(f"#  password {password.username} {password.password}")
 
     def fut(resource, action, user_name):
         nonlocal domain, roles, memberships
@@ -51,13 +51,17 @@ def run_rbac_integration(prt):
         user = user_by_name[user_name]
         request = Request(resource=Resource(resource), action=Action(action), user=user)
 
-        domain = DomainFileLoader(
-            user_file=Path(f"{domain_base}/user.txt"),
-            membership_file=Path(f"{domain_base}/role.txt"),
-            password_file=Path(f"{domain_base}/password.txt"),
-            resource_root=resource_root,
-            resource_path=Path(request.resource.name),
-        ).domain()
+        loader = DomainFileLoader()
+        identity_domain = loader.load_user_file(domain_base / "user.txt")
+        password_domain = loader.load_password_file(domain_base / "password.txt")
+        role_domain = loader.load_membership_file(domain_base / "role.txt")
+        rule_domain = loader.load_rules_for_resource(resource_root, Path(resource))
+        domain = Domain(
+            identity_domain=identity_domain,
+            role_domain=role_domain,
+            rule_domain=rule_domain,
+            password_domain=password_domain,
+        )
         solver = Solver(domain=domain)
         rules = solver.find_rules(request)
         prt("")

@@ -20,5 +20,5 @@ rule deny   *    *           **/.rbac.txt
 # Anonymous users have no access:
 rule deny   *    anon-role   **
 
-# All other users have GET:
-rule allow  GET  *           **
+# All other users have GET,HEAD:
+rule allow  GET,HEAD  *           **

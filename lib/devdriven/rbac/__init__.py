@@ -11,6 +11,13 @@ from .rbac import (
     Rule,
     Rules,
 )
-from .domain import IdentityDomain, RoleDomain, RuleDomain, Domain, Solver
+from .domain import (
+    IdentityDomain,
+    RoleDomain,
+    RuleDomain,
+    PasswordDomain,
+    Domain,
+    Solver,
+)
 from .identity import User, Group, Identity
-from .loader import DomainLoader, TextLoader, DomainFileLoader
+from .loader import DomainFileLoader, TextLoader

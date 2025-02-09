@@ -1,14 +1,14 @@
-from typing import Any, Iterable, Literal, Annotated, List, Dict, Tuple
-import copy
+from typing import Any, Iterable, Dict, Tuple, Callable
 from pathlib import Path
-import re
-import json
 import logging
-import sys
 import os
-from icecream import ic
-from .loader import DomainLoader, DomainFileLoader  # TextLoader
-from .auth import Authenticator, AuthBasic, AuthBearer, AuthCookie, AuthUserPass, Cookie, Auth
+import json
+from dataclasses import dataclass
+from .loader import DomainFileLoader
+from .identity import UserPass, Cookie
+from .auth import (
+    Authenticator,
+)
 from ..rbac import (
     Domain,
     Solver,
@@ -20,23 +20,94 @@ from ..rbac import (
     Role,
 )
 
+
+@dataclass
+class ResourceRequest:
+    action: str
+    resource: str
+    auth_header: str | None
+    auth_cookie: str | None
+    body: bytes
+
+
+ResourceResponse = Tuple[int, dict, bytes]
+
+
 class App:
-    def __init__(
-        self, resource_root: str, domain_root: str, authenticator: Authenticator,
-    ):
+    authenticator: Authenticator
+
+    def __init__(self, resource_root: str, domain_root: str):
+        self.verbose = False
         self.resource_root = Path(resource_root)
         self.domain_root = Path(domain_root)
-        self.authenticator = authenticator
         self.environ: Dict[str, str] = {}
         self.start_response = None
-        self.domain_loader = None
         self.auth_cookie_name = "authsession"
-        self.verbose = False
+        self.cipher_key = "123"
+        self.authenticator = self.make_authenticator()
 
-    def login(self, username: str, password: str) -> Tuple[bool, Cookie]:
-        auth = self.authenticator.auth_user_pass(username, password)
-        logging.info("%s", f"{username=} {password=} {auth=}")
-        return True, (self.auth_cookie_name, username)
+    ######################################
+
+    def login(self, username: str, password: str) -> Cookie | None:
+        userpass = self.authenticator.auth_userpass(UserPass(username, password))
+        logging.info("%s", f"login: {username=}")
+        if userpass:
+            return self.authenticator.userpass_cookie(userpass)
+        return None
+
+    ######################################
+
+    def resource_get(self, request: ResourceRequest) -> ResourceResponse:
+        def read_file(path: Path):
+            size = os.stat(str(path)).st_size
+            logging.info("resource_get: %s", f"{request.action} {size} bytes <= {path}")
+            with open(path, "rb") as io:
+                return 200, file_headers(path), io.read()
+
+        return self.resource_request(request, read_file)
+
+    def resource_head(self, request: ResourceRequest) -> ResourceResponse:
+        def head_file(path: Path):
+            return 200, file_headers(path), b""
+
+        return self.resource_request(request, head_file)
+
+    def resource_put(self, request: ResourceRequest) -> ResourceResponse:
+        def put_file(path: Path):
+            logging.info(
+                "resource_put: %s",
+                f"{request.action} {len(request.body)} bytes => {path}",
+            )
+            with open(str(path), "wb") as io:
+                io.write(request.body)
+            return (
+                201,
+                {"Content-Type": "text/plain"},
+                f"OK : {len(request.body)} bytes".encode(),
+            )
+
+        return self.resource_request(request, put_file, must_exist=False)
+
+    ######################################
+
+    def resource_request(
+        self,
+        request: ResourceRequest,
+        with_path: Callable[[Path], ResourceResponse],
+        must_exist: bool = True,
+    ) -> ResourceResponse:
+        path = Path(str(self.resource_root) + request.resource)
+        exists = os.access(str(path), os.R_OK)
+        logging.info("resource_request: %s", f"{request.action} {path=} {exists=}")
+        if must_exist and not exists:
+            return status_result(404)
+        status, _, body = self.check_access(request)
+        logging.info("resource_request:::\n%s", body.decode())
+        if status == 200:
+            return with_path(path)
+        return status_result(401)
+
+    ######################################
 
     def is_allowed(self, action: str, resource: str, username: str) -> Tuple[bool, Any]:
         rule: Rule = self.solve(action, resource, username)
@@ -53,58 +124,25 @@ class App:
         }
         return rule.permission.name == "allow", result
 
+    ######################################
+
+    def check_access(self, request: ResourceRequest) -> ResourceResponse:
+        username = self.authenticate(request.auth_header, request.auth_cookie)
+        success, info = self.is_allowed(request.action, request.resource, username)
+        status = 200 if success else 401
+        return (
+            status,
+            {"Content-Type": "application/json"},
+            json.dumps(info, indent=2).encode(),
+        )
+
     def authenticate(self, auth: str | None, cookie: str | None) -> str:
-        username = None
-        if auth is not None:
-            if result := self.authenticator.auth_header(auth):
-                username = result[0]
-        if cookie is not None:
-            if result := self.authenticator.auth_cookie((self.auth_cookie_name, cookie)):
-                username = result[0]
-        if username is None:
-            username = ""
-        return username
-
-    def resource_get(
-        self,
-        action: str,
-        resource: str,
-        auth_header: str | None,
-        auth_cookie: str | None,
-    ):
-        path = Path(str(self.resource_root) + resource)
-        status = body = None
-        headers = {}
-        if not os.access(str(path), os.R_OK):
-            status = 404
-        else:
-            allowed, _result = self.check_access(action, resource, auth_header, auth_cookie)
-            if not allowed:
-                status = 401
-        if not status:
-            with open(path, "rb") as io:
-                status = 200
-                body = io.read()
-                headers["Content-Type"] = 'application/binary'
-        if not status:
-            status = 403
-        if not body:
-            body = f"{status}\n".encode()
-            headers["Content-Type"] = "text/plain"
-        return status, headers, body
-
-    def check_access(
-        self,
-        action: str,
-        resource: str,
-        auth_header: str | None,
-        auth_cookie: str | None,
-        ):
-        # ic(auth_header)
-        # ic(auth_cookie)
-        username = self.authenticate(auth_header, auth_cookie)
-        success, result = self.is_allowed(action, resource, username)
-        return success, result
+        logging.debug("%s", f"authenticate: {auth=} {cookie=}")
+        userpass = self.authenticator.authenticate(None, auth, cookie)
+        logging.info("%s", f"authenticate: {userpass and userpass.username=}")
+        if userpass:
+            return userpass.username
+        return ""
 
     def solve(self, action_name: str, resource_path: str, username: str) -> Rule:
         resource = Resource(resource_path)
@@ -119,30 +157,33 @@ class App:
 
         rules: Iterable = []
         if not (action_name and username and user):
-            rules = [ self.default_rule(request) ]
+            rules = [self.default_rule(request)]
         else:
             rules = solver.find_rules(request)
 
         if self.verbose:
-            if isinstance(self.domain_loader, DomainFileLoader):
-                logging.info(
-                    "  files_loaded  : %s",
-                    repr([str(p) for p in self.domain_loader.files_loaded]),
-                )
             logging.info("  action        : %s", repr(request.action.name))
             logging.info("  resource      : %s", repr(request.resource.name))
-            logging.info("  user          : %s", repr(request.user and request.user.name))
             logging.info(
-                "  groups        : %s", repr(request.user and [g.name for g in request.user.groups])
+                "  user          : %s", repr(request.user and request.user.name)
+            )
+            logging.info(
+                "  groups        : %s",
+                repr(request.user and [g.name for g in request.user.groups]),
             )
             logging.info(
                 "  roles         : %s",
-                repr(request.user and [r.name for r in domain.roles_for_user(request.user)]),
+                repr(
+                    request.user
+                    and [r.name for r in domain.roles_for_user(request.user)]
+                ),
             )
             logging.info("  rules         : %s", len(list(rules)))
             for rule in rules:
                 logging.info("                : %s", rule.brief())
 
+        if not rules:
+            return self.default_rule(request)
         return next(iter(rules))
 
     ##########################################################
@@ -156,35 +197,51 @@ class App:
             description="<<DEFAULT>>",
         )
 
-    ##########################################################
-
-    # This can be overriden to use a different domain loader.
-    def make_domain(self, resource: Resource) -> Domain:
-        domain_loader = DomainFileLoader(
-            user_file=self.domain_root / "user.txt",
-            membership_file=self.domain_root / "role.txt",
-            password_file=self.domain_root / "password.txt",
-            resource_root=self.resource_root,
-            resource_path=Path(resource.name),
+    def make_authenticator(self):
+        self.identity_domain, self.password_domain = self.make_auth_domains()
+        authenticator = Authenticator(
+            identity_domain=self.identity_domain,
+            password_domain=self.password_domain,
+            cipher_key=self.cipher_key,
+            cookie_name=self.auth_cookie_name,
         )
-        domain = domain_loader.domain()
-        self.domain_loader = domain_loader
+        return authenticator
+
+    ##########################################################
+    # This can be overriden to use a different domain loader.
+
+    def make_auth_domains(self):
+        root = self.domain_root
+        loader = DomainFileLoader()
+        identity_domain = loader.load_user_file(root / "user.txt")
+        password_domain = loader.load_password_file(root / "password.txt")
+        return identity_domain, password_domain
+
+    def make_domain(self, resource: Resource) -> Domain:
+        root = self.domain_root
+        loader = DomainFileLoader()
+        domain = Domain(
+            identity_domain=self.identity_domain,
+            role_domain=loader.load_membership_file(root / "role.txt"),
+            rule_domain=loader.load_rules_for_resource(
+                self.resource_root, Path(resource.name)
+            ),
+            password_domain=self.password_domain,
+        )
         return domain
 
 
-class UnsafeAuthenticator(Authenticator):
-    def challenge_userpass(self, auth: AuthUserPass) -> Auth | None:
-        ic(auth)
-        return auth[1], auth
+def status_result(status: int) -> ResourceResponse:
+    return status, {"Content-Type": "text/plain"}, f"{status}\n".encode()
 
-    def challenge_basic(self, auth: AuthBasic) -> Auth | None:
-        ic(auth)
-        return auth[1][0], auth
 
-    def challenge_bearer(self, auth: AuthBearer) -> Auth | None:
-        ic(auth)
-        return auth[1], auth
-
-    def challenge_cookie(self, auth: AuthCookie) -> Auth | None:
-        ic(auth)
-        return auth[1], auth
+def file_headers(path: Path) -> dict:
+    if stat := os.stat(str(path)):
+        etag = f"{stat.st_dev}-{stat.st_ino}-{stat.st_size}-{stat.st_mtime}"
+        return {
+            "Content-Length": str(stat.st_size),
+            "Content-Type": "application/binary",
+            "ETag": etag,
+            # "Last-Modified":
+        }
+    return {}

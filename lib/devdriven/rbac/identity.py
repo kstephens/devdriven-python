@@ -18,19 +18,32 @@ class User:
     groups: Groups = field(default_factory=list)
 
 
+Username = str
+Password = str
+
+
 @dataclass
-class Password:
-    name: str
-    password: str = field(default="")
+class UserPass:
+    username: Username
+    password: Password
 
 
 @dataclass
 class Token:
-    name: str
-    token: str = field(default="")
+    value: str
+
+
+CookieName = str
+CookieValue = str
+
+
+@dataclass
+class Cookie:
+    name: CookieName
+    value: CookieValue
 
 
 Identity = User | Group
 Users = Iterable[User]
-Passwords = Iterable[Password]
+UserPasses = Iterable[UserPass]
 Tokens = Iterable[Token]
