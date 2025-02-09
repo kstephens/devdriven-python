@@ -1,5 +1,14 @@
 from dataclasses import dataclass, field
-from .identity import User, Users, Group, Groups, Identity, UserPass, UserPasses
+from .identity import (
+    User,
+    Users,
+    Group,
+    Groups,
+    Identity,
+    UserPass,
+    UserPasses,
+    Tokens,
+)
 from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request
 from .util import find
 
@@ -81,6 +90,18 @@ class PasswordDomain:
             if password.username == user.name:
                 return password
         return None
+
+
+@dataclass
+class TokenDomain:
+    tokens: Tokens = field(default_factory=list)
+
+
+@dataclass
+class AuthDomain:
+    identity_domain: IdentityDomain
+    password_domain: PasswordDomain
+    token_domain: TokenDomain
 
 
 @dataclass
