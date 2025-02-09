@@ -139,12 +139,9 @@ class DomainFileLoader:
     Creates a static Domain.
     """
 
-    files_loaded: List[Path] = field(default_factory=list)
-
     def load_user_file(self, user_file: Path) -> IdentityDomain:
         with open(user_file, encoding="utf-8") as io:
             users = TextLoader().read_users(io)
-            self.files_loaded.append(user_file)
         group_by_name = {}
         for user in users:
             for group in user.groups:
@@ -155,7 +152,6 @@ class DomainFileLoader:
     def load_membership_file(self, memberships_file: Path) -> RoleDomain:
         with open(memberships_file, encoding="utf-8") as io:
             memberships = TextLoader().read_memberships(io)
-            self.files_loaded.append(memberships_file)
         role_by_name = {}
         for member in memberships:
             role_by_name[member.role.name] = member.role
@@ -167,13 +163,11 @@ class DomainFileLoader:
     ) -> RuleDomain:
         loader = FileSystemLoader(resource_root=resource_root)
         rules = loader.load_rules(resource_path)
-        self.files_loaded.extend(loader.files_loaded)
         return RuleDomain(rules=rules)
 
     def load_password_file(self, password_file: Path) -> PasswordDomain:
         with open(password_file, encoding="utf-8") as io:
             passwords = TextLoader().read_passwords(io)
-            self.files_loaded.append(password_file)
         return PasswordDomain(passwords=passwords)
 
 
@@ -182,7 +176,6 @@ class FileSystemLoader:
     resource_root: Path
     open_file: Callable = field(default=real_open_file)
     auth_file_name: str = field(default=".rbac.txt")
-    files_loaded: List[Path] = field(default_factory=list)
 
     def load_rules(self, resource: Path) -> Rules:
         return mapcat(self.load_auth_file, self.resource_paths(resource))
@@ -191,9 +184,7 @@ class FileSystemLoader:
         auth_file = self.auth_file(path)
         io: IO = self.open_file(auth_file)
         if io:
-            loader = TextLoader(prefix=str(path) + "/")
-            self.files_loaded.append(auth_file)
-            return loader.read_rules(io)
+            return TextLoader(prefix=str(path) + "/").read_rules(io)
         return []
 
     def resource_paths(self, resource: Path) -> Iterable[Path]:
