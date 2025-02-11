@@ -1,4 +1,4 @@
-from typing import Any, Union, List, Mapping, Iterable, Callable
+from typing import Any, List, Mapping, Iterable, Callable
 import re
 from .typing import Variadic, VariadicBool, Arity1, Arity1Bool
 
@@ -172,12 +172,12 @@ def get(x: Mapping[Any, Any], default: Any = None) -> Callable[[Any], Any]:
     return lambda i: x.get(i, default)
 
 
-def re_pred(rx_or_string: Union[re.Pattern, str], re_search=re.search) -> Arity1Bool:
+def re_pred(rx_or_string: re.Pattern | str, re_search=re.search) -> Arity1Bool:
     """
     A function that takes a regular expression pattern as input and returns a predicate function with re.search.
 
     Parameters:
-      - rx (Union[re.Pattern, str]): A re.Pattern or regular expression pattern string to be compiled.
+      - rx (re.Pattern | str): A re.Pattern or regular expression pattern string to be compiled.
 
     Returns:
       - Arity1Bool: A function that takes a string or a re.Pattern as input and

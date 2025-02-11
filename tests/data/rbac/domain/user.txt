@@ -1,0 +1,6 @@
+user unknown  Anon
+user alice    Admins
+user bob      Readers
+user frank    Writers,Other
+user tim      Other
+user root     Other

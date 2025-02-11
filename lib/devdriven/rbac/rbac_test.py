@@ -1,9 +1,7 @@
 from pathlib import Path, PurePath
 from ..asserts import assert_output_by_key
-from . import Resource, Action, Request, Solver, TextLoader, DomainFileLoader
+from . import Resource, Action, Request, Solver, Domain, TextLoader, DomainFileLoader
 from .util import getter
-
-# from icecream import ic
 
 
 def test_rbac_integration():
@@ -12,8 +10,9 @@ def test_rbac_integration():
 
 # pylint: disable-next=too-many-statements,too-many-locals
 def run_rbac_integration(prt):
-    resource_base = PurePath("tests/data/rbac")
-    resource_root = resource_base / "root"
+    base_dir = PurePath("tests/data/rbac")
+    domain_base = base_dir / "domain"
+    resource_root = base_dir / "root"
     domain = None
 
     def print_user(user):
@@ -21,13 +20,15 @@ def run_rbac_integration(prt):
         groups = list(map(lambda o: o.name, user.groups))
         roles = list(map(lambda o: o.name, domain.roles_for_user(user)))
         prt(f"# identity {user.name}")
-        prt(f"#   groups = {groups!r}")
-        prt(f"#   roles = {roles!r}")
+        prt(f"#   {groups=}")
+        prt(f"#   {roles=}")
 
-    with open(f"{resource_base}/user.txt", encoding="utf-8") as io:
+    with open(f"{domain_base}/user.txt", encoding="utf-8") as io:
         users = TextLoader("").read_users(io)
-    with open(f"{resource_base}/role.txt", encoding="utf-8") as io:
+    with open(f"{domain_base}/role.txt", encoding="utf-8") as io:
         memberships = TextLoader("").read_memberships(io)
+    with open(f"{domain_base}/password.txt", encoding="utf-8") as io:
+        passwords = TextLoader("").read_passwords(io)
     roles = {}
     for member in memberships:
         roles[member.role.name] = member.role
@@ -41,6 +42,8 @@ def run_rbac_integration(prt):
         prt(f"#  member {membership.role.name} {membership.member.name}")
     for role in roles:
         prt(f"#  role {role.name}")
+    for password in passwords:
+        prt(f"#  password {password.username} {password.password}")
 
     def fut(resource, action, user_name):
         nonlocal domain, roles, memberships
@@ -48,15 +51,16 @@ def run_rbac_integration(prt):
         user = user_by_name[user_name]
         request = Request(resource=Resource(resource), action=Action(action), user=user)
 
-        domain = (
-            DomainFileLoader()
-            .load_all(
-                users_file=Path(f"{resource_base}/user.txt"),
-                memberships_file=Path(f"{resource_base}/role.txt"),
-                resource_root=resource_root,
-                resource_path=Path(request.resource.name),
-            )
-            .create_domain()
+        loader = DomainFileLoader()
+        identity_domain = loader.load_user_file(domain_base / "user.txt")
+        password_domain = loader.load_password_file(domain_base / "password.txt")
+        role_domain = loader.load_membership_file(domain_base / "role.txt")
+        rule_domain = loader.load_rules_for_resource(resource_root, Path(resource))
+        domain = Domain(
+            identity_domain=identity_domain,
+            role_domain=role_domain,
+            rule_domain=rule_domain,
+            password_domain=password_domain,
         )
         solver = Solver(domain=domain)
         rules = solver.find_rules(request)

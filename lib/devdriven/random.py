@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID, uuid4
 from random import Random, SystemRandom
 
@@ -20,7 +20,7 @@ def set_seed(seed: Any) -> Random:
     return CURRENT
 
 
-def get_seed() -> Optional[str]:
+def get_seed() -> str | None:
     return SEED
 
 

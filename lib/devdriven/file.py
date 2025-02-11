@@ -1,4 +1,4 @@
-from typing import Optional, Union, Any, List
+from typing import Any, List
 import platform
 import os
 import pickle
@@ -6,7 +6,7 @@ import bz2
 from .util import exec_command
 
 
-def read_file(name: str, encoding: Optional[str] = None) -> Optional[Union[bytes, str]]:
+def read_file(name: str, encoding: str | None = None) -> bytes | str | None:
     try:
         if encoding:
             with open(name, "r", encoding=encoding) as input_io:
@@ -18,7 +18,7 @@ def read_file(name: str, encoding: Optional[str] = None) -> Optional[Union[bytes
         return None
 
 
-def read_file_lines(name: str, encoding: str = "utf-8") -> Optional[List[str]]:
+def read_file_lines(name: str, encoding: str = "utf-8") -> List[str] | None:
     try:
         return str(read_file(name, encoding=encoding)).splitlines()
     except (OSError, UnicodeDecodeError):
@@ -33,7 +33,7 @@ def delete_file(path: str) -> bool:
         return False
 
 
-def file_md5(file: str, md5_cmd: Optional[str] = None) -> Optional[str]:
+def file_md5(file: str, md5_cmd: str | None = None) -> str | None:
     if not md5_cmd:
         md5_cmd = "md5" if platform.system() == "Darwin" else "md5sum"
     result = exec_command(
@@ -46,7 +46,7 @@ def file_md5(file: str, md5_cmd: Optional[str] = None) -> Optional[str]:
     return None
 
 
-def file_size(path: str) -> Optional[int]:
+def file_size(path: str) -> int | None:
     try:
         return os.stat(path).st_size
     except FileNotFoundError:  # might be a symlink to bad file.
@@ -59,7 +59,7 @@ NEWLINE_BYTE = b"\n"[0]
 
 def file_nlines(
     path: str, eol: bytes = b"\n", buffer_size: int = BUFFER_SIZE
-) -> Optional[int]:
+) -> int | None:
     # For large files: wc -l 'path' will be faster.
     last_buffer = None
     count = byte_count = 0

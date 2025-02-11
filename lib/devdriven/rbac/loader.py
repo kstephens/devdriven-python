@@ -1,9 +1,9 @@
-from typing import Any, Self, Optional, Callable, Iterable, Tuple, List, Type, IO
+from typing import Any, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
 import logging
-from .identity import User, Users, Group, Groups
+from .identity import User, Users, Group, UserPass, UserPasses
 from .rbac import (
     Resource,
     Action,
@@ -11,7 +11,6 @@ from .rbac import (
     Rules,
     Permission,
     Role,
-    Roles,
     Membership,
     Memberships,
     Matcher,
@@ -19,7 +18,7 @@ from .rbac import (
     regex_matcher,
     negate_matcher,
 )
-from .domain import Domain, IdentityDomain, RoleDomain, RuleDomain
+from .domain import IdentityDomain, RoleDomain, RuleDomain, PasswordDomain
 from .util import getter, mapcat
 from ..path import clean_path
 from ..glob import glob_to_regex
@@ -105,17 +104,24 @@ class TextLoader:
             return Membership(role=role, member=User(name, description))
         return Membership(role=role, member=Group(description, description))
 
+    ##############################
 
-COMMENT_RX = re.compile(r"#.*$")
-LEADING_SPACE_RX = re.compile(r"^\s+")
+    def read_passwords(self, io: IO) -> UserPasses:
+        def make_password(m: re.Match):
+            return [UserPass(**m.groupdict())]
+
+        return parse_lines(io, PASSWORD_RX, make_password)
+
+
 RULE_RX = re.compile(
     r"rule\s+(?P<permission>\S+)\s+(?P<action>\S+)\s+(?P<role>\S+)\s+(?P<resource>\S+)"
 )
 MEMBERSHIP_RX = re.compile(r"member\s+(?P<role>\S+)\s+(?P<members>\S+)")
 USER_RX = re.compile(r"user\s+(?P<user>\S+)\s+(?P<groups>\S+)")
+PASSWORD_RX = re.compile(r"password\s+(?P<username>\S+)\s+(?P<password>\S+)")
 
 
-def real_open_file(file: Path) -> Optional[IO]:
+def real_open_file(file: Path) -> IO | None:
     try:
         return open(str(file), "r", encoding="utf-8")
     except OSError:
@@ -129,71 +135,36 @@ class DomainFileLoader:
     Creates a static Domain.
     """
 
-    files_loaded: List[Path] = field(default_factory=list)
-    users: Users = field(default_factory=list)
-    groups: Groups = field(default_factory=list)
-    memberships: Memberships = field(default_factory=list)
-    roles: Roles = field(default_factory=list)
-    rules: Rules = field(default_factory=list)
-
-    def create_domain(self) -> Domain:
-        return Domain(
-            identity_domain=IdentityDomain(users=self.users, groups=self.groups),
-            role_domain=RoleDomain(memberships=self.memberships, roles=self.roles),
-            rule_domain=RuleDomain(rules=self.rules),
-        )
-
-    def load_all(
-        self,
-        users_file: Path,
-        memberships_file: Path,
-        resource_root: Path,
-        resource_path: Path,
-    ) -> Self:
-        self.load_users_file(users_file)
-        self.load_memberships_file(memberships_file)
-        self.load_rules_for_resource(Path(resource_root), Path(resource_path))
-        return self
-
-    def load_users_file(self, users_file: Path) -> Tuple[Users, Groups]:
-        with open(users_file, encoding="utf-8") as io:
-            self.users = TextLoader().read_users(io)
-            self.files_loaded.append(users_file)
+    def load_user_file(self, user_file: Path) -> IdentityDomain:
+        with open(user_file, encoding="utf-8") as io:
+            users = TextLoader().read_users(io)
         group_by_name = {}
-        for user in self.users:
+        for user in users:
             for group in user.groups:
                 group_by_name[group.name] = group
-        self.groups = sorted(group_by_name.values(), key=getter("name"))
-        return self.users, self.groups
+        groups = sorted(group_by_name.values(), key=getter("name"))
+        return IdentityDomain(users=users, groups=groups)
 
-    def load_memberships_file(
-        self, memberships_file: Path
-    ) -> Tuple[Memberships, Roles]:
+    def load_membership_file(self, memberships_file: Path) -> RoleDomain:
         with open(memberships_file, encoding="utf-8") as io:
-            self.memberships = TextLoader().read_memberships(io)
-            self.files_loaded.append(memberships_file)
+            memberships = TextLoader().read_memberships(io)
         role_by_name = {}
-        for member in self.memberships:
+        for member in memberships:
             role_by_name[member.role.name] = member.role
-        self.roles = sorted(role_by_name.values(), key=getter("name"))
-        return self.memberships, self.roles
+        roles = sorted(role_by_name.values(), key=getter("name"))
+        return RoleDomain(memberships=memberships, roles=roles)
 
     def load_rules_for_resource(
         self, resource_root: Path, resource_path: Path
-    ) -> Rules:
+    ) -> RuleDomain:
         loader = FileSystemLoader(resource_root=resource_root)
-        self.rules = loader.load_rules(resource_path)
-        self.files_loaded.extend(loader.files_loaded)
-        return self.rules
+        rules = loader.load_rules(resource_path)
+        return RuleDomain(rules=rules)
 
-    def show(self, prt=print):
-        prt("")
-        for user in self.users:
-            prt(f"#  user {user.name} {','.join(map(getter('name'), user.groups))}")
-        for membership in self.memberships:
-            prt(f"#  member {membership.role.name} {membership.member.name}")
-        for role in self.roles:
-            prt(f"#  role {role.name}")
+    def load_password_file(self, password_file: Path) -> PasswordDomain:
+        with open(password_file, encoding="utf-8") as io:
+            passwords = TextLoader().read_passwords(io)
+        return PasswordDomain(passwords=passwords)
 
 
 @dataclass
@@ -201,7 +172,6 @@ class FileSystemLoader:
     resource_root: Path
     open_file: Callable = field(default=real_open_file)
     auth_file_name: str = field(default=".rbac.txt")
-    files_loaded: List[Path] = field(default_factory=list)
 
     def load_rules(self, resource: Path) -> Rules:
         return mapcat(self.load_auth_file, self.resource_paths(resource))
@@ -210,9 +180,10 @@ class FileSystemLoader:
         auth_file = self.auth_file(path)
         io: IO = self.open_file(auth_file)
         if io:
-            loader = TextLoader(prefix=str(path) + "/")
-            self.files_loaded.append(auth_file)
-            return loader.read_rules(io)
+            try:
+                return TextLoader(prefix=str(path) + "/").read_rules(io)
+            finally:
+                io.close()
         return []
 
     def resource_paths(self, resource: Path) -> Iterable[Path]:
@@ -225,19 +196,28 @@ class FileSystemLoader:
 ###################################
 
 
-def parse_lines(io: IO, rx: re.Pattern, parser: Callable) -> Iterable[Any]:
+def parse_lines(
+    io: IO, rx: re.Pattern, parse: Callable[[re.Match], Any]
+) -> Iterable[Any]:
     result: List[Any] = []
     while line := io.readline():
         if m := rx.match(trim_line(line)):
-            result.extend(parser(m))
+            result.extend(parse(m))
     return result
 
 
 def parse_list(val: str) -> Iterable[str]:
-    return re.split(r"\s*,\s*", val)
+    return re.split(PARSE_LIST_RX, val)
+
+
+PARSE_LIST_RX = re.compile(r"\s*,\s*")
 
 
 def trim_line(line: str) -> str:
     line = line.removesuffix("\n")
-    line = re.sub(r"^\s+|\s+$", "", line)
+    line = re.sub(TRIM_SPACE_RX, "", line)
     return re.sub(COMMENT_RX, "", line)
+
+
+COMMENT_RX = re.compile(r"#.*$")
+TRIM_SPACE_RX = re.compile(r"^\s+|\s+$")

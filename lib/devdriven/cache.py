@@ -1,11 +1,11 @@
-from typing import Any, Optional, Callable
+from typing import Any, Callable
 import logging
 from pathlib import Path
 from .file import pickle_bz2
 
 
 class PickleCache:
-    def __init__(self, path: str, generate: Optional[Callable]):
+    def __init__(self, path: str, generate: Callable | None):
         self.path = Path(path)
         self.generate = generate
         self._data: Any = None

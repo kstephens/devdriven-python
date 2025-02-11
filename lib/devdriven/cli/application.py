@@ -1,6 +1,5 @@
-from typing import Union, Type, List, Dict
+from typing import Type, List, Dict
 import logging
-from ..util import dataclass_from_dict
 from .descriptor import Descriptor, Section, SectionDescriptorExample
 
 
@@ -12,6 +11,7 @@ class Application:
     descriptor_by_any: dict = {}
     descriptor_by_name: dict = {}
     descriptor_by_klass: dict = {}
+    synopsis_prefix: list = []
 
     def begin_section(self, name: str, order: int) -> None:
         if section := self.section_by_name.get(name):
@@ -32,10 +32,12 @@ class Application:
             "name": "",
             "section": app.current_section.name,
             "klass": klass,
+            "synopsis_prefix": self.synopsis_prefix,
         }
         docstr = klass.__doc__
+        assert docstr is not None
         try:
-            return dataclass_from_dict(Descriptor, kwargs).parse_docstring(docstr)
+            return Descriptor(**kwargs).parse_docstring(docstr)
         except Exception as exc:
             logging.fatal(
                 "Could not parse %s docstring : %s : \n%s",
@@ -45,7 +47,7 @@ class Application:
             )
             raise exc
 
-    def descriptor(self, name_or_klass: Union[str, Type], default=None) -> Descriptor:
+    def descriptor(self, name_or_klass: str | Type, default=None) -> Descriptor:
         return self.descriptor_by_any.get(name_or_klass, default)
 
     def descriptors_for_section(self, name: str) -> List[Descriptor]:

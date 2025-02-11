@@ -950,7 +950,7 @@ binary_op('!=') (2, 2)
 ]
 
 # %%
-def op_pred(op: str, b: Any) -> Optional[Predicate]:
+def op_pred(op: str, b: Any) -> Predicate | None:
   'Returns a predicate function given an operator name and a constant.'
   if pred := binary_op(op):
     return lambda a: pred(a, b)
@@ -1020,7 +1020,7 @@ Input = Sequence[Any]
 Parsed = Tuple[Any, Input]
 
 # A parser matches the input sequence and produces a result or nothing:
-Parser = Callable[[Input], Optional[Parsed]]
+Parser = Callable[[Input], Parsed | None]
 
 # %%
 
@@ -1079,7 +1079,7 @@ g([False])
 
 # %%
 ParsedSequence = Tuple[Sequence, Input]
-SequenceParser = Callable[[Input], Optional[ParsedSequence]]
+SequenceParser = Callable[[Input], ParsedSequence | None]
 
 def one(p: Parser) -> SequenceParser:
   'Returns a parser for one lexeme.'

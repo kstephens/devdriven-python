@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Iterable, Callable, List, Mapping, Dict, Tuple
+from typing import Any, Union, Iterable, Callable, List, Mapping, Dict, Tuple
 import os
 import subprocess
 import logging
@@ -6,6 +6,7 @@ import inspect
 import time
 import re
 import sys
+import traceback
 import socket
 import dataclasses
 import math
@@ -13,6 +14,7 @@ import operator
 from datetime import datetime, timezone
 from contextlib import contextmanager
 from collections import defaultdict
+from icecream import ic
 
 Indexable = Union[list, tuple, dict, Mapping]  # ???: is there a type for this?
 Predicate = Callable[[Any], Any]
@@ -20,8 +22,11 @@ Func0 = Callable[[], Any]
 Func1 = Callable[[Any], Any]
 FuncAny = Callable[..., Any]
 SubprocessResult = Any  # subprocess.CompletedProcess
-Data = Union[str, bytes]
-Number = Union[int, float]
+Data = str | bytes
+Number = int | float
+
+
+ic.configureOutput(includeContext=True, contextAbsPath=True)
 
 
 def identity(x: Any) -> Any:
@@ -39,7 +44,7 @@ def get_safe(items: Indexable, key: Any, default=None) -> Any:
         return default
 
 
-def len_or_none(obj: Any) -> Optional[int]:
+def len_or_none(obj: Any) -> int | None:
     return len(obj) if obj else None
 
 
@@ -59,8 +64,8 @@ def shorten_string(a_str: str, max_len: int, placeholder: str = "...") -> str:
     return a_str
 
 
-def maybe_decode_bytes(obj: Optional[bytes], encoding: str = "utf-8") -> Optional[str]:
-    if not obj:
+def maybe_decode_bytes(obj: bytes | None, encoding: str = "utf-8") -> str | None:
+    if obj is None:
         return None
     try:
         return obj.decode(encoding)
@@ -76,6 +81,7 @@ def unpad_lines(lines: List[str]) -> List[str]:
         return lines
     if re.search(r"^\S", lines[0]):
         return lines
+    pad = re.compile(r"^")
     for line in lines:
         if m := re.search(r"^( +)", line):
             pad = re.compile(f"^{m[1]}")
@@ -130,20 +136,36 @@ def humanize(
 # Time
 
 
+def now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 # See: https://en.wikipedia.org/wiki/ISO_8601
 DATETIME_ISO8601_FMT = "%Y-%m-%d %H:%M:%S.%f%z"
 # DATETIME_ISO8601_FMT = '%Y%m%dT%H%M%S.%f%z'
 
 
-def datetime_iso8601(val: datetime, zone: Optional[timezone] = None) -> str:
+def datetime_iso8601(val: datetime, zone: timezone | None = None) -> str:
     if not zone:
         zone = timezone.utc
     return val.replace(tzinfo=zone).strftime(DATETIME_ISO8601_FMT)
 
 
-def convert_windows_timestamp_to_iso8601(ts_str: Union[int, str]) -> str:
+def convert_windows_timestamp_to_iso8601(ts_str: int | str) -> str:
     ts_milli = int(ts_str) / 1000
     return datetime_iso8601(datetime.fromtimestamp(ts_milli))
+
+
+def datetime_diff_sec(a: datetime | None, b: datetime | None) -> float:
+    if a is None or b is None:
+        return 0
+    return (a - b).total_seconds()
+
+
+def datetime_diff_ms(a: datetime | None, b: datetime | None) -> float:
+    if a is None or b is None:
+        return 0
+    return datetime_diff_sec(a, b) * 1000
 
 
 def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
@@ -155,7 +177,7 @@ def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
 
 def elapsed_ms_exception(
     exc_klass: Any, func: FuncAny, *args: Any, **kwargs: Any
-) -> Tuple[Any, float, Optional[Exception]]:
+) -> Tuple[Any, float, Exception | None]:
     time_0 = time.time()
     try:
         result = func(*args, **kwargs)
@@ -214,7 +236,7 @@ def exec_command(cmd_line: List[str], **options: Any) -> SubprocessResult:
 
 def exec_command_unless_dry_run(
     cmd_line: List[str], dry_run: bool, **options: Any
-) -> Optional[SubprocessResult]:
+) -> SubprocessResult | None:
     if dry_run:
         logging.info("DRY-RUN : exec_command : %s", repr(cmd_line))
         return None
@@ -229,18 +251,22 @@ def merge_dicts(*dicts) -> dict:
     return {k: v for d in dicts for k, v in d.items()}
 
 
-def setattr_from_dict(obj, attrs: dict) -> None:
+def merge_deep(a: Any, b: Any) -> Any:
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a | {k: merge_deep(a.get(k), v) for k, v in b.items()}
+    return b
+
+
+def setattr_from_dict(obj, attrs: Dict[str, Any]) -> None:
     for name, val in attrs.items():
         setattr(obj, name, val)
 
 
-def dataclass_from_dict(klass, opts, defaults=None) -> Any:
-    defaults = defaults or {}
-    args = {
-        f.name: opts.get(f.name, defaults.get(f.name, None))
-        for f in dataclasses.fields(klass)
-        if f.init
-    }
+def dataclass_from_dict(
+    klass, opts: Dict, defaults: Dict[str, Any] | None = None
+) -> Any:
+    opts = (defaults or {}) | opts
+    args = {f.name: opts[f.name] for f in dataclasses.fields(klass) if f in opts}
     return klass(**args)
 
 
@@ -259,6 +285,12 @@ def slice_keys_compare(d1: dict, d2: dict) -> bool:
 
 #####################################################################
 # Sequence
+
+
+def count(seq: Iterable[Any], pred: Callable[[Any], bool] | None = None) -> int:
+    if pred:
+        return sum(1 for x in seq if pred(x))
+    return sum(1 for _ in seq)
 
 
 def trim_list(lst: List[Any]) -> List[Any]:
@@ -327,8 +359,7 @@ def chunks(items, width: int) -> Iterable[Iterable]:
 
 
 def uniq_by(seq: Iterable[Any], key: Func1) -> Iterable[Any]:
-    seen = set()
-    result = []
+    result, seen = [], set()
     for elem in seq:
         val = key(elem)
         if val not in seen:
@@ -349,11 +380,9 @@ def min_max(
         val = key(item)
         if seen:
             if compare(val, min_val):
-                min_val = val
-                min_item = item
+                min_val, min_item = val, item
             elif compare(max_val, val):
-                max_val = val
-                max_item = item
+                max_val, max_item = val, item
         else:
             seen = True
             min_val = max_val = val
@@ -365,7 +394,7 @@ def min_max(
 # Range
 
 
-def parse_range(x: str, n: int) -> Union[None, range]:
+def parse_range(x: str, n: int) -> None | range:
     if m := re.match(r"^(-?\d+)?:(-?\d+)?(?::(-?\d+))?$", x):
         if m[0] == "-" or m[1] == "-" or m[2] == "-":
             return None
@@ -373,9 +402,7 @@ def parse_range(x: str, n: int) -> Union[None, range]:
     return None
 
 
-def make_range(
-    start: Number, end: Number, step: Number, n: Number
-) -> Union[range, None]:
+def make_range(start: Number, end: Number, step: Number, n: Number) -> range | None:
     if not start:
         start = 0
     if not end:
@@ -411,7 +438,7 @@ def cwd(path: str) -> Any:
 # Regexp
 
 
-def glob_to_rx(glob: str, glob_terminator: Optional[str] = None) -> re.Pattern:
+def glob_to_rx(glob: str, glob_terminator: str | None = None) -> re.Pattern:
     assert not glob_terminator
     rx = glob
     rx = rx.replace(".", r"[^/]")
@@ -428,10 +455,11 @@ def set_from_match(obj, match: re.Match):
 # Networking
 
 
-def ip_to_host(ip: str) -> Optional[str]:
+def ip_to_host(ip: str) -> str | None:
     try:
         return socket.gethostbyaddr(ip)[0].lower()
     # pylint: disable-next=bare-except
+    # pylint: disable-next=broad-exception-caught
     except Exception:
         return None
 
@@ -494,6 +522,54 @@ def rr(x: Any) -> RawRepr:
 
 #####################################################################
 # Logging
+
+
+def configure_logging(app_name, log_level="INFO"):
+    # We'd prefer JSON, but the solution is way too complicated:
+    # See https://stackoverflow.com/questions/50144628/python-logging-into-file-as-a-dictionary-or-json
+    # format = '%(asctime)s %(name)s %(levelname)s %(message)s'
+    # https://code.activestate.com/lists/python-list/727185:
+    # %(className)s func=%(funcName)s
+    fmt = f"%(asctime)s %(levelname)-6s {app_name} %(message)s"
+    # formatter = logging.Formatter(fmt)
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=fmt)
+    set_logging_level(log_level)
+
+
+def set_logging_level(log_level):
+    # https://stackoverflow.com/a/55490202
+    # https://stackoverflow.com/a/2557316
+    # https://stackoverflow.com/a/60381742
+    numeric_level = getattr(logging, str(log_level).upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid log level: {log_level!r}")
+    loggers = [logging.getLogger()]  # get the root logger
+    loggers += root_loggers()
+    for logger in loggers:
+        logger.setLevel(numeric_level)
+
+
+def root_loggers() -> Iterable[Any]:
+    # Is this dependent on Python version?
+    # E1101: Instance of 'RootLogger' has no 'loggerDict' member (no-member)
+    try:
+        # pylint: disable-next=no-member
+        return [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    # pylint: disable-next=bare-except
+    # pylint: disable-next=broad-exception-caught
+    except Exception:
+        pass
+    return []
+
+
+def log_exc(exc, exc_info, prefix=None, suffix=None):
+    msg = " : ".join(
+        [str(s) for s in [prefix, "EXCEPTION", repr(exc), suffix] if s is not None]
+    )
+    logging.error(msg)
+    for line in traceback.format_exception(*exc_info):
+        logging.error("%s", f"{msg} : backtrace : {line.rstrip()}")
+    return msg
 
 
 def progress_logger(output=None) -> Callable[[int], None]:

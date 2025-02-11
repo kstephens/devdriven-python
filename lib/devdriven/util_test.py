@@ -126,8 +126,13 @@ def test_parse_commands():
 def test_min_max():
     assert util.min_max((2, 11, 7, 11)) == (2, 11)
     assert util.min_max(("123", "12", "1234", "1234"), key=len) == ("12", "1234")
-    assert util.min_max(("123", "12", "1234", "1234"), compare=operator.lt, key=len) == ("12", "1234")
-    assert util.min_max(("123", "12", "1234", "1234"), compare=operator.gt, key=len) == ("1234", "12")
+    assert util.min_max(
+        ("123", "12", "1234", "1234"), compare=operator.lt, key=len
+    ) == ("12", "1234")
+    assert util.min_max(
+        ("123", "12", "1234", "1234"), compare=operator.gt, key=len
+    ) == ("1234", "12")
+
 
 ##########################################################
 
@@ -274,6 +279,38 @@ def test_merge_dicts():
         {"b": 11, "d": 13},
     ]
     assert util.merge_dicts(*dicts) == {"a": 2, "b": 11, "c": 7, "d": 13}
+
+
+def test_merge_deep():
+    fut = util.merge_deep
+    assert fut(2, 3) == 3
+    assert fut({"a": 2}, 3) == 3
+    assert fut(2, {"a": 3}) == {"a": 3}
+    assert fut({"a": 2}, {"a": 3}) == {"a": 3}
+    assert fut({"a": 2, "b": 3}, {"b": 5, "c": 7}) == {"a": 2, "b": 5, "c": 7}
+    a = {
+        "a": 2,
+        "b": 3,
+        "c": {
+            "d": 5,
+        },
+    }
+    b = {
+        "b": 7,
+        "c": {
+            "d": 11,
+            "e": 12,
+        },
+    }
+    expected = {
+        "a": 2,
+        "b": 7,
+        "c": {
+            "d": 11,
+            "e": 12,
+        },
+    }
+    assert fut(a, b) == expected
 
 
 def test_first():

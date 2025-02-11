@@ -1,4 +1,4 @@
-from typing import Optional, Self, Iterable, Tuple
+from typing import Self, Iterable, Tuple
 from dataclasses import dataclass, field
 
 Position = Tuple[int, int]
@@ -66,8 +66,8 @@ class Canvas:
     def write(
         self,
         text: str,
-        p: Optional[Position] = None,
-        background: Optional[Pixel] = None,
+        p: Position | None = None,
+        background: Pixel | None = None,
         grow=True,
     ) -> Self:
         if not text:
@@ -94,8 +94,8 @@ class Canvas:
     def write_opt(
         self,
         text: str,
-        p: Optional[Position] = None,
-        background: Optional[Pixel] = None,
+        p: Position | None = None,
+        background: Pixel | None = None,
         grow=True,
     ) -> Self:
         p = p or self.cursor
@@ -119,11 +119,11 @@ class Canvas:
     def render_row(self, row: Iterable[Pixel], background: Pixel) -> str:
         return "".join([c or background for c in row])
 
-    def render(self, background: Optional[Pixel] = None) -> str:
+    def render(self, background: Pixel | None = None) -> str:
         background = background or self.background or " "
         return "\n".join([self.render_row(row, background) for row in self._rows])
 
-    def plot(self, c: Optional[Pixel], p: Position) -> Self:
+    def plot(self, c: Pixel | None, p: Position) -> Self:
         if isinstance(c, str):
             assert len(c) == 1
         if pos_in(p, self._size):
@@ -131,5 +131,5 @@ class Canvas:
         return self
 
 
-def pos_in(p: Position, rec: Position):
+def pos_in(p: Position, rec: Position) -> bool:
     return 0 <= p[0] and p[0] < rec[0] and 0 <= p[1] and p[1] < rec[1]

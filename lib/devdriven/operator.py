@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple, Callable
+from typing import Any, Tuple, Callable
 import operator
 from .util import merge_dicts
 
@@ -19,7 +19,7 @@ def left_comp(f: Binary, g: Callable) -> Callable:
     return h
 
 
-def binary_op(name: str) -> Optional[Binary]:
+def binary_op(name: str) -> Binary | None:
     "Returns a function for a binary operator by name."
     return BINARY_OPS.get(name)
 
@@ -69,7 +69,7 @@ BINARY_OPS = merge_dicts(
 )
 
 
-def binary_coerce(f: Binary, coerce_ops: Optional[dict] = None) -> Binary:
+def binary_coerce(f: Binary, coerce_ops: dict | None = None) -> Binary:
     "Coerces the right hand side of a binary operator."
     coercers = coerce_ops or COERCE_BINARY_OPS
 
@@ -122,14 +122,14 @@ COERCE_BINARY_OPS = {
 }
 
 
-def int_safe(x: Any) -> Optional[int]:
+def int_safe(x: Any) -> int | None:
     try:
         return int(x)
     except ValueError:
         return None
 
 
-def float_safe(x: Any) -> Optional[float]:
+def float_safe(x: Any) -> float | None:
     try:
         return float(x)
     except ValueError:

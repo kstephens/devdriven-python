@@ -1,4 +1,4 @@
-from typing import Union, Iterable
+from typing import Iterable
 from dataclasses import dataclass, field
 
 
@@ -18,5 +18,32 @@ class User:
     groups: Groups = field(default_factory=list)
 
 
+Username = str
+Password = str
+
+
+@dataclass
+class UserPass:
+    username: Username
+    password: Password
+
+
+@dataclass
+class Token:
+    value: str
+
+
+CookieName = str
+CookieValue = str
+
+
+@dataclass
+class Cookie:
+    name: CookieName
+    value: CookieValue
+
+
+Identity = User | Group
 Users = Iterable[User]
-Identity = Union[User, Group]
+UserPasses = Iterable[UserPass]
+Tokens = Iterable[Token]

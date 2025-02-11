@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 import json
 import subprocess
 import re
@@ -98,7 +98,7 @@ def to_dict(data: Any) -> Any:
     return ToDict().walk(data)
 
 
-def dump_json(obj: Any, indent: Optional[int] = None) -> str:
+def dump_json(obj: Any, indent: int | None = None) -> str:
     return json.dumps(to_dict(obj), indent=indent)
 
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from typing import Optional  # List, Iterable
 import logging
 import re
 import sys
@@ -63,12 +62,10 @@ class LDAPService:
         return res
 
     def encode_auth_token(self, req):
-        return Cipher(self.auth_token_key()).encipher_token(
-            (req["user"], req["secret"])
-        )
+        return Cipher(self.auth_token_key()).encipher((req["user"], req["secret"]))
 
     def decode_auth_token(self, token):
-        user, secret = Cipher(self.auth_token_key()).decipher_token(token)
+        user, secret = Cipher(self.auth_token_key()).decipher(token)
         return {"user": user, "secret": secret}
 
     def auth_token_key(self) -> str:
@@ -142,7 +139,7 @@ class LDAPService:
         logging.info("%s", msg)
 
 
-def parse_group_cn(item: bytes) -> Optional[str]:
+def parse_group_cn(item: bytes) -> str | None:
     if m := re.search(r"^CN=(?P<CN>[^,]+)(?:,|$)", item.decode(encoding="utf-8")):
         return m["CN"]
     return None
@@ -161,7 +158,7 @@ def main(argv):
         "ssl": True,
         "ssl_cert_required": False,
         "referrals": True,
-        "base_dn": "ou=Accounts,dc=US,dc=DRWHoldings,dc=com",
+        "base_dn": "ou=Accounts,dc=US,dc=test,dc=com",
     }
     svc = LDAPService(config)
     svc.connect()

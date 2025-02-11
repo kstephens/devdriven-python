@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 from dataclasses import asdict
 from . import parser as sut
 from ..util import slice_keys
@@ -49,7 +49,7 @@ $ command-2 a b c
 
 """
     parser, desc = parse_descriptor_docstring(docstr)
-    actual = vars(desc) | asdict(desc)
+    actual = vars(desc).copy()  # | asdict(desc)
     expected = {
         "name": "NAME-lower_0",
         "brief": "BRIEF DESCRIPTION.",
@@ -77,6 +77,8 @@ $ command-2 a b c
             },
         ],
     }
+
+    actual["examples"] = [asdict(ex) for ex in actual["examples"]]
     assert slice_keys(actual, expected.keys()) == expected
 
     expected = {
@@ -87,6 +89,8 @@ $ command-2 a b c
             "ARG-3,...",
         ],
     }
+
+    actual["options"] = asdict(actual["options"])
     assert slice_keys(actual["options"], expected.keys()) == expected
     print("")
 
@@ -125,7 +129,7 @@ examples:
 ##########################################
 
 
-def parse_command_argv(argv: List[str]) -> Optional[Options]:
+def parse_command_argv(argv: List[str]) -> Options | None:
     return sut.Parser().parse_command_argv(Command(**{}), argv.copy())
 
 
@@ -151,14 +155,13 @@ def test_parse_command_argv():
 ##########################################
 
 
-def parse_options_argv(argv: List[str]) -> Optional[Options]:
+def parse_options_argv(argv: List[str]) -> Options | None:
     return sut.Parser().parse_options_argv(Options(**{}), argv.copy())
 
 
 def test_parse_options_argv():
     argv = ["-abc", "--flag", "--opt=g", "h", "i", "-j"]
     obj = parse_options_argv(argv)
-    # ic(obj)
     assert obj.argv == argv
     assert [o.name for o in obj.opts] == ["a", "b", "c", "flag", "opt"]
     assert [o.value for o in obj.opts] == [True, True, True, True, "g"]
@@ -198,7 +201,7 @@ def test_parse_options_argv_dash_in_args():
 ##########################################
 
 
-def parse_option_doc(line: str) -> Optional[Option]:
+def parse_option_doc(line: str) -> Option | None:
     return sut.Parser().parse_option_doc(Option(**{}), line)
 
 
