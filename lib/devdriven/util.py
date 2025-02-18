@@ -1,4 +1,4 @@
-from typing import Any, Union, Iterable, Callable, List, Mapping, Dict, Tuple
+from typing import Any, Union, Iterable, Callable, Generator, List, Mapping, Dict, Tuple
 import os
 import subprocess
 import logging
@@ -388,6 +388,32 @@ def min_max(
             min_val = max_val = val
             min_item = max_item = item
     return min_item, max_item
+
+
+# Generator[yield_type, send_type, return_type]
+PairsGenerator = Generator[Tuple[Any, Any], None, None]
+
+
+def pairs_generator(items: Iterable, inclusive: bool = False) -> PairsGenerator:
+    """
+    Generates unique 2-tuples pairing each item with another.
+    This is effectively the triangular matrix of the cross product.
+    When inclusive is true, identity elements are present: e.g. ("a", "a").
+    """
+    offset = 0 if inclusive else -1
+    i = 0
+    for a in items:
+        j = 0
+        for b in items:
+            if j + offset >= i:
+                yield a, b
+            j += 1
+        i += 1
+
+
+def pairs(items: Iterable, inclusive: bool = False) -> Iterable[Tuple[Any, Any]]:
+    """See pairs_generator."""
+    return list(pairs_generator(items, inclusive))
 
 
 #####################################################################
