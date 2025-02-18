@@ -6,11 +6,12 @@ import inspect
 import time
 import re
 import sys
-import traceback
 import socket
 import dataclasses
 import math
 import operator
+import traceback
+from pathlib import Path
 from datetime import datetime, timezone
 from contextlib import contextmanager
 from collections import defaultdict
@@ -27,6 +28,8 @@ Number = int | float
 
 
 ic.configureOutput(includeContext=True, contextAbsPath=True)
+
+lib_dir: Path = Path(".")
 
 
 def identity(x: Any) -> Any:
@@ -527,6 +530,27 @@ def module_fullname(obj) -> str:
     if module == "builtins":
         return klass.__qualname__  # avoid outputs like 'builtins.str'
     return module + "." + klass.__qualname__
+
+
+#####################################################################
+# Exception
+
+Backtrace = List[Tuple[str, int]]
+
+
+def backtrace_list(exc: BaseException) -> Backtrace:
+    trb = exc.__traceback__
+    trb_extracted = traceback.extract_tb(trb)
+    return [
+        (
+            str(frame.filename).removeprefix(str(lib_dir) + "/"),
+            frame.lineno or 0,
+        )
+        for frame in trb_extracted
+    ]
+
+
+#####################################################################
 
 
 class RawRepr:
