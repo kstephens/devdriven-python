@@ -1,4 +1,4 @@
-from typing import Optional, Iterable, Literal, List, cast  # Union, Dict, Tuple, cast
+from typing import Iterable, Literal, List, cast  # Union, Dict, Tuple, cast
 import platform
 import os
 from dataclasses import dataclass
@@ -34,8 +34,8 @@ class File:
 class Difference:
     code: DiffCode
     line_no: int
-    a: Optional[str]
-    b: Optional[str]
+    a: str | None
+    b: str | None
 
 
 @dataclass

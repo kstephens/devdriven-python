@@ -1,4 +1,4 @@
-from typing import Any, Optional, Callable
+from typing import Any, Callable
 import sys
 from datetime import datetime
 import logging
@@ -19,9 +19,9 @@ class Runner:
     running: bool
     timer: Timer
     now: datetime
-    thread: Optional[Thread]
+    thread: Thread | None
     thread_wait: float
-    sleep: Optional[Event]
+    sleep: Event | None
 
     def __init__(self) -> None:
         self.callback = lambda runner, now: None

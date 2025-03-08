@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from typing import Optional  # List, Iterable
 import logging
 import re
 import sys
@@ -140,7 +139,7 @@ class LDAPService:
         logging.info("%s", msg)
 
 
-def parse_group_cn(item: bytes) -> Optional[str]:
+def parse_group_cn(item: bytes) -> str | None:
     if m := re.search(r"^CN=(?P<CN>[^,]+)(?:,|$)", item.decode(encoding="utf-8")):
         return m["CN"]
     return None

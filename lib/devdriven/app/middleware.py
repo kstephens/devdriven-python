@@ -15,7 +15,7 @@ This is inspired Python WSGI and Ruby Rack.
 # ## Imports
 
 # +
-from typing import Any, MutableMapping, Tuple, Iterable, Callable, Optional
+from typing import Any, MutableMapping, Tuple, Iterable, Callable
 import json
 import re
 import sys
@@ -173,7 +173,7 @@ Data = Any
 
 
 # +
-def read_input(app: App, read: Optional[Callable[[Data], Content]] = None) -> App:
+def read_input(app: App, read: Callable[[Data], Content] | None = None) -> App:
     "Reads body.stream"
     if not read:
         # pylint: disable-next=unnecessary-lambda-assignment
@@ -420,7 +420,7 @@ def override_req(app: App, overrides: Req) -> App:
 # ## Response Injection
 
 
-ResOptional = Tuple[Optional[Status], Optional[Headers], Optional[Body]]
+ResOptional = Tuple[Status | None, Headers | None, Body | None]
 AppOptional = Callable[[Req], ResOptional]
 
 

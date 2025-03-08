@@ -1,3 +1,3 @@
 # /root/a/b/.rbac.txt:
-rule allow GET read-role   *
-rule allow PUT write-role  *.txt
+rule  allow  GET,HEAD  read-role   *
+rule  allow  PUT       write-role  *.txt

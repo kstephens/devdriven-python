@@ -1,5 +1,6 @@
 # 2024-03-20: python_minifier does not work on 3.12.1.
 # 2024-09-27: python-ldap==3.4.4  # for rbac.ldap_service
+asgiref==3.8.1
 autopep8==2.0.4
 black==24.10.0
 cryptography==43.0.3

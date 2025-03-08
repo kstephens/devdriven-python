@@ -1,4 +1,4 @@
-from typing import Any, Self, Optional, List
+from typing import Any, Self, List
 import re
 from dataclasses import dataclass, field
 
@@ -10,8 +10,8 @@ class Argument:
     name: str = field(default="")
     description: str = field(default="")
     # optional: bool = field(default=False)
-    default: Optional[str] = field(default=None)
-    value: Optional[Any] = field(default=None)
+    default: str | None = field(default=None)
+    value: Any | None = field(default=None)
 
 
 @dataclass
@@ -19,14 +19,14 @@ class Option(Argument):
     arg: str = field(default="")
     full: str = field(default="")
     aliases: List[Any] = field(default_factory=list)
-    alias_of: Optional[str] = field(default=None)
+    alias_of: str | None = field(default=None)
 
-    def parse_arg(self, arg: str) -> Optional[Self]:
+    def parse_arg(self, arg: str) -> Self | None:
         self.style = "arg"
         self.aliases = []
         return self.parse_simple(arg)
 
-    def parse_doc(self, arg: str) -> Optional[Self]:
+    def parse_doc(self, arg: str) -> Self | None:
         self.style = "doc"
         self.aliases = []
         if m := re.match(r"^(?:.+  |)Default: +(.+?)\.$", arg):
@@ -52,7 +52,7 @@ class Option(Argument):
         alias.default = target.default
         return alias
 
-    def parse_simple(self, arg: str) -> Optional[Self]:
+    def parse_simple(self, arg: str) -> Self | None:
         def matched_long(kind, name, val):
             self.arg = arg
             self.kind, self.full, self.name, self.value = kind, f"--{name}", name, val

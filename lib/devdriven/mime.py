@@ -1,10 +1,10 @@
-from typing import Optional, Union, List, Tuple, Dict
+from typing import List, Tuple, Dict
 import mimetypes
 import re
 import platform
 from pathlib import Path
 
-MimeType = Tuple[Optional[str], Optional[str]]
+MimeType = Tuple[str | None, str | None]
 
 LONG_SUFFIX_RX = re.compile(r"(?:^|/)[^.]+(\.[^/]+)$")
 
@@ -36,7 +36,7 @@ def guess_type(file: str) -> MimeType:
     return content_type, content_encoding
 
 
-MimeTypeDict = Dict[Union[str, None], MimeType]
+MimeTypeDict = Dict[str | None, MimeType]
 MIMETYPES_OVERRIDE: MimeTypeDict = {}
 MIMETYPES_MORE: MimeTypeDict = {
     None: (None, None),

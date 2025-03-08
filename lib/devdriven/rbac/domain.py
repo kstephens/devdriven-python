@@ -1,7 +1,15 @@
-from typing import Optional  # Any, Self, Callable, Iterable, List, Type, IO
 from dataclasses import dataclass, field
-from .identity import User, Users, Group, Groups, Identity
-from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request  # , Action
+from .identity import (
+    User,
+    Users,
+    Group,
+    Groups,
+    Identity,
+    UserPass,
+    UserPasses,
+    Tokens,
+)
+from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request
 from .util import find
 
 
@@ -52,7 +60,7 @@ class RuleDomain:
     rules: Rules = field(default_factory=list)
 
     def find_rules(
-        self, request: Request, roles: Roles, max_rules: Optional[int] = None
+        self, request: Request, roles: Roles, max_rules: int | None = None
     ) -> Rules:
         rules = []
         for rule in self.rules:
@@ -74,19 +82,43 @@ class RuleDomain:
 
 
 @dataclass
+class PasswordDomain:
+    passwords: UserPasses = field(default_factory=list)
+
+    def password_for_user(self, user: User) -> UserPass | None:
+        for password in self.passwords:
+            if password.username == user.name:
+                return password
+        return None
+
+
+@dataclass
+class TokenDomain:
+    tokens: Tokens = field(default_factory=list)
+
+
+@dataclass
+class AuthDomain:
+    identity_domain: IdentityDomain
+    password_domain: PasswordDomain
+    token_domain: TokenDomain
+
+
+@dataclass
 class Domain:
     identity_domain: IdentityDomain
     role_domain: RoleDomain
     rule_domain: RuleDomain
+    password_domain: PasswordDomain
 
-    def find_rules(self, request: Request, max_rules: Optional[int] = None) -> Rules:
+    def find_rules(self, request: Request, max_rules: int | None = None) -> Rules:
         return self.rule_domain.find_rules(
             request, self.role_domain.roles_for_user(request.user), max_rules
         )
 
     def user_for_name(self, name: str) -> User:
         user = self.identity_domain.user_by_name(name)
-        if not user.groups:
+        if user and not user.groups:
             user.groups = self.identity_domain.groups_for_user(user)
         return user
 
@@ -105,10 +137,16 @@ class Domain:
     def memberships_for_identity(self, identity: Identity) -> Memberships:
         return self.role_domain.memberships_for_identity(identity)
 
+    def password_for_user(self, user: User) -> UserPass | None:
+        return self.password_domain.password_for_user(user)
+
+    def token_by_name(self, user: User) -> UserPass | None:
+        return self.password_domain.password_for_user(user)
+
 
 @dataclass
 class Solver:
     domain: Domain
 
-    def find_rules(self, request: Request, max_rules: Optional[int] = None) -> Rules:
+    def find_rules(self, request: Request, max_rules: int | None = None) -> Rules:
         return self.domain.find_rules(request, max_rules)

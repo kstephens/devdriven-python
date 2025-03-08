@@ -16,6 +16,11 @@
 #  role write-role
 #  role other-role
 #  role anon-role
+#  password alice aL16e
+#  password bob b0b3r7
+#  password frank crick
+#  password tim t1mm3rs
+#  password root IamR00t
 
 # ############################################
 # =========================================

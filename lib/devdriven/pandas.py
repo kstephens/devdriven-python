@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict, Callable
+from typing import Any, Dict, Callable
 import os
 import re
 import logging
@@ -167,7 +167,7 @@ def remove_index(df: pd.DataFrame) -> pd.DataFrame:
 class DataFrameIO:
     src: str = "data/src"
     gen: str = "data/gen"
-    processing_log: Optional[pd.DataFrame] = None
+    processing_log: pd.DataFrame | None = None
 
     def initialize_log(self) -> None:
         self.processing_log = pd.DataFrame(
@@ -201,7 +201,7 @@ class DataFrameIO:
         self,
         dframe: pd.DataFrame,
         report: str,
-        dirpath: Optional[str] = None,
+        dirpath: str | None = None,
         **_kwargs,
     ) -> pd.DataFrame:
         remove_index(dframe)

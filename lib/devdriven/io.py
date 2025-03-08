@@ -1,8 +1,8 @@
-from typing import Any, Optional, Union, Self, List, IO
+from typing import Any, Self, List, IO
 from dataclasses import dataclass, field
 from io import StringIO
 
-Data = Union[str, bytes]
+Data = str | bytes
 
 
 @dataclass
@@ -30,7 +30,7 @@ class BroadcastIO:
     def close(self) -> None:
         return None
 
-    def push(self, stream: Optional[IO] = None) -> Self:
+    def push(self, stream: IO | None = None) -> Self:
         if not stream:
             stream = StringIO()
         self.streams.append(stream)
