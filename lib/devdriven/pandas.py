@@ -57,10 +57,10 @@ def new_empty_df_like(other: pd.DataFrame) -> pd.DataFrame:
 
 
 def normalize_column_name(name: str) -> str:
-    def decamel(m):
+    def un_camel(m):
         return f"{m[1]}_{m[2]}".lower()
 
-    name = re.sub(r"([^A-Z]+)([A-Z]+)", decamel, name)
+    name = re.sub(r"([^A-Z]+)([A-Z]+)", un_camel, name)
     return re.sub(r"(?i)[^A-Z0-9]", "_", name)
 
 
