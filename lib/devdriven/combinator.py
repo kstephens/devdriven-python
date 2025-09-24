@@ -63,8 +63,7 @@ def bind_args(f: Variadic, idxs_: Iterable[int]) -> Variadic:
         return bind_arg(f, idxs[0])
 
     def g(*args):
-        args = [args[idx] for idx in idxs]
-        return f(*args)
+        return f(*[args[idx] for idx in idxs])
 
     return g
 
