@@ -6,11 +6,12 @@ import inspect
 import time
 import re
 import sys
-import traceback
 import socket
 import dataclasses
 import math
 import operator
+import traceback
+from pathlib import Path
 from datetime import datetime, timezone
 from contextlib import contextmanager
 from collections import defaultdict
@@ -27,6 +28,8 @@ Number = int | float
 
 
 ic.configureOutput(includeContext=True, contextAbsPath=True)
+
+lib_dir: Path = Path(".")
 
 
 def identity(x: Any) -> Any:
@@ -293,11 +296,11 @@ def count(seq: Iterable[Any], pred: Callable[[Any], bool] | None = None) -> int:
     return sum(1 for _ in seq)
 
 
-def trim_list(lst: List[Any]) -> List[Any]:
+def trim_list(lst: List[Any], pred: Func1 = identity) -> List[Any]:
     lst = lst.copy()
-    while lst and not lst[0]:
+    while lst and not pred(lst[0]):
         lst.pop(0)
-    while lst and not lst[-1]:
+    while lst and not pred(lst[-1]):
         lst.pop(-1)
     return lst
 
@@ -320,10 +323,17 @@ def first(condition: Predicate, iterable: Iterable[Any], default: Any = None) ->
     return default
 
 
+def flat_map_generator(
+    func: FuncAny, iterable: Iterable[Any], *args: Any, **kwargs: Any
+) -> Generator:
+    for sublist in iterable:
+        yield from func(sublist, *args, **kwargs)
+
+
 def flat_map(
     func: FuncAny, iterable: Iterable[Any], *args: Any, **kwargs: Any
 ) -> Iterable[Any]:
-    return [elem for sublist in iterable for elem in func(sublist, *args, **kwargs)]
+    return list(flat_map_generator(func, iterable, *args, **kwargs))
 
 
 def split_flat(items, sep):
@@ -331,6 +341,9 @@ def split_flat(items, sep):
 
 
 def partition(seq: Iterable[Any], pred: Predicate) -> Tuple[List[Any], List[Any]]:
+    """
+    Partition each x in seq into a true or false list depending on pred(x).
+    """
     true_elems: List[Any] = []
     false_elems: List[Any] = []
     for elem in seq:
@@ -338,10 +351,15 @@ def partition(seq: Iterable[Any], pred: Predicate) -> Tuple[List[Any], List[Any]
     return (true_elems, false_elems)
 
 
-def map_partition(xform: Callable, seq: Iterable[Any]) -> Mapping[Any, Any]:
+def map_partition(
+    seq: Iterable[Any], key: Callable[[Any], Any] = identity
+) -> Mapping[Any, Iterable[Any]]:
+    """
+    Map each x in seq into a dict of key(x).
+    """
     part: Mapping = defaultdict(list)
     for elem in seq:
-        part[xform(elem)].append(elem)
+        part[key(elem)].append(elem)
     return part
 
 
@@ -452,6 +470,9 @@ def make_range(start: Number, end: Number, step: Number, n: Number) -> range | N
 
 @contextmanager
 def cwd(path: str) -> Any:
+    """
+    Change directory during with block:
+    """
     oldpwd = os.getcwd()
     os.chdir(path)
     try:
@@ -465,6 +486,9 @@ def cwd(path: str) -> Any:
 
 
 def glob_to_rx(glob: str, glob_terminator: str | None = None) -> re.Pattern:
+    """
+    Convert a pseudo-glob into a compiled regex.
+    """
     assert not glob_terminator
     rx = glob
     rx = rx.replace(".", r"[^/]")
@@ -510,7 +534,7 @@ def memoize(f: Callable[[Any], Any]) -> Callable[[Any], Any]:
     return g
 
 
-def not_implemented() -> None:
+def not_implemented(*_args, **_kwargs) -> None:
     raise NotImplementedError(inspect.stack()[1][3])
 
 
@@ -529,20 +553,43 @@ def module_fullname(obj) -> str:
     return module + "." + klass.__qualname__
 
 
+#####################################################################
+# Exception
+
+Backtrace = List[Tuple[str, int]]
+
+
+def backtrace_list(exc: BaseException) -> Backtrace:
+    trb = exc.__traceback__
+    trb_extracted = traceback.extract_tb(trb)
+    return [
+        (
+            str(frame.filename).removeprefix(str(lib_dir) + "/"),
+            frame.lineno or 0,
+        )
+        for frame in trb_extracted
+    ]
+
+
+#####################################################################
+
+
 class RawRepr:
+    """
+    A wrapper such that str(x) and repr(x) is always str(x).
+    """
+
     def __init__(self, x: Any) -> None:
         self._x: Any = x
 
     def __repr__(self) -> str:
         return str(self._x)
 
-    def __str__(self) -> Any:
-        return self._x
+    def __str__(self) -> str:
+        return str(self._x)
 
 
-# pylint: disable-next=invalid-name
-def rr(x: Any) -> RawRepr:
-    """Returns an object where `__repr__` it `str(x)`."""
+def raw_repr(x: Any):
     return RawRepr(x)
 
 

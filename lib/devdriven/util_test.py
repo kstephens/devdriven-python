@@ -87,7 +87,7 @@ def test_partition():
 
 
 def test_map_partition():
-    assert util.map_partition(lambda x: x % 3, range(1, 9)) == {
+    assert util.map_partition(range(1, 9), lambda x: x % 3) == {
         1: [1, 4, 7],
         2: [2, 5, 8],
         0: [3, 6],

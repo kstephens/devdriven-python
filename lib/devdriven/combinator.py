@@ -63,8 +63,7 @@ def bind_args(f: Variadic, idxs_: Iterable[int]) -> Variadic:
         return bind_arg(f, idxs[0])
 
     def g(*args):
-        args = [args[idx] for idx in idxs]
-        return f(*args)
+        return f(*[args[idx] for idx in idxs])
 
     return g
 
@@ -90,12 +89,18 @@ def or_comp(f: Variadic, g: Variadic) -> Variadic:
 
 
 def if_comp(f: Variadic, g: Variadic, h: Variadic) -> Variadic:
+    """
+    Select g(...) if f(...) is truthy, otherwise h(...).
+    """
     return lambda *args, **kwargs: (
         g(*args, **kwargs) if f(*args, **kwargs) else h(*args, **kwargs)
     )
 
 
 def is_none(f: Variadic) -> VariadicBool:
+    """
+    True if f(...) is None.
+    """
     return lambda *args, **kwargs: f(*args, **kwargs) is None
 
 
@@ -161,6 +166,9 @@ def compose_arity1(g: Arity1, f: Arity1) -> Arity1:
 
 
 def get(x: Mapping[Any, Any], default: Any = None) -> Callable[[Any], Any]:
+    """
+    Convert Mapping x into a function f(x) = x.get(i, default)
+    """
     if isinstance(x, (list, tuple)):
 
         def g(i):
