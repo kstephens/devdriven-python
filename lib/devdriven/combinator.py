@@ -197,3 +197,30 @@ def re_pred(rx_or_string: re.Pattern | str, re_search=re.search) -> Arity1Bool:
     else:
         rx = re.compile(str(rx_or_string))
     return lambda x: re_search(rx, str(x)) is not None
+
+
+def only_n_times(f: Callable, n: int) -> Callable:
+    "Returns a function that calls f only n times."
+    y = None
+
+    def g(*args, **kwargs):
+        nonlocal y, n
+        if n > 0:
+            n -= 1
+            y = f(*args, **kwargs)
+        return y
+
+    return g
+
+
+def fixed_point(f: Callable, *args, **kwargs) -> Callable:
+    "Returns a function: x = f(x) until x no longer changes."
+
+    def g(y):
+        x = y
+        while True:
+            y, x = f(x, *args, **kwargs), y
+            if y == x:
+                return y
+
+    return g

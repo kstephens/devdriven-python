@@ -135,6 +135,61 @@ def humanize(
     return (fmt % num, "Y" + unit)
 
 
+def replace_vars(
+    content: str,
+    bindings: Dict[str, Any],
+    before: str = "${",
+    after: str = "}",
+    blank_if_not_set: bool = False,
+) -> str:
+    """
+    Replace variables similarly to Bash:
+    {"name": "value", "empty": ""}
+
+    "${name}"                 => "value"
+    "${name:?}"               => "value"
+    "${name:?oh no!}"         => "value"
+    "${name:-if-empty}"       => "value"
+    "${name:+if-not-empty}"   => "if-not-empty"
+    "${name:<+before }        => "before value"
+    "${name:>+ after}         => "value after"
+    "${empty}"                => ""
+    "${empty:?}               !! "foo: not set"
+    "${empty:?oh no!}         !! "oh no!"
+    "${empty:-if-empty}"      => "if-empty"
+    "${empty:+if-not-empty}"  => ""
+    """
+
+    ref_rx = re.compile(
+        r"(?P<ref>"
+        f"{re.escape(before)}"
+        r"(?P<name>[a-zA-Z][-_a-zA-Z0-9]*)"
+        r"(?:(?P<modifier>:\?|:-|:\+|:<\+|:>\+)"
+        r"(?P<mod_val>.*?))?"
+        f"{re.escape(after)}"
+        r")"
+    )
+
+    def replace(m):
+        name, mod, mod_val = m["name"], m["modifier"], m["mod_val"]
+        val = str(bindings.get(name, ""))
+        if mod == ":?" and val == "":
+            raise AttributeError(mod_val or f"{name}: not set")
+        if blank_if_not_set and name not in bindings:
+            return ""
+        if mod == ":-" and val == "":
+            return mod_val
+        if mod == ":+" and val != "":
+            return mod_val
+        if mod == ":<+" and val != "":
+            return mod_val + val
+        if mod == ":>+" and val != "":
+            return val + mod_val
+        return val
+
+    return re.sub(ref_rx, replace, content)
+
+
 #####################################################################
 # Time
 

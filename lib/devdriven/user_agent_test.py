@@ -131,15 +131,8 @@ def http_fut(method, url, headers=None, body=None, **kwargs):
 
 
 def assert_response(fun, method, url, headers=None, body=None, **kwargs):
-    # pprint((method, url, headers, body))
     response = fun(method, url, headers=headers, body=body, **kwargs)
-    # ic((method, url))
-    # ic(response)
-    # ic(response.status)
-    # ic(response.headers)
     if not 200 <= response.status <= 299:
-        # ic(response.status)
-        # ic(response.headers)
         assert "ETag" not in response.headers
         assert "X-Error" in response.headers
     return response
