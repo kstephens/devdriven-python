@@ -1,18 +1,18 @@
 import re
-from typing import Any, Dict, List, Literal, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union
 import pytest
 from icecream import ic  # pylint: disable=unused-import
 from . import schema as sut
 
 
 obj = object()
-
+NoneType = type(None)
 MyDict = Dict[str, int]
 MyUnion = sut.Union[int, {"a": int}]  # type: ignore
 
 
 @pytest.mark.parametrize(
-    "data, schema, expected",
+    "data, schema, expected",  # , *notes",
     (
         (object(), Any, True),
         (True, bool, True),
@@ -112,18 +112,41 @@ MyUnion = sut.Union[int, {"a": int}]  # type: ignore
         (obj, Union[int, Union[float, list]], False),
         (2, MyUnion, True),
         ({"a": 3}, MyUnion, True),
-        ({}, MyUnion, True),
+        ({"a": 3, "b": 5}, MyUnion, False),
+        ({}, MyUnion, False),
         ("", MyUnion, False),
         ({"a": "x"}, MyUnion, False),
         ((2, "s"), MyUnion | Tuple[int, str], True),
         ((2, "s"), Tuple[int, str] | MyUnion, True),
         (2, sut.Union[int], True),
+        # {k: v, ...: VT}:
+        ({"a": 1}, {"a": int, "b": int}, False),
+        ({"a": 1, "b": 2}, {"a": int}, False),
+        ({"a": 1}, {"a": int, ...: Any}, True),
+        ({"a": 1, "b": 2}, {"a": int, ...: Any}, True),
+        ({"a": 1, "b": 2}, {"a": int, ...: int}, True),
+        ({"a": 1, "b": "x"}, {"a": int, ...: Any}, True),
+        ({"a": 1, "b": "x"}, {"a": int, ...: int}, False),
+        # {k: v, Optional: VT}:
+        ({"a": 1}, {"a": int, Optional: Any}, True),
+        ({"a": 1, "b": 2}, {"a": int, Optional: Any}, True),
+        ({"a": 1, "b": 2}, {"a": int, Optional: int}, True),
+        ({"a": 1, "b": "x"}, {"a": int, Optional: Any}, True),
+        ({"a": 1, "b": "x"}, {"a": int, Optional: int}, False),
+        # {k: v, Optional[KT], VT}:
+        ({"a": 1}, {"a": int, Optional[int]: Any}, True),
+        ({"a": 1, "b": 2}, {"a": int, Optional[int]: Any}, False),
+        ({"a": 1, "b": 2}, {"a": int, Optional[int]: int}, False),
+        ({"a": 1, "b": "x"}, {"a": int, Optional[int]: int}, False),
+        ({"a": 1, "b": "x"}, {"a": int, Optional[Any]: int}, False),
+        ({"a": 1, "b": "x"}, {"a": int, Optional[str]: Any}, True),
+        ({"a": 1, "b": "x"}, {"a": int, Optional[str]: str}, True),
     ),
 )
-def test_matches(data, schema, expected):
+def test_matches(data, schema, expected):  # *note: is unsupported
     assert (
         sut.matches(data, schema) == expected
-    ), f"matches({data!r}, {schema!r}) == {expected!r}"
+    ), f"matches : {(data, schema, expected)!r}"
 
 
 def test_pred_hash():
@@ -145,3 +168,92 @@ def test_union():
         str,
         float,
     ), "preserves order"
+
+
+def no_args():
+    pass
+
+
+def no_args_any() -> Any:
+    return True
+
+
+def no_args_int() -> int:
+    return 1
+
+
+def int_int(a: int) -> int:
+    return a
+
+
+def int_none(_a: int) -> None:
+    return
+
+
+@pytest.mark.parametrize(
+    "fun, schema, expected",
+    (
+        (None, Callable, False),
+        (no_args, Callable[..., int], False),
+        (no_args, Callable[..., float], False),
+        (no_args, Callable[..., None], True),
+        (no_args, Callable[..., Any], True),
+        (no_args, Callable[[], int], False),
+        (no_args, Callable[[], float], False),
+        (no_args, Callable[[], None], True),
+        (no_args, Callable[[], Any], True),
+        (no_args, Callable[[int], None], False),
+        (no_args, Callable[[float], None], False),
+        (no_args_any, Callable[..., int], False),
+        (no_args_any, Callable[..., float], False),
+        (no_args_any, Callable[..., None], False),
+        (no_args_any, Callable[..., Any], True),
+        (no_args_any, Callable[[], int], False),
+        (no_args_any, Callable[[], float], False),
+        (no_args_any, Callable[[], None], False),
+        (no_args_any, Callable[[], Any], True),
+        (no_args_any, Callable[[int], Any], False),
+        (no_args_any, Callable[[float], Any], False),
+        (no_args_int, Callable[..., int], True),
+        (no_args_int, Callable[..., float], False),
+        (no_args_int, Callable[..., None], False),
+        (no_args_int, Callable[..., Any], True),
+        (no_args_int, Callable[[], int], True),
+        (no_args_int, Callable[[], float], False),
+        (no_args_int, Callable[[], None], False),
+        (no_args_int, Callable[[], Any], True),
+        (no_args_int, Callable[[int], Any], False),
+        (no_args_int, Callable[[float], Any], False),
+        (int_int, Callable[..., int], True),
+        (int_int, Callable[..., float], False),
+        (int_int, Callable[..., None], False),
+        (int_int, Callable[..., Any], True),
+        (int_int, Callable[[], int], True),
+        (int_int, Callable[[], float], False),
+        (int_int, Callable[[], None], False),
+        (int_int, Callable[[], Any], True),
+        (int_int, Callable[[int], Any], True),
+        (int_int, Callable[[float], Any], False),
+        (int_int, Callable[[int, ...], Any], True),
+        (int_int, Callable[[float, ...], Any], False),
+        (int_none, Callable[..., int], False),
+        (int_none, Callable[..., float], False),
+        (int_none, Callable[..., None], True),
+        (int_none, Callable[..., Any], True),
+        (int_none, Callable[[], int], False),
+        (int_none, Callable[[], float], False),
+        (int_none, Callable[[], None], True),
+        (int_none, Callable[[], Any], True),
+        (int_none, Callable[[int], Any], True),
+        (int_none, Callable[[float], Any], False),
+    ),
+)
+def test_matches_callable(fun, schema, expected):
+    if fun is not None:
+        assert sut.matches_callable(fun, Callable) is True
+    sut.matches_callable_breakpoint = not (
+        sut.matches_callable(fun, schema) == expected
+    )
+    assert (
+        sut.matches_callable(fun, schema) == expected
+    ), f"matches : {(fun, schema, expected)!r}"
