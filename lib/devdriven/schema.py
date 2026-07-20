@@ -25,6 +25,91 @@ from icecream import ic  # pylint: disable=unused-import
 NoneType = type(None)
 
 
+class Halt(BaseException)
+    pass
+
+
+class Walk:
+    def root(self, x, s):
+        self.halt = None
+        self.init_root(x, s)
+        try:
+            self.walk_root(x, s)
+        except Halt as exc:
+            self.halt = exc
+
+    def halt(self, reason):
+        halt = Halt()
+        halt.reason = reason
+        raise halt
+
+    def walk(self, x, s):
+        getattr(self, f"walk_{type(x)}")(x, s)
+
+    def walk_dict(self, x, s):
+        for k, v in x.items():
+            self.walk_dict_kv(k, v, k, s.get(v))
+
+    def walk_kv(self, k, v, ks, vs):
+        self.walk(k, ks)
+        self.walk(v, vs)
+
+    def walk_list(self, x, s):
+        self.walk_list_before(x, s)
+        self.walk_iterable(x, s, list)
+        self.walk_list_after(x, s)
+
+    def walk_tuple(self, x, s):
+        self.walk_tuple_before(x, s)
+        self.walk_iterable(x, s, tuple)
+        self.walk_tuple_after(x, s)
+
+    def walk_set(self, x, s):
+        self.walk_set_before(x, s)
+        self.walk_iterable(x, s, set)
+        self.walk_set_after(x, s)
+
+    def walk_iterable(self, x, s, typ):
+        for v in x:
+            self.walk_elem(v, s, typ)
+
+    def walk_elem(self, x, s, typ):
+        self.walk(x, s)
+
+class Match(Walk):
+    def root(self, x, s):
+        super().root(x, s)
+
+    def fail(self, k, s):
+        self.halt((k, s))
+
+    def walk_dict_kv(k, v, ks, vs):
+        self.walk(k, ks)
+        self.walk(v, vs)
+
+    def walk_list(self, x, s):
+        self.walk_iterable(x, s, list)
+
+    def walk_tuple(self, x, s):
+        self.walk_iterable(x, s, tuple)
+
+    def walk_set(self, x, s):
+        self.walk_iterable(x, s, set)
+
+    def walk_iterable(self, x, s, typ):
+        if not isinstance(type(x), type):
+            self.halt(x, s)
+        for v in x:
+            self.walk_item(v, s)
+
+    def walk_other(self, x, s):
+        self.matches_other(x, s)
+
+    def matches_other(self, x, s):
+        if isinstance(s, type) and not isinstance(x, s):
+            self.halt(x, s)
+
+
 def matches(x, schema):
     if isinstance(schema, dict):
         return matches_dict(x, schema)

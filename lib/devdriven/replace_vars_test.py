@@ -1,5 +1,7 @@
 import re
+
 import pytest
+
 from .replace_vars import VariableError, replace_vars
 
 
@@ -13,9 +15,9 @@ def test_replace_vars():
     bindings = {"name": "value", "empty": ""}
 
     for content, op, expected in test_cases:
-        assert (
-            replace_vars(content, bindings) == expected
-        ), f"{content!r} {op} {expected!r}"
+        assert replace_vars(content, bindings) == expected, (
+            f"{content!r} {op} {expected!r}"
+        )
     assert bindings["undefined"] == "if-empty"
 
     with pytest.raises(VariableError, match="empty: not set"):

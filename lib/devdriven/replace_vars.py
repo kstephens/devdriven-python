@@ -1,7 +1,6 @@
 import re
 from typing import Any, Callable, Dict
 
-
 Opts = Dict[str, Any]
 
 
@@ -50,7 +49,7 @@ def replace_vars(
 
     ref_rx = re.compile(
         r"(?P<ref>"
-        f"(?P<escape>{re.escape(escape or "")})?"
+        f"(?P<escape>{re.escape(escape or '')})?"
         f"(?P<body>"
         f"{re.escape(before)}"
         r"(?P<name>[a-zA-Z][-_a-zA-Z0-9]*)"

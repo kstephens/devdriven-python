@@ -1,0 +1,4183 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# (Imports)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# https://stackoverflow.com/questions/17077494/how-do-i-convert-a-ipython-notebook-into-a-python-file-via-commandline\n",
+    "from typing import Any, Optional, Union, List, Tuple, Dict, Iterable, Mapping, Callable, Type, Literal\n",
+    "from numbers import Number\n",
+    "from collections.abc import Collection, Sequence\n",
+    "from dataclasses import dataclass, field\n",
+    "from pprint import pprint\n",
+    "import re\n",
+    "import sys\n",
+    "import logging\n",
+    "import functools\n",
+    "from pprint import pformat\n",
+    "import dis\n",
+    "from icecream import ic\n",
+    "#ic.configureOutput(includeContext=True)\n",
+    "map_ = map\n",
+    "reduce_ = functools.reduce\n",
+    "\n",
+    "logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)\n",
+    "\n",
+    "# https://stackoverflow.com/a/47024809/1141958\n",
+    "from IPython.core.interactiveshell import InteractiveShell\n",
+    "InteractiveShell.ast_node_interactivity = \"all\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Combinators-101\n",
+    "\n",
+    "This workshop is about building functions with functions.\n",
+    "\n",
+    "* function types.\n",
+    "* functions as values.\n",
+    "* information-hiding with functions.\n",
+    "* function that create functions.\n",
+    "* functions that combine functions into new functions.\n",
+    "\n",
+    "This workshop presents higher-order functional programming using Python.  While there are other programming which are specifically functional, Python is the most popular programming language in the world and it supports functional programming very well."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Types\n",
+    "\n",
+    "This workshop will use Python's `typing` framework.  Types help us understand what combinators do with functions."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Basic Types\n",
+    "\n",
+    "* `int` - an integer\n",
+    "* `str` - a string\n",
+    "* `Any` - any type\n",
+    "* `List` - a list\n",
+    "* `List[T]` - a `List` containing values of `T`"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Function Types\n",
+    "\n",
+    "* `Callable` - anything that can be called with zero or more arguments\n",
+    "* `Callable[..., T]` - a `Callable` with zero or more arguments that returns a value of type `T`\n",
+    "* `Callable[[A1, A2], T]` - Two arguments of type `A1` and `A2`, respectively, returning type `T`"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "typing.Callable[[str, int], typing.Tuple[int, int]]"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(2, 42)"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Example:\n",
+    "# A `Callable` that has 2 parameters,\n",
+    "#   an `str` and `int`\n",
+    "#   and returns a `Tuple` of `int` and `int`:\n",
+    "Callable[[str, int], Tuple[int, int]]\n",
+    "\n",
+    "def h(a: str, b: int) -> Tuple[int, int]:\n",
+    "  return (len(a), len(a) * b)\n",
+    "\n",
+    "h(\"ab\", 21)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# First-Class Functions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "can be:\n",
+    "\n",
+    "* assigned to variables\n",
+    "* arguments to functions\n",
+    "* returned as values"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Functions dont have Names, Names have Functions!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<function print(*args, sep=' ', end='\\n', file=None, flush=False)>"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(2)\n",
+    "g = print\n",
+    "g\n",
+    "g(2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Where did that function come from?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0\n",
+      "1\n",
+      "2\n"
+     ]
+    }
+   ],
+   "source": [
+    "def call_func_three_times(func: Callable):\n",
+    "  for x in range(3):\n",
+    "    func(x)\n",
+    "\n",
+    "call_func_three_times(print)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0\n",
+      "1\n",
+      "2\n"
+     ]
+    }
+   ],
+   "source": [
+    "call_func_three_times(g)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## The most useful useless function"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<function __main__.identity(x: Any) -> Any>"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "3"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def identity(x: Any) -> Any:\n",
+    "  'Returns the first argument.'\n",
+    "  return x\n",
+    "\n",
+    "identity(2)\n",
+    "h = identity\n",
+    "h\n",
+    "h(3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Anonymous Functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<function __main__.<lambda>(x)>"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lambda x: x + 3\n",
+    "(lambda x: x + 3)(2)           # Never had a name."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<function __main__.<lambda>(x)>"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "plus_three = lambda x: x + 3   # Gave it a name.\n",
+    "plus_three\n",
+    "plus_three(2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Closures"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "* Functions with closure are information hiders.\n",
+    "* They have access to values that are otherwise not visible outside of them.\n",
+    "* They \"close over variables\"."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Stateless Closures"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Constantly return a value"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def constantly(val: Any) -> Callable[[], Any]:\n",
+    "  return lambda : val"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "constantly_5 = constantly(5)\n",
+    "constantly_5()\n",
+    "constantly_5()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "TypeError('constantly.<locals>.<lambda>() takes 0 positional arguments but 2 were given')"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Fails with arguments\n",
+    "try:\n",
+    "  constantly_5(13, 17)\n",
+    "except Exception as exc:\n",
+    "  exc"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### A more robust version"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<function __main__.constantly.<locals>.<lambda>(*_args, **_kwargs)>"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "7"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "7"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Functions with zero or more arguments that return anything.\n",
+    "Variadic = Callable[..., Any]\n",
+    "\n",
+    "def constantly(x: Any) -> Variadic:\n",
+    "  'Returns a function that returns a constant value.'\n",
+    "  return lambda *_args, **_kwargs: x\n",
+    "\n",
+    "constantly_7 = constantly(7)\n",
+    "constantly_7\n",
+    "constantly_7()\n",
+    "constantly_7(13, 17)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Adapters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Indexable Getters"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Function with one argument that returns anything.\n",
+    "Unary = Callable[[Any], Any]\n",
+    "\n",
+    "# A value `x` that supports `x[i]`:\n",
+    "Indexable = Union[List, Tuple, Dict]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def at(i: Any) -> Unary:\n",
+    "  'Returns a function `f(x)` that returns `x[i]`.'\n",
+    "  return lambda x: x[i]\n",
+    "\n",
+    "a = [0, 1, 2, 3]\n",
+    "f = at(2)\n",
+    "f(a)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def indexed(x: Indexable) -> Unary:\n",
+    "  'Returns a function `f(i)` that returns `x[i]`.'\n",
+    "  return lambda i: x[i]\n",
+    "\n",
+    "a = [0, 1, 2, 3]\n",
+    "f = indexed(a)\n",
+    "f(2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Works with Strings and Dicts"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'e'"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'d'"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "3"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "3"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "s = \"abcdef\"\n",
+    "indexed(\"abcdef\")(4)\n",
+    "at(3)(s)\n",
+    "\n",
+    "d = {\"a\": 2, \"b\": 3}\n",
+    "indexed(d)(\"b\")\n",
+    "at(\"b\")(d)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Object Accessors"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Position(x=2, y=3)"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "@dataclass\n",
+    "class Position:\n",
+    "  x: int = 0\n",
+    "  y: int = 0\n",
+    "\n",
+    "p = Position(2, 3)\n",
+    "p\n",
+    "\n",
+    "def getter(name: str, *default) -> Unary:\n",
+    "  return lambda obj: \\\n",
+    "    getattr(obj, name, *default)\n",
+    "\n",
+    "def object_get(obj):\n",
+    "  return lambda name, *default: \\\n",
+    "    getattr(obj, name, *default)\n",
+    "\n",
+    "g = getter('x')\n",
+    "g(p)\n",
+    "\n",
+    "h = object_get(p)\n",
+    "h('x')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "999"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "h('z', 999)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "AttributeError(\"'Position' object has no attribute 'z'\")\n"
+     ]
+    }
+   ],
+   "source": [
+    "try:\n",
+    "  h('z')\n",
+    "except AttributeError as e:\n",
+    "  print(repr(e))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def setter(name: str) -> Unary:\n",
+    "  return lambda obj, val: setattr(obj, name, val)\n",
+    "\n",
+    "def accessor(name: str) -> Callable:\n",
+    "  def g(obj, *val):\n",
+    "    if val:\n",
+    "      return setattr(obj, name, val[0])\n",
+    "    return getattr(obj, name)\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Position(x=5, y=3)"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "s = setter('x')\n",
+    "s(p, 5)\n",
+    "p"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "Position(x=7, y=3)"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "a = accessor('x')\n",
+    "a(p)\n",
+    "a(p, 7)\n",
+    "p"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def projection(key: Any, default: Any = None) -> Callable:\n",
+    "  'Returns a function `f(a)` that returns `a.get(key, default)`.'\n",
+    "  return lambda a: a.get(key, default)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Stateful Functions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Generators\n",
+    "\n",
+    "A generator is an impure function, which may return a different value regardless of its arguments.\n",
+    "Examples:\n",
+    "- random number generator\n",
+    "- reading lines from a file "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def counter(start: int = 0, increment: int = 1) -> Callable[[], int]:\n",
+    "  def g() -> int:\n",
+    "    nonlocal start\n",
+    "    result = start\n",
+    "    start += increment\n",
+    "    return result\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "8"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "c = counter(2, 3)\n",
+    "c()\n",
+    "c()\n",
+    "c()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Second-Order Functions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "\n",
+    "Second-Order Functions return other functions.\n",
+    "\n",
+    "They often have the form:\n",
+    "\n",
+    "```python\n",
+    "def f(a: Any, ...):\n",
+    "  return lambda b: Any, ...: \\\n",
+    "    do_something_with(a, b)\n",
+    "```\n",
+    "\n",
+    "or\n",
+    "\n",
+    "```python\n",
+    "def f(a: Any, ...):\n",
+    "  def g(b: Any, ...):  # `g` has access to `a`\n",
+    "    return do_something_with(a, b)\n",
+    "  return g\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Combinators\n",
+    "\n",
+    "Combinators:\n",
+    "\n",
+    "* are functions that construct functions from other functions.\n",
+    "* provides a powerful mechanism for reusing logic...\n",
+    "  without having to anticpate the future.\n",
+    "\n",
+    "A combinator `c` may have the form:\n",
+    "\n",
+    "```python\n",
+    "def c(f: Callable, ...) -> Callable:\n",
+    "  return lambda b, ...: f(do_something_with(a, b))\n",
+    "```\n",
+    "\n",
+    "or\n",
+    "\n",
+    "```python\n",
+    "def c(f: Callable, ...) -> Callable:\n",
+    "  def g(b, ...):\n",
+    "    return f(do_something_with(a, b))\n",
+    "  return g\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Stateful Combinators"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[42, 44, 69, 120]"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def with_counter(f: Callable, i: int = 0) -> Callable:\n",
+    "  'Returns a Callable that applies a counter to f.'\n",
+    "  c = counter(i)\n",
+    "  return lambda *args, **kwargs: \\\n",
+    "    f(c(), *args, **kwargs)\n",
+    "\n",
+    "def multiply(x, y):\n",
+    "  return x * y\n",
+    "\n",
+    "f = with_counter(multiply, 21)\n",
+    "[f(2), f(2), f(3), f(5)]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Predicates"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Functions with zero or more arguments that return a boolean.\n",
+    "Predicate = Callable[..., bool]\n",
+    "\n",
+    "def is_string(x: Any) -> bool:\n",
+    "  'Returns true if `x` is a string.'\n",
+    "  return isinstance(x, str)\n",
+    "\n",
+    "is_string(\"hello\")\n",
+    "is_string(3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Predicate Combinators"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Functions that take a Predicate and return a new Predicate.\n",
+    "PredicateCombinator = Callable[[Predicate], Predicate]\n",
+    "\n",
+    "def not_(f: Predicate) -> Predicate:\n",
+    "  'Returns a function that logically negates the result of the given function.'\n",
+    "  return lambda *args, **kwargs: not f(*args, **kwargs)\n",
+    "\n",
+    "h = not_(is_string)\n",
+    "h(\"hello\")\n",
+    "h(3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Partial Application"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Partial application adds \"default\" values to a function."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "25"
+      ]
+     },
+     "execution_count": 29,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "25"
+      ]
+     },
+     "execution_count": 29,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def partial(f: Callable, *args, **kwargs) -> Callable:\n",
+    "  'Returns a function that prepends `args` and merges `kwargs`.'\n",
+    "  def g(*args2, **kwargs2):\n",
+    "    return f(*(args + args2), **dict(kwargs, **kwargs2))\n",
+    "  return g\n",
+    "\n",
+    "def add_and_multiply(a, b, c):\n",
+    "  return (a + b) * c\n",
+    "\n",
+    "add_and_multiply(2, 3, 5)\n",
+    "\n",
+    "h = partial(add_and_multiply, 2)\n",
+    "h(3, 5)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Methods are Partially Applied Functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<method-wrapper '__add__' of int object at 0x1014b7580>"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "9"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "a = 2\n",
+    "b = 3\n",
+    "a + b\n",
+    "a.__add__(b)    # eqv. to `a + b`\n",
+    "h = a.__add__\n",
+    "h\n",
+    "h(7)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "25"
+      ]
+     },
+     "execution_count": 31,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "16"
+      ]
+     },
+     "execution_count": 31,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def partial_right(f: Callable, *args, **kwargs) -> Callable:\n",
+    "  'Returns a function that appends `args` and merges `kwargs`.'\n",
+    "  def g(*args2, **kwargs2):\n",
+    "    return f(*(args2 + args), **(kwargs2 | kwargs))\n",
+    "  return g\n",
+    "\n",
+    "def add_and_multiply(a, b, c):\n",
+    "  return (a + b) * c\n",
+    "\n",
+    "add_and_multiply(2, 3, 5)\n",
+    "\n",
+    "h = partial_right(add_and_multiply, 2)\n",
+    "h(3, 5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "ic| xy: ('abccabaaxabc', 'abc')\n",
+      "ic| xy: ('bccabaaxbc', 'bc')\n",
+      "ic| xy: ('ccabaaxc', 'c')\n",
+      "ic| xy: ('abaax', '')\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "('abaax', '')"
+      ]
+     },
+     "execution_count": 32,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def fixed_point(f: Unary) -> Unary:\n",
+    "  'Returns a function that iterates until `f(x) == x`.'\n",
+    "  def g(x: Any) -> Any:\n",
+    "    while True:\n",
+    "      y = x\n",
+    "      x = f(x)\n",
+    "      if x == y:\n",
+    "        return x\n",
+    "  return g\n",
+    "\n",
+    "def f(xy):\n",
+    "  ic(xy)\n",
+    "  x, y = xy\n",
+    "  return (x.replace(y, y[1:]), y[1:])\n",
+    "\n",
+    "g = fixed_point(f)\n",
+    "g((\"abccabaaxabc\", \"abc\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "ic| x := 50: 50\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "50"
+      ]
+     },
+     "execution_count": 33,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "ic| (e, x): (50, 50)\n",
+      "ic| (e, x): (50, 25.5)\n",
+      "ic| (e, x): (50, 13.730392156862745)\n",
+      "ic| (e, x): (50, 8.685974371897991)\n",
+      "ic| (e, x): (50, 7.221190474331159)\n",
+      "ic| (e, x): (50, 7.072628275743689)\n",
+      "ic| (e, x): (50, 7.071067984011346)\n",
+      "ic| (e, x): (50, 7.071067811865477)\n",
+      "ic| (e, x): (50, 7.0710678118654755)\n",
+      "ic| y := sqrt(x): 7.0710678118654755\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "7.0710678118654755"
+      ]
+     },
+     "execution_count": 33,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "ic| y * y: 50.00000000000001\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "50.00000000000001"
+      ]
+     },
+     "execution_count": 33,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def sqrt_estimate(e, x):\n",
+    "  ic((e, x))\n",
+    "  return 0.5 * (x + e / x)\n",
+    "\n",
+    "sqrt = lambda x: fixed_point(partial(sqrt_estimate, x))(x)\n",
+    "ic(x := 50)\n",
+    "ic(y := sqrt(x))\n",
+    "ic(y * y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Manipulating Sequences"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Mapping functions over sequences"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[1, 'string', False, True, None]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[1, 'string', False, True, None]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[7, 7, 7, 7, 7]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[False, True, False, False, False]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[True, False, True, True, True]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[6, 8, 10, 14]"
+      ]
+     },
+     "execution_count": 34,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Note: Python has a built-in `map` -- this is for illustration:\n",
+    "def map(f: Unary, xs: Sequence) -> Sequence:\n",
+    "  'Returns a sequence of `f(x)` for each element `x` in `xs`.'\n",
+    "  acc = []\n",
+    "  for x in xs:\n",
+    "    acc.append(f(x))\n",
+    "  return acc\n",
+    "\n",
+    "items = [1, \"string\", False, True, None]\n",
+    "items\n",
+    "map(identity, items)\n",
+    "map(constantly_7, items)\n",
+    "map(is_string, items)\n",
+    "map(not_(is_string), items)\n",
+    "map(plus_three, [3, 5, 7, 11])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Restore the built-in:\n",
+    "# map = map_"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Filtering Sequences with Predicates"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['string']"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[1, False, True, None]"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def filter(f: Unary, xs: Sequence) -> Sequence:\n",
+    "  'Returns a sequence of the elements of `xs` for which `f` returns true.'\n",
+    "  return [x for x in xs if f(x)]\n",
+    "\n",
+    "items = [1, \"string\", False, True, None]\n",
+    "filter(is_string, items)\n",
+    "filter(not_(is_string), items)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Reducing Sequences with Binary Functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "17"
+      ]
+     },
+     "execution_count": 37,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'Here Is AListOfStrings'"
+      ]
+     },
+     "execution_count": 37,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Functions with two arguments that return anything.\n",
+    "Binary = Callable[[Any, Any], Any]\n",
+    "\n",
+    "def reduce(f: Binary, init: Any, xs: Sequence) -> Sequence:\n",
+    "  'Returns the result of `init = f(x, init)` for each element `x` in `xs`.'\n",
+    "  for x in xs:\n",
+    "    init = f(init, x)\n",
+    "  return init\n",
+    "\n",
+    "def add(x, y):\n",
+    "  return x + y\n",
+    "\n",
+    "reduce(add, 2, [3, 5, 7])\n",
+    "a_list_of_strings = [\"A\", \"List\", 'Of', 'Strings']\n",
+    "reduce(add, \"Here Is \", a_list_of_strings)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'string-and-more'"
+      ]
+     },
+     "execution_count": 38,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "11"
+      ]
+     },
+     "execution_count": 38,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "11"
+      ]
+     },
+     "execution_count": 38,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "items = [1, \"string\", 2, 3, \"-and-more\", 5]\n",
+    "\n",
+    "# Concat all strings:\n",
+    "reduce(add, \"\", filter(is_string, items))\n",
+    "\n",
+    "# Sum of all numbers:\n",
+    "def is_number(x: Any) -> bool:\n",
+    "  return not isinstance(x, bool) and isinstance(x, Number)\n",
+    "reduce(add, 0, filter(is_number, items))\n",
+    "\n",
+    "# Sum all non-strings:\n",
+    "reduce(add, 0, filter(not_(is_string), items))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "((((((((2, 3), 'a'), 5), 'b'), 7), 'c'), 11), True)"
+      ]
+     },
+     "execution_count": 39,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "{21: 'a', 22: 'b', 23: 'c', 24: 'd'}"
+      ]
+     },
+     "execution_count": 39,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def conjoin(a, b) -> Callable[[Any, Any], Tuple[Any, Any]]:\n",
+    "  'Creates a Tuple from two arguments.'\n",
+    "  return (a, b)\n",
+    "\n",
+    "items = [3, \"a\", 5, \"b\", 7, \"c\", 11, True]\n",
+    "reduce(conjoin, 2, items)\n",
+    "\n",
+    "dict(map(with_counter(conjoin, 21), [\"a\", \"b\", \"c\", \"d\"]))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Map as a Reduction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[6, 8, 10, 14]"
+      ]
+     },
+     "execution_count": 40,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[6, 8, 10, 14]"
+      ]
+     },
+     "execution_count": 40,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def map_r(f: Unary, xs: Sequence) -> Sequence:\n",
+    "  def acc(seq, x):\n",
+    "    return seq + [f(x)]\n",
+    "  return reduce(acc, [], xs)\n",
+    "\n",
+    "map(plus_three, [3, 5, 7, 11])\n",
+    "map_r(plus_three, [3, 5, 7, 11])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Filter as a Reduction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[3, 'a', 5, 'b', 7, 'c', 11, True]"
+      ]
+     },
+     "execution_count": 41,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "['a', 'b', 'c']"
+      ]
+     },
+     "execution_count": 41,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "['a', 'b', 'c']"
+      ]
+     },
+     "execution_count": 41,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def filter_r(f: Unary, xs: Sequence) -> Sequence:\n",
+    "  def acc(seq, x):\n",
+    "    return seq + [x] if f(x) else seq\n",
+    "  return reduce(acc, [], xs)\n",
+    "\n",
+    "items\n",
+    "filter(is_string, items)\n",
+    "filter_r(is_string, items)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Mapcat (aka Flat-Map)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['.', '.', '.', '*', '*', '*']"
+      ]
+     },
+     "execution_count": 42,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[4, 4, 4, 5, 5, 5, 6, 6, 6]"
+      ]
+     },
+     "execution_count": 42,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ConcatableUnary = Callable[[Any], Sequence]\n",
+    "\n",
+    "def mapcat(f: ConcatableUnary, xs: Sequence):\n",
+    "  'Concatenate the results of `map(f, xs)`.'\n",
+    "  return reduce(add, [], map(f, xs))\n",
+    "\n",
+    "def duplicate(n, x):\n",
+    "  return [x] * n\n",
+    "\n",
+    "duplicate_each_3_times = partial(mapcat, partial(duplicate, 3))\n",
+    "duplicate_each_3_times([\".\", \"*\"])\n",
+    "duplicate_each_3_times(range(4, 7))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Manipulating Arguments"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.6666666666666666"
+      ]
+     },
+     "execution_count": 43,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "1.5"
+      ]
+     },
+     "execution_count": 43,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'StringsOfListA reversed '"
+      ]
+     },
+     "execution_count": 43,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(7, (5, (3, 2)))"
+      ]
+     },
+     "execution_count": 43,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def reverse_args(f: Callable) -> Callable:\n",
+    "  def g(*args, **kwargs):\n",
+    "    return f(*reversed(args), **kwargs)\n",
+    "  return g\n",
+    "\n",
+    "def divide(x, y):\n",
+    "  return x / y\n",
+    "\n",
+    "divide(2, 3)\n",
+    "reverse_args(divide)(2, 3)\n",
+    "\n",
+    "reduce(reverse_args(add), \" reversed \", a_list_of_strings)\n",
+    "reduce(reverse_args(conjoin), 2, [3, 5, 7])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Function Composition"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "18"
+      ]
+     },
+     "execution_count": 44,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "18"
+      ]
+     },
+     "execution_count": 44,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def compose(*callables) -> Variadic:\n",
+    "  'Returns the composition one or more functions, in reverse order.'\n",
+    "  'For example, `compose(g, f)(x, y)` is equivalent to `g(f(x, y))`.'\n",
+    "  f: Callable = callables[-1]\n",
+    "  gs: Sequence[Unary] = tuple(reversed(callables[:-1]))\n",
+    "  def h(*args, **kwargs):\n",
+    "    result = f(*args, **kwargs)\n",
+    "    for g in gs:\n",
+    "      result = g(result)\n",
+    "    return result\n",
+    "  return h\n",
+    "\n",
+    "def multiply_by_3(x):\n",
+    "  return x * 3\n",
+    "\n",
+    "plus_three(multiply_by_3(5))\n",
+    "\n",
+    "h = compose(plus_three, multiply_by_3)\n",
+    "h(5)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Interlude"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[0, 1, 2, 0, 1, 2, 0, 1, 2, 0]"
+      ]
+     },
+     "execution_count": 45,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def modulo(modulus: int) -> Callable[[int], int]:\n",
+    "  return lambda x: x % modulus\n",
+    "\n",
+    "mod_3 = modulo(3)\n",
+    "map(mod_3, range(10))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['A', 'List', 'Of', 'A', 'List', 'Of', 'A', 'List', 'Of', 'A']"
+      ]
+     },
+     "execution_count": 46,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "h = compose(indexed(a_list_of_strings), mod_3)\n",
+    "map(h, range(10))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Arity Reduction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "((), {})"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "((1,), {})"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "((1, 2), {})"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "((), {'a': 1, 'b': 2})"
+      ]
+     },
+     "execution_count": 47,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def unary(f: Variadic) -> Unary:\n",
+    "  return lambda *args, **kwargs: f((args, kwargs))\n",
+    "\n",
+    "h = unary(identity)\n",
+    "h()\n",
+    "h(1)\n",
+    "h(1, 2)\n",
+    "h(a=1, b=2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Developer Affordance"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Debugging"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['5', '6', '8']"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "  ## g(2) => ...\n",
+      "  ## g(2) => '5'\n",
+      "  ## g(3) => ...\n",
+      "  ## g(3) => '6'\n",
+      "  ## g(5) => ...\n",
+      "  ## g(5) => '8'\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "['5', '6', '8']"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "  ## map_g([2, 3, 5]) => ...\n",
+      "  ## g(2) => ...\n",
+      "  ## g(2) => '5'\n",
+      "  ## g(3) => ...\n",
+      "  ## g(3) => '6'\n",
+      "  ## g(5) => ...\n",
+      "  ## g(5) => '8'\n",
+      "  ## map_g([2, 3, 5]) => ['5', '6', '8']\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "['5', '6', '8']"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def trace(\n",
+    "    name: str,\n",
+    "    log: Unary,\n",
+    "    f: Callable,\n",
+    "  ) -> Callable:\n",
+    "  def g(*args, **kwargs):\n",
+    "    msg = f\"{name}({format_args(args, kwargs)})\"\n",
+    "    log(f\"{msg} => ...\")\n",
+    "    result = f(*args, **kwargs)\n",
+    "    log(f\"{msg} => {result!r}\")\n",
+    "    return result\n",
+    "  return g\n",
+    "\n",
+    "def format_args(args, kwargs):\n",
+    "  return ', '.join(map(repr, args) + [f'{k}={v!r}' for k, v in kwargs])\n",
+    "\n",
+    "def log(msg):\n",
+    "  sys.stderr.write(f'  ## {msg}\\n')\n",
+    "\n",
+    "h = compose(str, plus_three)\n",
+    "map(h, [2, 3, 5])\n",
+    "\n",
+    "g = trace(\"g\", log, h, )\n",
+    "map(g, [2, 3, 5])\n",
+    "\n",
+    "map_g = trace(\"map_g\", log, partial(map, g))\n",
+    "map_g([2, 3, 5])\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Error Handlers"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "5"
+      ]
+     },
+     "execution_count": 49,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "ERROR:root:plus_three: (TypeError('can only concatenate str (not \"int\") to str'), ('Nope',), {})\n"
+     ]
+    }
+   ],
+   "source": [
+    "def except_(f: Variadic, ex_class, error: Unary) -> Callable:\n",
+    "  def g(*args, **kwargs):\n",
+    "    try:\n",
+    "      return f(*args, **kwargs)\n",
+    "    except ex_class as exc:\n",
+    "      return error((exc, args, kwargs))\n",
+    "  return g\n",
+    "\n",
+    "h = except_(plus_three, TypeError, compose(partial(logging.error, 'plus_three: %s'), repr))\n",
+    "h(2)\n",
+    "h('Nope')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Web Application Architecture\n",
+    "\n",
+    "Application middleware combinators inspired Python WSGI and Ruby Rack.\n",
+    "\n",
+    "- An \"App\" is anything callable with a single dict argument.\n",
+    "- It receives a \"Request\" -- a Tuple of\n",
+    "  - typically a Dict of input: headers, body and customer values passed along an \"application stack\".\n",
+    "- It returns an HTTP \"Response\": Tuple of:\n",
+    "  - numeric status code\n",
+    "  - dict of headers\n",
+    "  - body -- a sequence of response chunks\n",
+    "- applications and middleware follow the same protocol.\n",
+    "- Combinators create new Apps by wrapping others.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Status = int\n",
+    "Headers = Dict[str, Any]\n",
+    "Body = Iterable\n",
+    "Req = Dict[str, Any]\n",
+    "Res = Tuple[Status, Headers, Body]\n",
+    "App = Callable[[Req], Res]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Simple Applications"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Hello, World!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(200, {}, ('Hello, World!',))"
+      ]
+     },
+     "execution_count": 51,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def hello_world_app(req: Req) -> Res:\n",
+    "  return 200, {}, (\"Hello, World!\",)\n",
+    "app = hello_world_app\n",
+    "app({})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Do Something Useful"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 52,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(200, {}, (10,))"
+      ]
+     },
+     "execution_count": 52,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def something_useful_app(req: Req) -> Res:\n",
+    "  x, y = req['input.data']\n",
+    "  return 200, {}, (x * y,)\n",
+    "\n",
+    "app = something_useful_app\n",
+    "app({'input.data': [2, 5]})\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 53,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(200, {}, ('ababab',))"
+      ]
+     },
+     "execution_count": 53,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "app = something_useful_app\n",
+    "app({'input.data': [\"ab\", 3]})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Application Combinators"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Input combinators follow this pattern:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 54,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def compose_input_handler(app: App) -> App:\n",
+    "  def input_handler(req: Req) -> Res:\n",
+    "    # do something with req...\n",
+    "    return app(req)\n",
+    "  return input_handler"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Output combinators follow this pattern:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 55,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def compose_output_handler(app: App) -> App:\n",
+    "  def output_handler(req: Req) -> Res:\n",
+    "    status, headers, body = response = app(req)  # <<<\n",
+    "    # do something with response...\n",
+    "    return status, headers, body\n",
+    "  return output_handler"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Tracing"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 56,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def trace(app: App, ident=\"\", stream=sys.stderr) -> App:\n",
+    "    \"Traces requests and responses.\"\n",
+    "    def indent(msg):\n",
+    "        stream.write(f\"{'  ' * TRACE_INDENT[0]}{msg}\")\n",
+    "    def log(msg):\n",
+    "        indent(f\" #{msg} {ident}\\n\")\n",
+    "    def pp(data):\n",
+    "        indent(\"\")\n",
+    "        pprint(data, stream=stream)\n",
+    "    def tracing(req):\n",
+    "        log(\">>>\")\n",
+    "        TRACE_INDENT[0] += 1\n",
+    "        pp(req)\n",
+    "        result = app(req)\n",
+    "        log(\"...\")\n",
+    "        pp(result)\n",
+    "        TRACE_INDENT[0] -= 1\n",
+    "        log(\"<<<\")\n",
+    "        return result\n",
+    "    return tracing\n",
+    "TRACE_INDENT = [0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 57,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      " #>>> my_app\n",
+      "  {'input.data': [5, 7]}\n",
+      "   #... my_app\n",
+      "  (200, {}, (35,))\n",
+      " #<<< my_app\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(200, {}, (35,))"
+      ]
+     },
+     "execution_count": 57,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "app = something_useful_app\n",
+    "app = trace(app, 'my_app')\n",
+    "app({'input.data': [5, 7]})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Exception Handling"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 58,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def capture_exception(app: App, cls=Exception, status=500) -> App:\n",
+    "    def capturing_exception(req: Req) -> Res:\n",
+    "        try:\n",
+    "            return app(req)\n",
+    "        except cls as exc:\n",
+    "            return status, {\"Content-Type\": \"text/plain\"}, (repr(exc),)\n",
+    "    return capturing_exception"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 59,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(500,\n",
+       " {'Content-Type': 'text/plain'},\n",
+       " ('TypeError(\"unsupported operand type(s) for *: \\'dict\\' and \\'int\\'\")',))"
+      ]
+     },
+     "execution_count": 59,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "app = something_useful_app\n",
+    "app = capture_exception(app)\n",
+    "app({'input.data': [{\"a\": 1}, 7]})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Reading Inputs, Writing Outputs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Content = str\n",
+    "Data = Any\n",
+    "\n",
+    "def read_input(app: App, read: Callable[[Data], Content]) -> App:\n",
+    "    \"Reads body.stream\"\n",
+    "    def reader(req: Req) -> Res:\n",
+    "        req[\"input.content\"] = read(req[\"input.stream\"])\n",
+    "        return app(req)\n",
+    "    return reader"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Decoding Inputs, Encoding Outputs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Encoder = Callable[[Data], Content]\n",
+    "Decoder = Callable[[Content], Data]\n",
+    "\n",
+    "def decode_content(app: App, decoder: Decoder, content_types=None, strict=False) -> App:\n",
+    "    \"\"\"\n",
+    "    Decodes body with decoder(input.content) for content_types.\n",
+    "    If strict and Content-Type is not expected, return 400.\n",
+    "    \"\"\"\n",
+    "\n",
+    "    def decoding_content(req: Req) -> Res:\n",
+    "        req[\"input.data\"] = decoder(req[\"input.content\"])\n",
+    "        content_type = req.get(\"Content-Type\")\n",
+    "        if strict and content_types and content_type not in content_types:\n",
+    "            msg = f\"Unexpected Content-Type {content_type!r} : expected: {content_types!r} : \"\n",
+    "            return 400, {\"Content-Type\": 'text/plain'}, (msg,)\n",
+    "        return app(req)\n",
+    "    return decoding_content\n",
+    "\n",
+    "\n",
+    "def encode_content(app: App, encoder: Encoder, content_type=\"text/plain\") -> App:\n",
+    "    \"Encodes body with encoder.  Sets Content-Type.\"\n",
+    "    def encoding_content(req: Req) -> Res:\n",
+    "        status, headers, body = app(req)\n",
+    "        content = \"\".join(map(encoder, body))\n",
+    "        headers |= {\n",
+    "            \"Content-Type\": content_type,\n",
+    "            \"Content-Length\": len(content),\n",
+    "        }\n",
+    "        return status, headers, [content]\n",
+    "    return encoding_content\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Decode JSON, Encode JSON"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import json\n",
+    "\n",
+    "def decode_json(app: App, **kwargs) -> App:\n",
+    "    \"Decodes JSON content.\"\n",
+    "    def decoding_json(content: Content) -> Any:\n",
+    "        return json.loads(content, **kwargs)\n",
+    "    return decode_content(app, decoding_json, content_types={'application/json', 'text/plain'}, strict=True)\n",
+    "\n",
+    "\n",
+    "def encode_json(app: App, **kwargs) -> App:\n",
+    "    \"Encodes data as JSON.\"\n",
+    "    def encoding_json(data: Data) -> Content:\n",
+    "        return json.dumps(data, **kwargs) + \"\\n\"\n",
+    "    return encode_content(app, encoding_json, content_type='application/json')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Simple App Handles JSON!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(200, {'Content-Type': 'application/json', 'Content-Length': 4}, ['143\\n'])"
+      ]
+     },
+     "execution_count": 63,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "app = something_useful_app\n",
+    "# app = trace(app, 'hello_world_app')\n",
+    "app = decode_json(app)\n",
+    "# app = trace(app, 'decode_json')\n",
+    "app = encode_json(app)\n",
+    "# app = trace(app, 'encode_json')\n",
+    "app({'input.content': \"[11, 13]\", \"Content-Type\": 'application/json'})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Logical Combinators"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Predicators"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 64,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 64,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def re_pred(pat: str, re_func: Callable = re.search) -> Predicate:\n",
+    "  'Returns a predicate that matches a regular expression.'\n",
+    "  rx = re.compile(pat)\n",
+    "  return lambda x: re_func(rx, str(x)) is not None\n",
+    "\n",
+    "re_pred(\"ab\")(\"abc\")\n",
+    "re_pred(\"ab\")(\"nope\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 65,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def default(f: Variadic, g: Variadic) -> Variadic:\n",
+    "  def h(*args, **kwargs):\n",
+    "    if (result := f(*args, **kwargs)) is not None:\n",
+    "      return result\n",
+    "    return g(*args, **kwargs)\n",
+    "  return h"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "asdf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Logical Predicate Composers"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 66,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 66,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 66,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 66,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 66,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def and_(f: Variadic, g: Variadic) -> Variadic:\n",
+    "  'Returns a function `h(x, ...)` that returns `f(x, ...) and g(x, ...).'\n",
+    "  return lambda *args, **kwargs: f(*args, **kwargs) and g(*args, **kwargs)\n",
+    "\n",
+    "def or_(f: Variadic, g: Variadic) -> Variadic:\n",
+    "  'Returns a function `h(x, ...)` that returns `f(x, ...) or g(x, ...).'\n",
+    "  return lambda *args, **kwargs: f(*args, **kwargs) or g(*args, **kwargs)\n",
+    "\n",
+    "def is_string(x):\n",
+    "  return isinstance(x, str)\n",
+    "\n",
+    "is_word = and_(is_string, re_pred(r'^[a-z]+$'))\n",
+    "is_word(\"hello\")\n",
+    "is_word(\"not-a-word\")\n",
+    "is_word(2)\n",
+    "is_word(None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 67,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[True, False, False, False]"
+      ]
+     },
+     "execution_count": 67,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# If x is a number add three:\n",
+    "h = and_(is_number, plus_three)\n",
+    "# If x is a string, is it a word?:\n",
+    "g = and_(is_string, is_word)\n",
+    "# One or the other:\n",
+    "func = or_(h, g)\n",
+    "items = [\"hello\", \"not-a-word\", 2, None]\n",
+    "map(g, items)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 68,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Procedure = Callable[[], Any]\n",
+    "\n",
+    "def if_(f: Variadic, g: Unary, h: Unary) -> Variadic:\n",
+    "  def i(*args, **kwargs):\n",
+    "    if (result := f(*args, **kwargs)):\n",
+    "      return g()\n",
+    "    return h()\n",
+    "  return i"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Interpreters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Operator Predicates"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 69,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 69,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 69,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\n",
+    "def binary_op(op: str) -> Optional[Callable[[Any, Any], Any]]:\n",
+    "  'Returns a function for a binary operator by name.'\n",
+    "  return BINARY_OPS.get(op)\n",
+    "\n",
+    "BINARY_OPS = {\n",
+    "  '==': lambda a, b: a == b,\n",
+    "  '!=': lambda a, b: a != b,\n",
+    "  '<':  lambda a, b: a < b,\n",
+    "  '>':  lambda a, b: a > b,\n",
+    "  '<=': lambda a, b: a <= b,\n",
+    "  '>=': lambda a, b: a >= b,\n",
+    "  'and': lambda a, b: a and b,\n",
+    "  'or': lambda a, b: a or b,\n",
+    "}\n",
+    "\n",
+    "binary_op('==') (2, 2)\n",
+    "binary_op('!=') (2, 2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 70,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['2 < 3',\n",
+       " '2 < 5',\n",
+       " '3 < 5',\n",
+       " '2 == 2',\n",
+       " '3 == 3',\n",
+       " '5 == 5',\n",
+       " '3 > 2',\n",
+       " '5 > 2',\n",
+       " '5 > 3']"
+      ]
+     },
+     "execution_count": 70,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Create a table where `x OP y` is true:\n",
+    "[\n",
+    "  f'{x} {op} {y}'\n",
+    "  for op in ['<', '==', '>']\n",
+    "  for x in (2, 3, 5)\n",
+    "  for y in (2, 3, 5)\n",
+    "  if binary_op(op)(x, y)\n",
+    "]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 71,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def op_pred(op: str, b: Any) -> Predicate | None:\n",
+    "  'Returns a predicate function given an operator name and a constant.'\n",
+    "  if pred := binary_op(op):\n",
+    "    return lambda a: pred(a, b)\n",
+    "  if op == \"not\":\n",
+    "    return lambda a: not a\n",
+    "  if op == \"~=\":\n",
+    "    return re_pred(b)\n",
+    "  if op == \"~!\":\n",
+    "    return not_(re_pred(b))\n",
+    "  return None"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 72,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 72,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 72,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "h = op_pred(\">\", 3)\n",
+    "h(2)\n",
+    "h(5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 73,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 73,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "False"
+      ]
+     },
+     "execution_count": 73,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "True"
+      ]
+     },
+     "execution_count": 73,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "g = op_pred(\"~=\", 'ab+c')\n",
+    "g('')\n",
+    "g('ab')\n",
+    "g('abbbcc')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Sequencing"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 74,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def progn(*fs: Sequence[Callable]) -> Callable:\n",
+    "  'Returns a function that calls each function in turn and returns the last result.'\n",
+    "  def g(*args, **kwargs):\n",
+    "    result = None\n",
+    "    for f in fs:\n",
+    "      result = f(*args, **kwargs)\n",
+    "    return result\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 75,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def prog1(*fs: Sequence[Callable]) -> Callable:\n",
+    "  'Returns a function that calls each function in turn and returns the last result.'\n",
+    "  def g(*args, **kwargs):\n",
+    "    result = fs[0](*args, **kwargs)\n",
+    "    for f in fs[1:]:\n",
+    "      result = f(*args, **kwargs)\n",
+    "    return result\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 76,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "4"
+      ]
+     },
+     "execution_count": 76,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def reverse_apply(x: Any) -> Callable:\n",
+    "  return lambda f, *args, **kwargs: f(x, *args, **kwargs)\n",
+    "\n",
+    "reverse_apply(1) (plus_three)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['abcd', 4, ('d', 'c', 'b', 'a')]"
+      ]
+     },
+     "execution_count": 77,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def demux(*funcs) -> Unary:\n",
+    "  'Return a function `h(x)` that returns `[f(x), g(x), ...].'\n",
+    "  return lambda x: map(reverse_apply(x), funcs)\n",
+    "\n",
+    "demux(identity, len, compose(tuple, reversed))(\"abcd\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Parser Combinators"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 78,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Parser input: a sequence of lexemes:\n",
+    "Input = Sequence[Any]\n",
+    "\n",
+    "# A parsed value and remaining input:\n",
+    "Parsed = Tuple[Any, Input]\n",
+    "\n",
+    "# A parser matches the input sequence and produces a result or nothing:\n",
+    "Parser = Callable[[Input], Parsed | None]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 79,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "def show_match(p: Parser) -> Variadic:\n",
+    "  def g(input: Input):\n",
+    "    return (p(input) or False, '<=', input)\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 80,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "DEBUG:root:equals('a', 'a')\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "('a', [])"
+      ]
+     },
+     "execution_count": 80,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "DEBUG:root:equals('a', 'b')\n"
+     ]
+    }
+   ],
+   "source": [
+    "first = at(0)\n",
+    "def rest(x: Input) -> Input:\n",
+    "  return x[1:]\n",
+    "\n",
+    "def equals(x) -> Parser:\n",
+    "  'Returns a parser that matches `x`.'\n",
+    "  def g(input: input):\n",
+    "    y = first(input)\n",
+    "    logging.debug(\"equals(%s, %s)\", repr(x), repr(y))\n",
+    "    if x == y:\n",
+    "      return y, rest(input)\n",
+    "  return g\n",
+    "\n",
+    "h = equals('a')\n",
+    "h(['a'])\n",
+    "h(['b', 2])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 81,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "('a', [])"
+      ]
+     },
+     "execution_count": 81,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "('a', ['b'])"
+      ]
+     },
+     "execution_count": 81,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "('a', [])"
+      ]
+     },
+     "execution_count": 81,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(2, [])"
+      ]
+     },
+     "execution_count": 81,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def which(p: Predicate) -> Parser:\n",
+    "  'Returns a parser for the next lexeme when `p(lexeme)` is true.'\n",
+    "  def g(input: Input):\n",
+    "    if p(first(input)):\n",
+    "      return (first(input), rest(input))\n",
+    "  return g\n",
+    "\n",
+    "g = which(is_string)\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g(['a', 'b'])\n",
+    "\n",
+    "def alternation(*ps) -> Parser:\n",
+    "  def g(input):\n",
+    "    for p in ps:\n",
+    "      if (result := p(input)):\n",
+    "        return result\n",
+    "  return g\n",
+    "\n",
+    "g = alternation(which(is_string), which(is_number))\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g([False])\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Sequence Parsers"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 82,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(['a'], [])"
+      ]
+     },
+     "execution_count": 82,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a'], ['b'])"
+      ]
+     },
+     "execution_count": 82,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ParsedSequence = Tuple[Sequence, Input]\n",
+    "SequenceParser = Callable[[Input], ParsedSequence | None]\n",
+    "\n",
+    "def one(p: Parser) -> SequenceParser:\n",
+    "  'Returns a parser for one lexeme.'\n",
+    "  def g(input: Input):\n",
+    "    if input and (result := p(input)):\n",
+    "      parsed, input = result\n",
+    "      return [parsed], input\n",
+    "  return g\n",
+    "\n",
+    "g = one(which(is_string))\n",
+    "g([])\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g(['a', 'b'])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "([], [])"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a'], [])"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "([], [2])"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [])"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [2])"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [3, 5])"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def zero_or_more(p: Parser) -> SequenceParser:\n",
+    "  'Returns a parser for zero or more lexemes.'\n",
+    "  def g(input: Input):\n",
+    "    acc = []\n",
+    "    while input and (result := p(input)):\n",
+    "      parsed, input = result\n",
+    "      acc.append(parsed)\n",
+    "    return acc, input\n",
+    "  return g\n",
+    "\n",
+    "g = zero_or_more(which(is_string))\n",
+    "g([])\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g(['a', 'b'])\n",
+    "g(['a', 'b', 2])\n",
+    "g(['a', 'b', 3, 5])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def one_or_more(p: Parser) -> SequenceParser:\n",
+    "  'Returns a parser for one or more lexemes as a sequence.'\n",
+    "  p = zero_or_more(p)\n",
+    "  def g(input: Input):\n",
+    "    if (result := p(input)) and len(result[0]) >= 1:\n",
+    "      return result\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(['a'], [])"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [])"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [2])"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [3, 5])"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "g = one_or_more(which(is_string))\n",
+    "g([])\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g(['a', 'b'])\n",
+    "g(['a', 'b', 2])\n",
+    "g(['a', 'b', 3, 5])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [])"
+      ]
+     },
+     "execution_count": 86,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [2])"
+      ]
+     },
+     "execution_count": 86,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 'b'], [3, 5])"
+      ]
+     },
+     "execution_count": 86,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def sequence_of(*parsers) -> SequenceParser:\n",
+    "  'Returns a parser for parsers of a sequence.'\n",
+    "  def g(input: Input):\n",
+    "    acc = []\n",
+    "    for p in parsers:\n",
+    "      if result := p(input):\n",
+    "        parsed, input = result\n",
+    "        acc.extend(parsed)\n",
+    "      else:\n",
+    "        return None\n",
+    "    return acc, input\n",
+    "  return g\n",
+    "\n",
+    "g = sequence_of(one(which(is_string)), one(which(is_string)))\n",
+    "g([])\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g(['a', 'b'])\n",
+    "g(['a', 'b', 2])\n",
+    "g(['a', 'b', 3, 5])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 87,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "([2], [])"
+      ]
+     },
+     "execution_count": 87,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "([2, 3], [])"
+      ]
+     },
+     "execution_count": 87,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "([2, 3], [False])"
+      ]
+     },
+     "execution_count": 87,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "g = sequence_of(one_or_more(which(is_number)))\n",
+    "g([])\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g([2, 3])\n",
+    "g([2, 3, False])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 88,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 2], [])"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 2, 3], [])"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 2], ['b', 3])"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 2, 3], [False])"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(['a', 2, 3], [False, 'more'])"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "g = sequence_of(one(which(is_string)), one_or_more(which(is_number)))\n",
+    "g([])\n",
+    "g(['a'])\n",
+    "g([2])\n",
+    "g(['a', 'b'])\n",
+    "g(['a', 2])\n",
+    "g(['a', 2, 3])\n",
+    "g(['a', 2, 'b', 3])\n",
+    "g(['a', 2, 3, False])\n",
+    "g(['a', 2, 3, False, 'more'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Parser Grammar"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "('abc', [])"
+      ]
+     },
+     "execution_count": 89,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "{'x': 'abc'}"
+      ]
+     },
+     "execution_count": 89,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def take_while(f: Unary) -> Unary:\n",
+    "  def g(seq):\n",
+    "    acc = []\n",
+    "    while seq and (x := f(seq[0])):\n",
+    "      acc.append(x)\n",
+    "    return acc\n",
+    "  return g\n",
+    "\n",
+    "def action(p: Parser, f: Callable[[Any], Any]) -> Parser:\n",
+    "  'Returns a parser that calls `f` with parsed value.'\n",
+    "  def g(seq):\n",
+    "    if result := p(seq):\n",
+    "      return a(result[0]), result[1]\n",
+    "  return g\n",
+    "\n",
+    "env = {}\n",
+    "def a(v):\n",
+    "  # nonlocal x\n",
+    "  env['x'] = v\n",
+    "  return v\n",
+    "f = action(which(is_string), a)\n",
+    "f([\"abc\"])\n",
+    "env"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Lexical Scanning"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def eat(rx: str):\n",
+    "  p = re.compile(rx)\n",
+    "  return lambda s: re.sub(p, '', s)\n",
+    "\n",
+    "def lexeme(pat: str, post = at(0)):\n",
+    "  post = post or (lambda m: m[0])\n",
+    "  rx = re.compile(pat)\n",
+    "  ws = eat(r'^\\s+')\n",
+    "  def g(input):\n",
+    "    input = ws(input)\n",
+    "    if m := re.match(rx, input):\n",
+    "      return post(m), input[len(m[0]):]\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def cache(p):\n",
+    "  d = {}\n",
+    "  def g(input):\n",
+    "    if v := d.get(input):\n",
+    "      logging.debug('cached : %s => %s', repr(input), repr(v[0]))\n",
+    "      return v[0]\n",
+    "    v = p(input)\n",
+    "    d[input] = (v,)\n",
+    "    return v\n",
+    "  return g"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def grammar_parser():\n",
+    "  env = {}\n",
+    "  def _(id):\n",
+    "    # nonlocal env\n",
+    "    # logging.debug('_(%s)', repr(id))\n",
+    "    return lambda *args: env[id](*args)\n",
+    "\n",
+    "  def action(p: Parser, action: Unary) -> Parser:\n",
+    "    def g(input: Input):\n",
+    "      if result := p(input):\n",
+    "        value = action(result[0])\n",
+    "        return value, result[1]\n",
+    "    return g\n",
+    "\n",
+    "  def cache(p: Parser) -> Parser:\n",
+    "    '''\n",
+    "    Cache the result of p(input).\n",
+    "    This improves performance when a definition is\n",
+    "    parsed multiple times.\n",
+    "    '''\n",
+    "    d = {}\n",
+    "    def g(input):\n",
+    "      if v := d.get(input):\n",
+    "        # logging.debug('cached : %s => %s', repr(input), repr(v[0]))\n",
+    "        return v[0]\n",
+    "      v = p(input)\n",
+    "      d[input] = (v,)\n",
+    "      return v\n",
+    "    return g\n",
+    "\n",
+    "  def definition(id, p, act=None):\n",
+    "    log = partial(logging.debug, '  # %s')\n",
+    "    # p = trace(id, log, p)\n",
+    "    # p = cache(p)\n",
+    "    a = None\n",
+    "    if act is True:\n",
+    "      a = lambda x: (id, x)\n",
+    "    elif isinstance(act, str):\n",
+    "      a = lambda x: (act, x)\n",
+    "    elif act:\n",
+    "      a = act\n",
+    "    if a:\n",
+    "      p = action(p, a)\n",
+    "    p = cache(p)\n",
+    "    env[id] = p\n",
+    "\n",
+    "  definition('string',        lexeme(r'^\"(\\\\\"|\\\\?[^\"]+)*\"',\n",
+    "                                lambda m: ('string', eval(m[0]))))\n",
+    "  definition('regex',         lexeme(r'^/((\\\\/|(\\\\?[^/]+))*)/',\n",
+    "                                lambda m: ('regex', re.compile(m[1]))))\n",
+    "  definition('name',          lexeme(r'^[a-zA-Z][a-zA-Z0-9_]*'))\n",
+    "  definition('terminal',      alternation(_(\"string\"), _('regex')))\n",
+    "  definition('non_terminal',  _('name'),\n",
+    "                                lambda x: ('reference', x))\n",
+    "  definition('action',        lexeme(r'^@\\{(.+?)\\}@',\n",
+    "                                lambda m: ('action', m[1].strip())))\n",
+    "  definition('basic_match',   alternation(_('non_terminal'), _('terminal')))\n",
+    "  definition('bound_match',   sequence_of(one(_('basic_match')), one(lexeme(r'^:')), one(_('name'))),\n",
+    "                                lambda x: ('bound_match', x[0], x[2]))\n",
+    "  definition('match',         alternation(_('bound_match'), _('basic_match')))\n",
+    "  definition('matches',       one_or_more(_('match')))\n",
+    "  definition('matches_with_action', sequence_of(_('matches'), _('action')))\n",
+    "  definition('pattern',       alternation(_('matches_with_action'), _('matches')))\n",
+    "  definition('sequence',      sequence_of(_('pattern')), lambda x: ('sequence', x))\n",
+    "  definition('alternation',   sequence_of(one(_('sequence')), one(lexeme(r'\\|')), one(_('production'))),\n",
+    "                                lambda x: ('alternation', x[0], x[2]))\n",
+    "  definition('production',    alternation(_('alternation'), _('sequence')))\n",
+    "  definition('definition',    sequence_of(one(_('name')), one(lexeme(r\"=\")), one(_('production')), one(lexeme(r';'))),\n",
+    "                                lambda x: ('definition',  x[0], x[2]))\n",
+    "  definition('grammar',       sequence_of(one_or_more(_('definition'))), 'grammar')\n",
+    "\n",
+    "  def g(input, start=None):\n",
+    "    start = start or 'grammar'\n",
+    "    return _(start)(input)\n",
+    "  return g\n",
+    "\n",
+    "gram = grammar_parser()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Grammar Compiler"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def compile_grammar(gram):\n",
+    "  gensym_i = 0\n",
+    "  def gensym(name):\n",
+    "    nonlocal gensym_i\n",
+    "    gensym_i += 1\n",
+    "    return f\"__{name}__{gensym_i}\"\n",
+    "\n",
+    "  input = gensym('input')\n",
+    "  result = gensym('result')\n",
+    "  newlines = \"\\n\\n\"\n",
+    "  depth = 0\n",
+    "\n",
+    "  stack = []\n",
+    "  def push():\n",
+    "    stack.append((input, result))\n",
+    "\n",
+    "  def pop():\n",
+    "    input, result = stack.pop()\n",
+    "\n",
+    "  def indent(s, chars):\n",
+    "    prefix = f\"\\n{' ' * chars}\"\n",
+    "    return prefix.join(map(lambda s: f\"{prefix}{x}\", s.split(\"\\n\")))\n",
+    "\n",
+    "  def advance(value, remaining = f\"{result}[1]\"):\n",
+    "    return f\"\"\"\n",
+    "    {result} = ({value}, {remaining})\n",
+    "    {input} = {result}[1]\n",
+    "  \"\"\"\n",
+    "\n",
+    "  def grammar(definitions):\n",
+    "    return f\"\"\"\n",
+    "def parse({input}):\n",
+    "{newlines.join(map(parse, definitions))}\n",
+    "\"\"\"\n",
+    "\n",
+    "  def definition(name, production):\n",
+    "    return f\"\"\"\n",
+    "  def {name}({input}):\n",
+    "    {result} = None\n",
+    "{parse(production)}\n",
+    "    return {result}\n",
+    "\"\"\"\n",
+    "\n",
+    "  def alternation(*exprs):\n",
+    "    code = \"\"\n",
+    "    input_save = gensym('input')\n",
+    "    code += f\"\"\"\n",
+    "    {input_save} = {input}\n",
+    "\"\"\"\n",
+    "    for expr in exprs:\n",
+    "      code += parse(expr)\n",
+    "      push()\n",
+    "      result = gensym('result')\n",
+    "      code += f\"\"\"\n",
+    "{parse(expr)}\n",
+    "    if {result}:\n",
+    "      return {result}\n",
+    "    {input} = {input_save}\n",
+    "\"\"\"\n",
+    "      pop()\n",
+    "    code += f\"\"\"\n",
+    "      return {result}\n",
+    "\"\"\"\n",
+    "    return code\n",
+    "\n",
+    "  def sequence(exprs):\n",
+    "    sequence = gensym('sequence')\n",
+    "    code = \"\"\n",
+    "    code += f\"\"\"\n",
+    "    {sequence} = []\n",
+    "\"\"\"\n",
+    "    for expr in exprs:\n",
+    "      code += f\"\"\"\n",
+    "{parse(expr)}\n",
+    "    if not {result}:\n",
+    "      return None\n",
+    "    {sequence}.append({result}[0])\n",
+    "{advance(sequence)}\n",
+    "\"\"\"\n",
+    "    return code\n",
+    "\n",
+    "  def reference(name):\n",
+    "    return f\"\"\"\n",
+    "    {result} = {name}({input})\n",
+    "\"\"\"\n",
+    "\n",
+    "  def patterns(exprs):\n",
+    "    return \"\\n\".join(map(parse, exprs))\n",
+    "\n",
+    "  def bound_match(expr, name):\n",
+    "    return f\"\"\"\n",
+    "{parse(expr)}\n",
+    "    {name} = {result} && {result}[0]\n",
+    "\"\"\"\n",
+    "\n",
+    "  def matches_with_action(expr, action):\n",
+    "    return f\"\"\"\n",
+    "{parse(expr)}\n",
+    "    if {result}:\n",
+    "      return {indent(action, 6)}, {input}\n",
+    "\"\"\"\n",
+    "\n",
+    "  def string(s):\n",
+    "    const = repr(s)\n",
+    "    check = f\"({input}[0:{len(s)}] == {const})\"\n",
+    "    return f\"\"\"\n",
+    "    if not {check}:\n",
+    "      return None\n",
+    "{advance(const, f\"{input}[:{len(s)}]\")}\n",
+    "\"\"\"\n",
+    "\n",
+    "  def integer(expr):\n",
+    "    match = gensym('match')\n",
+    "    return f\"\"\"\n",
+    "    if not ({match} := re.search(r'^([-+]?\\d+)', {input})):\n",
+    "      return None\n",
+    "{advance(f\"int({match}[1])\", f\"{input}[:len({match}[1])]\")}\n",
+    "\"\"\"\n",
+    "\n",
+    "  def regex(expr):\n",
+    "    match = gensym('match')\n",
+    "    return f\"\"\"\n",
+    "    if not ({match} := {expr!r}.search({input}):\n",
+    "      return None\n",
+    "{advance(f\"{match}[1]\", f\"{input}[0:len({match}[1])]\")}\n",
+    "\"\"\"\n",
+    "\n",
+    "  funcs = locals()\n",
+    "  def parse(expr):\n",
+    "    nonlocal depth\n",
+    "    depth += 1\n",
+    "    indent = '  ' * depth\n",
+    "    result = funcs[expr[0]](*expr[1:])\n",
+    "    depth -= 1\n",
+    "    return f\"\"\"\n",
+    "{indent}####################################\n",
+    "{indent}# {repr(expr)} (((\n",
+    "{result}\n",
+    "{indent}# {repr(expr)} )))\n",
+    "{indent}####################################\n",
+    "\"\"\"\n",
+    "\n",
+    "  return parse(gram)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "TypeError",
+     "evalue": "grammar_parser.<locals>.action() takes 1 positional argument but 2 were given",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[31m---------------------------------------------------------------------------\u001b[39m",
+      "\u001b[31mTypeError\u001b[39m                                 Traceback (most recent call last)",
+      "\u001b[36mCell\u001b[39m\u001b[36m \u001b[39m\u001b[32mIn[94]\u001b[39m\u001b[32m, line 117\u001b[39m\n\u001b[32m    114\u001b[39m     \u001b[38;5;28;01mreturn\u001b[39;00m _(start)(\u001b[38;5;28minput\u001b[39m)\n\u001b[32m    115\u001b[39m   \u001b[38;5;28;01mreturn\u001b[39;00m g\n\u001b[32m--> \u001b[39m\u001b[32m117\u001b[39m gram = \u001b[43mgrammar_parser\u001b[49m\u001b[43m(\u001b[49m\u001b[43m)\u001b[49m\n",
+      "\u001b[36mCell\u001b[39m\u001b[36m \u001b[39m\u001b[32mIn[94]\u001b[39m\u001b[32m, line 96\u001b[39m, in \u001b[36mgrammar_parser\u001b[39m\u001b[34m()\u001b[39m\n\u001b[32m     94\u001b[39m definition(\u001b[33m'\u001b[39m\u001b[33mname\u001b[39m\u001b[33m'\u001b[39m,          lexeme(\u001b[33mr\u001b[39m\u001b[33m'\u001b[39m\u001b[33m^[a-zA-Z][a-zA-Z0-9_]*\u001b[39m\u001b[33m'\u001b[39m))\n\u001b[32m     95\u001b[39m definition(\u001b[33m'\u001b[39m\u001b[33mterminal\u001b[39m\u001b[33m'\u001b[39m,      alternation(_(\u001b[33m\"\u001b[39m\u001b[33mstring\u001b[39m\u001b[33m\"\u001b[39m), _(\u001b[33m'\u001b[39m\u001b[33mregex\u001b[39m\u001b[33m'\u001b[39m)))\n\u001b[32m---> \u001b[39m\u001b[32m96\u001b[39m \u001b[43mdefinition\u001b[49m\u001b[43m(\u001b[49m\u001b[33;43m'\u001b[39;49m\u001b[33;43mnon_terminal\u001b[39;49m\u001b[33;43m'\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m  \u001b[49m\u001b[43m_\u001b[49m\u001b[43m(\u001b[49m\u001b[33;43m'\u001b[39;49m\u001b[33;43mname\u001b[39;49m\u001b[33;43m'\u001b[39;49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mreference\u001b[49m\u001b[43m)\u001b[49m\n\u001b[32m     97\u001b[39m definition(\u001b[33m'\u001b[39m\u001b[33maction\u001b[39m\u001b[33m'\u001b[39m,        lexeme(\u001b[33mr\u001b[39m\u001b[33m'\u001b[39m\u001b[33m^@\u001b[39m\u001b[33m\\\u001b[39m\u001b[33m{\u001b[39m\u001b[33m(.+?)\u001b[39m\u001b[33m\\\u001b[39m\u001b[33m}@\u001b[39m\u001b[33m'\u001b[39m, action))\n\u001b[32m     98\u001b[39m definition(\u001b[33m'\u001b[39m\u001b[33mbasic_match\u001b[39m\u001b[33m'\u001b[39m,   alternation(_(\u001b[33m'\u001b[39m\u001b[33mnon_terminal\u001b[39m\u001b[33m'\u001b[39m), _(\u001b[33m'\u001b[39m\u001b[33mterminal\u001b[39m\u001b[33m'\u001b[39m)))\n",
+      "\u001b[36mCell\u001b[39m\u001b[36m \u001b[39m\u001b[32mIn[94]\u001b[39m\u001b[32m, line 42\u001b[39m, in \u001b[36mgrammar_parser.<locals>.definition\u001b[39m\u001b[34m(id, p, act)\u001b[39m\n\u001b[32m     40\u001b[39m   a = act\n\u001b[32m     41\u001b[39m \u001b[38;5;28;01mif\u001b[39;00m a:\n\u001b[32m---> \u001b[39m\u001b[32m42\u001b[39m   p = \u001b[43maction\u001b[49m\u001b[43m(\u001b[49m\u001b[43mp\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43ma\u001b[49m\u001b[43m)\u001b[49m\n\u001b[32m     43\u001b[39m p = cache(p)\n\u001b[32m     44\u001b[39m definitions[\u001b[38;5;28mid\u001b[39m] = p\n",
+      "\u001b[31mTypeError\u001b[39m: grammar_parser.<locals>.action() takes 1 positional argument but 2 were given"
+     ]
+    }
+   ],
+   "source": [
+    "# Grammar V2\n",
+    "# WORK-IN-PROGRESS\n",
+    "def grammar_parser():\n",
+    "  gensym_i = 0\n",
+    "  def gensym(name):\n",
+    "    nonlocal gensym_i\n",
+    "    gensym_i += 1\n",
+    "    return f\"__{name}__{gensym_i}\"\n",
+    "\n",
+    "  definitions = {}\n",
+    "  def _(id):\n",
+    "    return lambda *args: definitions[id](*args)\n",
+    "\n",
+    "  def cache(p: Parser) -> Parser:\n",
+    "    '''\n",
+    "    Cache the result of p(input).\n",
+    "    This improves performance when a definition is\n",
+    "    parsed multiple times.\n",
+    "    '''\n",
+    "    d = {}\n",
+    "    def g(input):\n",
+    "      if v := d.get(input):\n",
+    "        # logging.debug('cached : %s => %s', repr(input), repr(v[0]))\n",
+    "        return v[0]\n",
+    "      v = p(input)\n",
+    "      d[input] = (v,)\n",
+    "      return v\n",
+    "    return g\n",
+    "\n",
+    "  def definition(id, p, act=None):\n",
+    "    log = partial(logging.debug, '  # %s')\n",
+    "    # p = trace(id, log, p)\n",
+    "    # p = cache(p)\n",
+    "    a = None\n",
+    "    if act is True:\n",
+    "      a = lambda x: (id, x)\n",
+    "    elif isinstance(act, str):\n",
+    "      a = lambda x: (act, x)\n",
+    "    elif act:\n",
+    "      a = act\n",
+    "    if a:\n",
+    "      p = action(p, a)\n",
+    "    p = cache(p)\n",
+    "    definitions[id] = p\n",
+    "\n",
+    "  def match_string(m):\n",
+    "    s = m[1]\n",
+    "    def g(input):\n",
+    "      if input.starts_with(s):\n",
+    "        return s, input[:len(s)]\n",
+    "    return g\n",
+    "\n",
+    "  def match_regex(m):\n",
+    "    rx = re.compile(m[1])\n",
+    "    def g(input):\n",
+    "      if m := re.search(rx, input):\n",
+    "        return s, input[:len(m[0])]\n",
+    "    return g\n",
+    "\n",
+    "  def reference(id):\n",
+    "    return lambda input: definitions[id](input)\n",
+    "\n",
+    "  env = {}\n",
+    "\n",
+    "  def action(m):\n",
+    "    body = m[1].strip()\n",
+    "    func_name = gensym('action')\n",
+    "    expr = ''\n",
+    "    expr += f\"\"\"\n",
+    "  def {func_name}(env):\n",
+    "\"\"\"\n",
+    "    for name, value in env:\n",
+    "      expr += f\"\"\"\n",
+    "    {name} = env[{name!r}]\n",
+    "\"\"\"\n",
+    "    expr += indent(body, 4)\n",
+    "    return expr\n",
+    "\n",
+    "  def bound_match(x):\n",
+    "    parser, _, name = x\n",
+    "    def g(input):\n",
+    "      value = env[name] = parser(input)\n",
+    "      return value\n",
+    "    return g\n",
+    "\n",
+    "  def set_env(x):\n",
+    "    k, _, v = x\n",
+    "    env[k] = v\n",
+    "    return v\n",
+    "\n",
+    "\n",
+    "  definition('string',        lexeme(r'^\"(\\\\\"|\\\\?[^\"]+)*\"', match_string))\n",
+    "  definition('regex',         lexeme(r'^/((\\\\/|(\\\\?[^/]+))*)/', match_regex))\n",
+    "  definition('name',          lexeme(r'^[a-zA-Z][a-zA-Z0-9_]*'))\n",
+    "  definition('terminal',      alternation(_(\"string\"), _('regex')))\n",
+    "  definition('non_terminal',  _('name'), reference)\n",
+    "  definition('action',        lexeme(r'^@\\{(.+?)\\}@', action))\n",
+    "  definition('basic_match',   alternation(_('non_terminal'), _('terminal')))\n",
+    "  definition('bound_match',   sequence_of(one(_('basic_match')), one(lexeme(r'^:')), one(_('name'))), bound_match)\n",
+    "  definition('match',         alternation(_('bound_match'), _('basic_match')))\n",
+    "  definition('matches',       one_or_more(_('match')))\n",
+    "  definition('matches_with_action', sequence_of(_('matches'), _('action')))\n",
+    "  definition('pattern',       alternation(_('matches_with_action'), _('matches')))\n",
+    "  definition('sequence',      sequence_of(_('pattern')), lambda x: ('sequence', x))\n",
+    "  definition('alternation',   sequence_of(one(_('sequence')), one(lexeme(r'\\|')), one(_('production'))),\n",
+    "                                lambda x: ('alternation', x[0], x[2]))\n",
+    "  definition('production',    alternation(_('alternation'), _('sequence')))\n",
+    "  definition('definition',    sequence_of(one(_('name')), one(lexeme(r\"=\")), one(_('production')), one(lexeme(r';'))),\n",
+    "                                set_env)\n",
+    "  definition('grammar',       sequence_of(one_or_more(_('definition'))), 'grammar')\n",
+    "\n",
+    "  def g(input, start=None):\n",
+    "    start = start or 'grammar'\n",
+    "    return _(start)(input)\n",
+    "  return g\n",
+    "\n",
+    "gram = grammar_parser()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def test(input, start=None):\n",
+    "  logging.debug(\"============================================\\n\")\n",
+    "  ic(input)\n",
+    "  result = gram(input, start)\n",
+    "  ic(start)\n",
+    "  ic(input)\n",
+    "  ic(result)\n",
+    "  parser = compile_grammar(result[0])\n",
+    "  logging.debug(parser)\n",
+    "\n",
+    "test('\"asdf\"', 'pattern')\n",
+    "test('  a = b c;')\n",
+    "test('a =b c|d;')\n",
+    "# test('a = b c | d | e f;')\n",
+    "# test('a = \"foo\";')\n",
+    "# test('b = /foo/:c;')\n",
+    "# test('a = b : x c : y @{ do_this(x, y) }@ ;')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "venv",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
