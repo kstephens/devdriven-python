@@ -224,3 +224,18 @@ def fixed_point(f: Callable, *args, **kwargs) -> Callable:
                 return y
 
     return g
+
+
+def count_calls(f):
+    "Combinator: returns a function g, that increment g._calls."
+
+    def counted(*args, **kwargs):
+        counted._calls += 1
+        return f(*args, **kwargs)
+
+    counted._calls, counted.__name__, counted.__qualname__ = (
+        0,
+        f.__name__,
+        f.__qualname__,
+    )
+    return counted

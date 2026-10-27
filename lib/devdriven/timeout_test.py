@@ -10,8 +10,8 @@ def test_with_timeout():
         time.sleep(sec)
         return 2
 
-    assert with_timeout(0.0, fn)(0.25) == 2
-    assert with_timeout(0.5, fn)(0.25) == 2
+    assert with_timeout(fn, 0.10)(0.01) == 2
+    assert with_timeout(fn, 0.10)(0.01) == 2
 
     with pytest.raises(TimeoutError):
-        with_timeout(0.5, fn)(0.75)
+        with_timeout(fn, 0.10)(0.5)
