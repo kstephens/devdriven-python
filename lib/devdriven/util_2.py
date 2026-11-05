@@ -12,7 +12,8 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple
 import yaml
 from pythonjsonlogger.json import JsonFormatter
 
-lib_dir: Path = Path(".")
+lib_dir: Path = Path(".").absolute()
+lib_dir_prefix: str = f"{lib_dir}/"
 
 
 Args = List[str]
@@ -127,12 +128,11 @@ def replace_nan(x: Any, value: Any = None) -> Any:
 
 def dir_dict(obj) -> dict:
     vals = [(k, getattr(obj, k)) for k in dir(obj)]
-    d = {
+    return {
         k: v
         for k, v in vals
         if isinstance(v, (int, str, float, list, dict)) and not k.startswith("__")
     }
-    return d
 
 
 def dict_without_none(d):
@@ -336,7 +336,7 @@ def logging_config(kwargs):
         {
             "stream": sys.stderr,
             "level": level,
-            "format": f"%(asctime)s %(levelname)-8s {os.getpid()} {prefix} %(message)s",
+            "format": f"%(asctime)s %(levelname)-8s %(process)d {prefix} %(message)s",
             "datefmt": "%Y-%m-%dT%H:%M:%S.%s%z",
         }
         | LOGGING_CONFIG
@@ -401,7 +401,7 @@ def execute(
     t0 = t1 = datetime.now(tz)
 
     if log:
-        logging.info("%s", f"{func.__qualname__} : started")
+        logging.info(f"{func.__qualname__} : started")
 
     result, exc, error = {}, None, None
     try:
@@ -419,12 +419,14 @@ def execute(
     elapsed_sec = (t1 - t0).total_seconds()
     elapsed_ms = round(elapsed_sec * 1000.0, 2)
 
-    error = error_data(result.get("error") or exc)
+    error = error_data(
+        result_error if (result_error := result.get("error")) is not None else exc
+    )
     if log:
-        logging.info("%s", f"{func.__qualname__} : finished : {elapsed_ms} ms")
+        logging.info(f"{func.__qualname__} : finished : {elapsed_ms} ms")
     if error:
         logging.error(
-            "%s", f"{func.__qualname__} : error : {error['class']} : {error['message']}"
+            f"{func.__qualname__} : error : {error['class']} : {error['message']}"
         )
 
     return {
@@ -437,16 +439,22 @@ def execute(
     }
 
 
-def error_data(error: Exception | dict | None) -> Dict[str, Any] | None:
+def error_data(error: Any) -> Dict[str, Any] | None:
+    if error is None:
+        return None
+    if isinstance(error, dict):
+        return error
     if isinstance(error, Exception):
         return {
-            "class": type(error).__name__,
+            "class": type(error).__qualname__,
             "message": str(error),
             "backtrace": [f"{file}:{line}" for file, line in backtrace_list(error)],
         }
-    if isinstance(error, dict):
-        return error
-    return None
+    return {
+        "class": type(error).__qualname__,
+        "message": str(error),
+        "backtrace": [],
+    }
 
 
 def merge_error(dst, src):
@@ -465,24 +473,12 @@ def backtrace_list(exc: BaseException) -> Backtrace:
     trb_extracted = traceback.extract_tb(trb)
     return [
         (
-            str(frame.filename).removeprefix(str(lib_dir) + "/"),
+            clean_filename(frame.filename),
             frame.lineno or 0,
         )
         for frame in trb_extracted
     ]
 
 
-def linked(
-    items: Iterable, size: int = 2, overlap: int = 1, include_tail: bool = False
-) -> Iterable[tuple]:
-    result = []
-    assert overlap < size
-    items = list(items)
-    i, n = 0, len(items)
-    while i < n:
-        chunk = items[i : i + size]
-        if not include_tail and len(chunk) < size:
-            break
-        result.append(tuple(items[i : i + size]))
-        i += size - overlap
-    return result
+def clean_filename(f: Path | str) -> str:
+    return str(Path(f).absolute()).removeprefix(lib_dir_prefix)

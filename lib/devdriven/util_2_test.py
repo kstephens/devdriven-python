@@ -5,7 +5,7 @@ from io import StringIO
 
 import pytest
 
-from . import util as sut
+from . import util_2 as sut
 
 
 def test_blank_or():
@@ -70,7 +70,7 @@ def test_combine_names():
 
     assert (
         sut.combine_names(g, "test", sut.mapcat, True).__qualname__
-        == "test(fds.util.mapcat)"
+        == "test(devdriven.util.mapcat)"
     )
 
     assert sut.combine_names(g, "test", sut.mapcat).__qualname__ == "test(mapcat)"
@@ -155,41 +155,6 @@ def test_output_response():
     assert check("yaml") == "hello: world!\n"
     assert check("text") == "{'hello': 'world!'}\n"
     assert check("none") == ""
-
-
-def test_links():
-    assert not sut.linked([], 2)
-    assert not sut.linked([1], 2)
-    assert sut.linked((1, 2), 2) == [(1, 2)]
-    assert sut.linked((1, 2, 3, 4), 2) == [(1, 2), (2, 3), (3, 4)]
-    assert sut.linked((1, 2, 3, 4), 2, include_tail=True) == [
-        (1, 2),
-        (2, 3),
-        (3, 4),
-        (4,),
-    ]
-    assert not sut.linked([], 3)
-    assert not sut.linked([1], 3)
-    assert not sut.linked((1, 2), 3)
-    assert sut.linked((1, 2), 3, include_tail=True) == [(1, 2)]
-    assert sut.linked((1, 2, 3, 4, 5), 3) == [(1, 2, 3), (3, 4, 5)]
-    assert sut.linked((1, 2, 3, 4, 5), 3, include_tail=True) == [
-        (1, 2, 3),
-        (3, 4, 5),
-        (5,),
-    ]
-    assert sut.linked((1, 2, 3, 4, 5, 6), 3) == [(1, 2, 3), (3, 4, 5)]
-    assert sut.linked((1, 2, 3, 4, 5, 6), 3, include_tail=True) == [
-        (1, 2, 3),
-        (3, 4, 5),
-        (5, 6),
-    ]
-    assert sut.linked((1, 2, 3, 4, 5, 6), 3, overlap=2) == [
-        (1, 2, 3),
-        (2, 3, 4),
-        (3, 4, 5),
-        (4, 5, 6),
-    ]
 
 
 def test_execute():

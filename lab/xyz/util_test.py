@@ -75,7 +75,7 @@ def test_combine_names():
 
     assert (
         sut.combine_names(g, "test", sut.mapcat, True).__qualname__
-        == "test(fds.util.mapcat)"
+        == "test(devdriven.util.mapcat)"
     )
 
     assert sut.combine_names(g, "test", sut.mapcat).__qualname__ == "test(mapcat)"

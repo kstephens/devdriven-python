@@ -1,0 +1,9 @@
+a:
+  - name: foo
+    x: 1
+    y: "234"
+    set_environ: "| ${TEST_ENVIRON_SET} |"
+    unset_environ: "| ${TEST_ENVIRON_UNSET} |"
+    not_environ: "| $NOT_ENVIRON |"
+b: override
+# recur: "${UNDEFINED:-${TEST_ENVIRON}}"

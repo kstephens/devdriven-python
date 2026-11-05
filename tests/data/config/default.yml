@@ -1,0 +1,8 @@
+a: default
+b: default
+c:
+  d: default
+
+environ:
+  TEST_ENVIRON: 123
+  TEST_ENVIRON_DELETE_ME: null

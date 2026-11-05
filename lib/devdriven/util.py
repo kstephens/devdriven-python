@@ -626,6 +626,12 @@ def backtrace_list(exc: BaseException) -> Backtrace:
     ]
 
 
+def print_backtrace():
+    try:
+        raise RuntimeError("print_backtrace")
+    except RuntimeError:
+        traceback.print_exc()
+
 #####################################################################
 
 
